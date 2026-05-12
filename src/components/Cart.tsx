@@ -94,7 +94,7 @@ const Cart: React.FC<CartProps> = ({
         {/* Empty state */}
         {cartItems.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ background: 'linear-gradient(135deg, #FFF0F5, #FFE4EE)' }}>
+            <div className="w-20 h-20 rounded-full flex items-center justify-center mb-5" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
               <ShoppingBag className="w-9 h-9 text-brand-400" />
             </div>
             <h3 className="font-heading text-lg font-bold text-charcoal-900 mb-2">Your cart is empty</h3>
@@ -123,7 +123,7 @@ const Cart: React.FC<CartProps> = ({
                     {/* Thumbnail */}
                     <div
                       className="w-16 h-16 rounded-xl flex-shrink-0 border border-brand-100 overflow-hidden"
-                      style={{ background: 'linear-gradient(135deg, #FFF0F5, #FFE4EE)' }}
+                      style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}
                     >
                       {item.product.image_url ? (
                         <img

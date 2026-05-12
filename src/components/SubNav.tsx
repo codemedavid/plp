@@ -42,7 +42,7 @@ const SubNav: React.FC<SubNavProps> = ({ selectedCategory, onCategoryClick }) =>
                                         : 'bg-white text-charcoal-500 hover:text-brand-600 hover:bg-brand-50 border border-brand-200'
                                     }
                 `}
-                                style={isSelected ? { background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' } : undefined}
+                                style={isSelected ? { background: 'linear-gradient(135deg, #A8D5E5, #5FA8C8)' } : undefined}
                             >
                                 <span>{category.name}</span>
                             </button>

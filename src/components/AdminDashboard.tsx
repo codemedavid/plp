@@ -16,6 +16,7 @@ import SiteSettingsManager from './SiteSettingsManager';
 import PromoCodeManager from './PromoCodeManager';
 import CourierManager from './CourierManager';
 import ProtocolManager from './ProtocolManager';
+import ReferralManager from './ReferralManager';
 // GuideManager removed (Peptalk functionality disabled)
 
 type CollapsibleSectionProps = {
@@ -75,7 +76,7 @@ const AdminDashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const { products, loading, addProduct, updateProduct, deleteProduct, refreshProducts } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals'>('dashboard');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [managingVariationsProductId, setManagingVariationsProductId] = useState<string | null>(null);
@@ -453,13 +454,6 @@ const AdminDashboard: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-md border border-gray-200">
           <div className="text-center mb-6">
-            <div className="mx-auto mb-4">
-              <img
-                src="/logo.svg"
-                alt="VR Jonina"
-                className="h-14 w-auto mx-auto object-contain"
-              />
-            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">Admin Access</h1>
             <p className="text-sm text-gray-400">
               Enter password to continue
@@ -1584,6 +1578,10 @@ const AdminDashboard: React.FC = () => {
   }
 
   // Protocols View
+  if (currentView === 'referrals') {
+    return <ReferralManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
   if (currentView === 'protocols') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -1675,13 +1673,6 @@ const AdminDashboard: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-4">
-                <div className="h-10 flex items-center">
-                  <img
-                    src="/logo.svg"
-                    alt="VR Jonina"
-                    className="h-10 w-auto object-contain"
-                  />
-                </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
@@ -1929,6 +1920,18 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <span className="block text-sm font-semibold text-gray-900 group-hover:text-rose-600 transition-colors">Protocols</span>
                     <span className="text-xs text-gray-500">Peptide guides</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setCurrentView('referrals')}
+                  className="group flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-emerald-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Shield className="h-4 w-4 md:h-5 md:w-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">Referrals</span>
+                    <span className="text-xs text-gray-500">Config & withdrawals</span>
                   </div>
                 </button>
               </div>

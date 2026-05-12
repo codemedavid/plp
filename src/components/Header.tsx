@@ -1,83 +1,132 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Menu, X, Heart, Truck, HelpCircle, FileText, BookOpen } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut, Gift } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import AuthModal from './AuthModal';
 
 interface HeaderProps {
   cartItemsCount: number;
   onCartClick: () => void;
   onMenuClick: () => void;
+  onAccountClick?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClick, onAccountClick }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const openAuth = () => {
+    if (onAccountClick) onAccountClick();
+    else setAuthOpen(true);
+  };
+
+  const goToCatalog = () => {
+    onMenuClick();
+    if (window.location.pathname !== '/') {
+      window.location.href = '/#all-products';
+      return;
+    }
+    setTimeout(() => {
+      const el = document.getElementById('all-products');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  };
+
+  const navLinks = [
+    { label: 'PRODUCTS', href: '/#all-products', onClick: goToCatalog },
+    { label: 'PROTOCOLS', href: '/protocols' },
+    { label: 'COA', href: '/coa' },
+    { label: 'TRACK ORDER', href: '/track-order' },
+  ];
 
   return (
     <>
-      <header className="backdrop-blur-sm sticky top-0 z-50 border-b border-brand-200" style={{ background: 'linear-gradient(135deg, rgba(255,240,245,0.97), rgba(255,250,252,0.97))' }}>
-        {/* Top ribbon strip */}
-        <div className="h-1" style={{ background: 'linear-gradient(90deg, #FFB6C8, #E8739B, #FF85A2, #FFB6C8)' }} />
-        <div className="container mx-auto px-4 md:px-6 py-3">
+      <header className="sticky top-0 z-50 bg-white border-b border-charcoal-100">
+        <div className="container mx-auto px-4 md:px-8 py-5">
           <div className="flex items-center justify-between gap-4">
-            {/* Logo / Brand Name */}
+            {/* Logo */}
             <button
               onClick={() => { onMenuClick(); setMobileMenuOpen(false); }}
-              className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+              className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
             >
-              <img src="/logo.svg" alt="VR Jonina" className="w-8 h-8 sm:w-9 sm:h-9" />
-              <span className="font-heading text-xl sm:text-2xl font-semibold tracking-tight">
-                <span className="text-charcoal-800">VR</span>{' '}
-                <span className="text-brand-500">Jonina</span>
+              <span className="flex flex-col leading-tight items-start">
+                <span className="font-heading text-base sm:text-lg font-normal tracking-[0.18em] text-gold-600 uppercase">
+                  Peptide
+                </span>
+                <span className="text-[0.55rem] sm:text-[0.6rem] tracking-[0.28em] uppercase text-gold-600 -mt-0.5 font-medium">
+                  Lifestyle Program
+                </span>
               </span>
             </button>
 
-            {/* Right Side Navigation */}
-            <div className="flex items-center gap-2 md:gap-6 ml-auto">
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center gap-1 lg:gap-2">
-                <button
-                  onClick={onMenuClick}
-                  className="text-sm font-medium text-charcoal-600 hover:text-brand-600 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-cute"
-                >
-                  <Heart className="w-4 h-4" fill="currentColor" />
-                  Products
-                </button>
+            {/* Center Navigation */}
+            <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+              {navLinks.map((link) => (
                 <a
-                  href="/track-order"
-                  className="text-sm font-medium text-charcoal-600 hover:text-brand-600 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-cute"
+                  key={link.label}
+                  href={link.href}
+                  onClick={link.onClick ? (e) => { e.preventDefault(); link.onClick?.(); } : undefined}
+                  className="text-[11px] font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 transition-colors flex items-center gap-1"
                 >
-                  <Truck className="w-4 h-4" />
-                  Track Order
+                  {link.label}
                 </a>
-                <a
-                  href="/faq"
-                  className="text-sm font-medium text-charcoal-600 hover:text-brand-600 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-cute"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  FAQ
-                </a>
-                <a
-                  href="/coa"
-                  className="text-sm font-medium text-charcoal-600 hover:text-brand-600 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-cute"
-                >
-                  <FileText className="w-4 h-4" />
-                  COA
-                </a>
-                <a
-                  href="/protocols"
-                  className="text-sm font-medium text-charcoal-600 hover:text-brand-600 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 font-cute"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Protocols
-                </a>
-              </nav>
+              ))}
+            </nav>
 
-              {/* Cart Button */}
+            {/* Right icons */}
+            <div className="flex items-center gap-3 ml-auto lg:ml-0">
+              <div className="relative hidden sm:flex">
+                <button
+                  aria-label="Account"
+                  onClick={() => {
+                    if (user) {
+                      setAccountMenuOpen((v) => !v);
+                    } else {
+                      openAuth();
+                    }
+                  }}
+                  className="p-2 text-navy-900 hover:text-gold-600 transition-colors flex items-center gap-1"
+                >
+                  <User className="w-5 h-5" strokeWidth={1.5} />
+                </button>
+                {user && accountMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-charcoal-100 rounded shadow-lg z-50">
+                    <div className="px-4 py-3 border-b border-charcoal-100">
+                      <div className="text-[10px] tracking-[0.18em] uppercase text-charcoal-500">Signed in as</div>
+                      <div className="text-sm text-navy-900 truncate">{user.email}</div>
+                    </div>
+                    <Link
+                      to="/user/profile"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-xs tracking-[0.18em] uppercase text-navy-900 hover:bg-cream-light hover:text-gold-600 transition-colors border-b border-charcoal-100"
+                    >
+                      <Gift className="w-4 h-4" strokeWidth={1.5} />
+                      My Rewards
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        setAccountMenuOpen(false);
+                        await signOut();
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-xs tracking-[0.18em] uppercase text-navy-900 hover:bg-cream-light hover:text-gold-600 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={1.5} />
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={onCartClick}
-                className="relative p-2.5 text-brand-600 hover:bg-brand-50 rounded-xl transition-colors"
+                className="relative p-2 text-navy-900 hover:text-gold-600 transition-colors"
+                aria-label="Cart"
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-5 h-5" strokeWidth={1.5} />
                 {cartItemsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1" style={{ background: 'linear-gradient(135deg, #FF85A2, #E8739B)' }}>
+                  <span className="absolute -top-0.5 -right-0.5 bg-navy-900 text-white text-[10px] font-semibold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                     {cartItemsCount > 99 ? '99+' : cartItemsCount}
                   </span>
                 )}
@@ -86,107 +135,83 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2.5 text-brand-600 hover:bg-brand-50 rounded-xl transition-colors"
+                className="lg:hidden p-2 text-navy-900 hover:text-gold-600 transition-colors"
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? (
-                  <X className="w-6 h-6" />
-                ) : (
-                  <Menu className="w-6 h-6" />
-                )}
+                {mobileMenuOpen ? <X className="w-6 h-6" strokeWidth={1.5} /> : <Menu className="w-6 h-6" strokeWidth={1.5} />}
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Navigation Menu */}
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[60]">
-          {/* Backdrop */}
+        <div className="lg:hidden fixed inset-0 z-[60]">
           <div
-            className="absolute inset-0 bg-brand-900/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
-
-          {/* Sidebar Drawer */}
           <div
-            className="absolute top-0 right-0 bottom-0 w-[300px] shadow-2xl border-l border-brand-200 flex flex-col"
-            style={{ background: 'linear-gradient(180deg, #FFF0F5, #FFFFFF)' }}
+            className="absolute top-0 right-0 bottom-0 w-[300px] bg-white shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between p-5 border-b border-brand-200">
+            <div className="flex items-center justify-between p-5 border-b border-charcoal-100">
               <div className="flex items-center gap-2">
-                <img src="/logo.svg" alt="VR Jonina" className="w-7 h-7" />
-                <span className="font-heading text-lg font-semibold">
-                  <span className="text-charcoal-800">VR</span>{' '}
-                  <span className="text-brand-500">Jonina</span>
+                <span className="flex flex-col leading-tight">
+                  <span className="font-heading text-sm tracking-[0.18em] text-gold-600 uppercase">Peptide</span>
+                  <span className="text-[0.55rem] tracking-[0.28em] uppercase text-gold-600 -mt-0.5">Lifestyle Program</span>
                 </span>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 text-charcoal-400 hover:text-brand-500 transition-colors rounded-xl hover:bg-brand-50"
+                className="p-2 text-navy-900 hover:text-gold-600 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" strokeWidth={1.5} />
               </button>
             </div>
 
-            {/* Navigation Items */}
             <nav className="flex-1 overflow-y-auto p-4">
-              <div className="flex flex-col space-y-1">
-                <button
-                  onClick={() => {
-                    onMenuClick();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 p-4 rounded-xl text-left font-medium text-charcoal-700 hover:bg-brand-50 transition-colors font-cute"
-                >
-                  <div className="p-2 rounded-xl bg-brand-50 text-brand-500">
-                    <Heart className="w-[18px] h-[18px]" fill="currentColor" />
-                  </div>
-                  Products
-                </button>
-
-                <a
-                  href="/track-order"
-                  className="flex items-center gap-3 p-4 rounded-xl text-left font-medium text-charcoal-700 hover:bg-brand-50 transition-colors font-cute"
-                >
-                  <div className="p-2 rounded-xl bg-brand-50 text-brand-500">
-                    <Truck className="w-[18px] h-[18px]" />
-                  </div>
-                  Track Order
-                </a>
-
-                <a
-                  href="/faq"
-                  className="flex items-center gap-3 p-4 rounded-xl text-left font-medium text-charcoal-700 hover:bg-brand-50 transition-colors font-cute"
-                >
-                  <div className="p-2 rounded-xl bg-brand-50 text-brand-500">
-                    <HelpCircle className="w-[18px] h-[18px]" />
-                  </div>
-                  FAQ
-                </a>
-
-                <a
-                  href="/coa"
-                  className="flex items-center gap-3 p-4 rounded-xl text-left font-medium text-charcoal-700 hover:bg-brand-50 transition-colors font-cute"
-                >
-                  <div className="p-2 rounded-xl bg-brand-50 text-brand-500">
-                    <FileText className="w-[18px] h-[18px]" />
-                  </div>
-                  Certificate of Analysis
-                </a>
-
-                <a
-                  href="/protocols"
-                  className="flex items-center gap-3 p-4 rounded-xl text-left font-medium text-charcoal-700 hover:bg-brand-50 transition-colors font-cute"
-                >
-                  <div className="p-2 rounded-xl bg-brand-50 text-brand-500">
-                    <BookOpen className="w-[18px] h-[18px]" />
-                  </div>
-                  Protocols
-                </a>
+              <div className="flex flex-col">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    onClick={(e) => {
+                      if (link.onClick) { e.preventDefault(); link.onClick(); }
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+                {user ? (
+                  <>
+                    <Link
+                      to="/user/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 flex items-center gap-2"
+                    >
+                      <Gift className="w-4 h-4" strokeWidth={1.5} /> MY REWARDS
+                    </Link>
+                    <button
+                      onClick={async () => { setMobileMenuOpen(false); await signOut(); }}
+                      className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 text-left flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={1.5} /> SIGN OUT
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); openAuth(); }}
+                    className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 text-left flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" strokeWidth={1.5} /> SIGN IN
+                  </button>
+                )}
               </div>
             </nav>
           </div>

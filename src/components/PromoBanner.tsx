@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, X, Check, Sparkles } from 'lucide-react';
+import { X, Check, Sparkles, ArrowRight } from 'lucide-react';
 import posthog from 'posthog-js';
 
 const BANNER_DISMISSED_KEY = 'biorich_banner_dismissed';
@@ -27,8 +27,6 @@ export default function PromoBanner() {
 
     setStatus('success');
     setShowConfirmPopup(true);
-    // Only capture event — do NOT identify here to avoid cross-customer
-    // identity merging when a different customer checks out later on the same device
     posthog.capture('vrjonina_promo_banner', { email: trimmed });
   };
 
@@ -41,76 +39,97 @@ export default function PromoBanner() {
 
   return (
     <>
-      {/* Banner */}
-      <div className="w-full py-1.5 sm:py-2 px-3 sm:px-4 pr-8 sm:pr-10 relative" style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}>
-        <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3">
-          <span className="text-white text-[11px] sm:text-sm font-medium flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
-            <Mail className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            Get notified about promos & discounts!
-          </span>
+      {/* Banner — luxury navy with gold hairline accents */}
+      <div className="relative w-full bg-navy-900 text-white overflow-hidden">
+        {/* Top + bottom gold hairlines */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-70" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-40" />
 
-          {status === 'success' ? (
-            <span className="text-white text-[11px] sm:text-sm font-medium flex items-center gap-1 sm:gap-1.5">
-              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Subscribed!
-            </span>
-          ) : (
-            <form onSubmit={handleSubmit} className="flex items-center gap-1.5 sm:gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-                placeholder="Enter your email"
-                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-sm bg-white/90 text-pink-800 placeholder-pink-300 border-2 focus:outline-none transition-colors w-40 sm:w-56 ${
-                  status === 'error' ? 'border-red-400' : 'border-transparent focus:border-white/50'
-                }`}
-              />
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="px-3 sm:px-4 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-sm font-semibold bg-white text-pink-600 hover:bg-pink-50 transition-colors disabled:opacity-60 whitespace-nowrap"
-              >
-                {status === 'loading' ? '...' : 'Subscribe'}
-              </button>
-            </form>
-          )}
+        <div className="container mx-auto px-4 sm:px-8 py-2.5 pr-10 sm:pr-12">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
+
+            {/* Message with eyebrow tag */}
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-flex items-center text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-500">
+                <span className="w-6 h-px bg-gold-500 mr-3" />
+                Exclusive
+              </span>
+              <span className="text-[12px] sm:text-sm font-light tracking-wide whitespace-nowrap">
+                Join the Inner Circle for <span className="text-gold-400 font-medium">early access & private offers</span>
+              </span>
+            </div>
+
+            {/* Form */}
+            {status === 'success' ? (
+              <span className="inline-flex items-center gap-2 text-[12px] sm:text-sm font-medium text-gold-400">
+                <Check className="w-4 h-4" strokeWidth={2} />
+                You're on the list.
+              </span>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex items-stretch gap-0">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
+                  placeholder="your@email.com"
+                  className={`px-3.5 py-2 text-[12px] sm:text-[13px] bg-transparent text-white placeholder-white/40 border-b focus:outline-none transition-colors w-44 sm:w-60 ${
+                    status === 'error' ? 'border-red-400' : 'border-white/30 focus:border-gold-500'
+                  }`}
+                />
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="group inline-flex items-center gap-2 pl-4 pr-1 py-2 text-[10px] sm:text-[11px] font-semibold tracking-[0.22em] uppercase text-gold-500 hover:text-gold-300 transition-colors disabled:opacity-60 whitespace-nowrap"
+                >
+                  {status === 'loading' ? '...' : 'Subscribe'}
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.8} />
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
+        {/* Close */}
         <button
           onClick={close}
-          className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 p-1 rounded-full hover:bg-white/20 transition-colors"
+          aria-label="Dismiss banner"
+          className="absolute top-1/2 -translate-y-1/2 right-3 sm:right-5 p-1 text-white/50 hover:text-gold-500 transition-colors"
         >
-          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/80" />
+          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={1.5} />
         </button>
       </div>
 
       {/* Confirmation Popup */}
       {showConfirmPopup && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={() => setShowConfirmPopup(false)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-navy-900/50 backdrop-blur-sm" />
           <div
-            className="relative w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up"
-            style={{ background: 'linear-gradient(180deg, #FFF0F5 0%, #FFFFFF 100%)' }}
+            className="relative w-full max-w-sm bg-white shadow-luxury overflow-hidden animate-fade-in-up border border-gold-300"
+            style={{ borderRadius: '2px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="h-2 w-full" style={{ background: 'linear-gradient(90deg, #FFB6C8, #E8739B, #FFB6C8)' }} />
+            <div className="h-1 w-full bg-gold-500" />
             <div className="px-8 pt-8 pb-8 text-center">
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-pink-100 flex items-center justify-center">
-                  <Sparkles size={32} className="text-pink-500" />
+              <div className="flex justify-center mb-5">
+                <div className="w-14 h-14 rounded-full border border-gold-500 flex items-center justify-center text-gold-600">
+                  <Sparkles size={24} strokeWidth={1.4} />
                 </div>
               </div>
-              <h2 className="text-xl font-bold text-pink-700 font-display mb-2">
-                Thank You for Subscribing!
+              <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-600 mb-3">
+                Welcome
+              </p>
+              <h2 className="font-heading text-2xl font-normal text-navy-900 mb-3 tracking-tight">
+                You're In.
               </h2>
-              <p className="text-pink-600/80 text-sm mb-6">
-                You will now receive notifications about our latest promos & exclusive discounts. Stay tuned!
+              <p className="text-charcoal-500 text-sm font-light leading-relaxed mb-7">
+                Look out for early access to new products and private offers — delivered with care.
               </p>
               <button
                 onClick={() => setShowConfirmPopup(false)}
-                className="w-full py-3 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}
+                className="w-full py-3.5 text-[11px] font-semibold tracking-[0.22em] uppercase bg-navy-900 text-white hover:bg-navy-700 transition-colors"
+                style={{ borderRadius: '2px' }}
               >
-                Got it!
+                Continue
               </button>
             </div>
           </div>

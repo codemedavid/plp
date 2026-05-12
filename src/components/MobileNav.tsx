@@ -20,7 +20,7 @@ const MobileNav: React.FC<MobileNavProps> = ({ activeCategory, onCategoryClick }
                 ? 'text-white shadow-glow'
                 : 'bg-white text-charcoal-500 border border-brand-200 hover:bg-brand-50 hover:text-brand-600'
               }`}
-            style={activeCategory === category.id ? { background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' } : undefined}
+            style={activeCategory === category.id ? { background: 'linear-gradient(135deg, #A8D5E5, #5FA8C8)' } : undefined}
           >
             {category.name}
           </button>

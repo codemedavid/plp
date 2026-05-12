@@ -117,7 +117,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
                 >
                   <div
                     className="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden border border-brand-100"
-                    style={{ background: 'linear-gradient(135deg, #FFF0F5, #FFE4EE)' }}
+                    style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}
                   >
                     {product.image_url ? (
                       <img
@@ -187,7 +187,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
               >
                 <div
                   className="aspect-square overflow-hidden border-b border-brand-100"
-                  style={{ background: 'linear-gradient(135deg, #FFF0F5, #FFE4EE)' }}
+                  style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}
                 >
                   {product.image_url ? (
                     <img

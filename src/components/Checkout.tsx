@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ShieldCheck, Package, CreditCard, Heart, Copy, Check, MessageCircle, Tag, Upload, Database, Lock, Truck } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Package, CreditCard, Heart, Copy, Check, MessageCircle, Tag, Upload, Database, Lock, Truck, AlertTriangle, X } from 'lucide-react';
 import posthog from 'posthog-js';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
 import { KIT_UPGRADE_PRICE } from '../types';
@@ -9,6 +9,8 @@ import { useCouriers } from '../hooks/useCouriers';
 import { supabase } from '../lib/supabase';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { useRecommendations } from '../hooks/useRecommendations';
+import { useAuth } from '../hooks/useAuth';
+import { useReferral } from '../hooks/useReferral';
 import RecommendationRail from './RecommendationRail';
 import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
 
@@ -57,9 +59,18 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
     const [orderNumber, setOrderNumber] = useState<string>('');
 
+    // Policies acknowledgment
+    const [policiesAccepted, setPoliciesAccepted] = useState(false);
+    const [showPoliciesModal, setShowPoliciesModal] = useState(false);
+
     // Payment Proof
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
     const { uploadImage, uploading: isUploadingProof } = useImageUpload('payment-proofs');
+
+    // Points redemption (1 pt = ₱1)
+    const { user } = useAuth();
+    const { balance: pointsBalance, refresh: refreshReferral } = useReferral();
+    const [pointsToRedeem, setPointsToRedeem] = useState<number>(0);
 
     // Promo Code State
     const [promoCode, setPromoCode] = useState('');
@@ -83,8 +94,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     const selectedLocation = shippingLocations.find(loc => loc.id === shippingLocation);
     const shippingFee = selectedLocation ? selectedLocation.fee : 0;
 
-    // Calculate final total (Subtotal + Shipping - Discount)
-    const finalTotal = Math.max(0, totalPrice + shippingFee - discountAmount);
+    // Cap points redemption: cannot exceed balance or (subtotal - promo discount)
+    const maxRedeemable = Math.max(0, Math.min(pointsBalance, totalPrice - discountAmount));
+    const effectivePointsRedeemed = Math.max(0, Math.min(pointsToRedeem, maxRedeemable));
+
+    // Calculate final total (Subtotal + Shipping - Discount - Points)
+    const finalTotal = Math.max(0, totalPrice + shippingFee - discountAmount - effectivePointsRedeemed);
 
     // Handle Promo Code Application
     const handleApplyPromoCode = async () => {
@@ -204,6 +219,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
 
     const handlePlaceOrder = async () => {
+        if (!policiesAccepted) {
+            setShowPoliciesModal(true);
+            return;
+        }
+
         if (!contactMethod) {
             alert('Please select your preferred contact method.');
             return;
@@ -264,7 +284,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
             // Generate order number before saving
             const randomDigits = Math.floor(Math.random() * 9000 + 1000); // 1000-9999
-            const customOrderNumber = `VRJ-${randomDigits}`;
+            const customOrderNumber = `PLP-${randomDigits}`;
 
             // Save order to database
             const { data: orderData, error: orderError } = await supabase
@@ -293,7 +313,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                     promo_code_id: appliedPromo?.id || null,
                     promo_code: appliedPromo?.code || null,
                     discount_applied: discountAmount,
-                    order_number: customOrderNumber
+                    order_number: customOrderNumber,
+                    user_id: user?.id || null,
+                    points_redeemed: effectivePointsRedeemed
                 }])
                 .select()
                 .single();
@@ -310,6 +332,19 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
                 alert(`Failed to save order: ${errorMessage}\n\nPlease contact support if this issue persists.`);
                 return;
+            }
+
+            // Write points-redemption ledger debit
+            if (user && effectivePointsRedeemed > 0 && orderData?.id) {
+                const { error: ledgerError } = await supabase.from('points_ledger').insert({
+                    user_id: user.id,
+                    delta: -effectivePointsRedeemed,
+                    reason: 'redemption',
+                    source_order_id: orderData.id,
+                    notes: `Order ${orderData.order_number}`,
+                });
+                if (ledgerError) console.error('Failed to write points ledger:', ledgerError);
+                else refreshReferral();
             }
 
             // Update promo code usage count
@@ -374,7 +409,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             });
 
             const orderDetails = `
-✨ VR Jonina - NEW ORDER
+✨ Peptide Lifestyle Program - NEW ORDER
 
 📅 ORDER DATE & TIME
 ${dateTimeStamp}
@@ -707,6 +742,28 @@ Please confirm this order. Thank you!
                                 />
                             </div>
 
+                            {/* Policies & Acknowledgment */}
+                            <div className="bg-white rounded-2xl shadow-soft p-6 border border-brand-100">
+                                <h2 className="font-heading text-lg font-bold text-charcoal-900 mb-4 flex items-center gap-2">
+                                    <ShieldCheck className="w-5 h-5 text-brand-600" />
+                                    Policies & Acknowledgment
+                                </h2>
+                                <div className="max-h-72 overflow-y-auto pr-2 mb-4 space-y-5 text-sm text-gray-700 border border-gray-100 rounded-lg p-4 bg-gray-50/60">
+                                    <PoliciesContent />
+                                </div>
+                                <label className="flex items-start gap-3 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={policiesAccepted}
+                                        onChange={(e) => setPoliciesAccepted(e.target.checked)}
+                                        className="mt-1 w-4 h-4 text-brand-600 focus:ring-brand-500 rounded"
+                                    />
+                                    <span className="text-sm text-charcoal-900">
+                                        I have read and agree to the Shipping Policy, Returns & Refunds Policy, Health & Safety Disclaimer, and take full responsibility for my purchasing decision.
+                                    </span>
+                                </label>
+                            </div>
+
                             <button
                                 onClick={handlePlaceOrder}
                                 disabled={!paymentProof || isUploadingProof}
@@ -714,6 +771,59 @@ Please confirm this order. Thank you!
                             >
                                 {isUploadingProof ? 'Uploading Proof...' : 'Complete Order'}
                             </button>
+
+                            {/* Policies Required Modal */}
+                            {showPoliciesModal && (
+                                <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center px-4 py-8">
+                                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+                                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-amber-50 p-2 rounded-full">
+                                                    <AlertTriangle className="w-6 h-6 text-amber-600" />
+                                                </div>
+                                                <h3 className="font-heading text-xl font-bold text-charcoal-900">
+                                                    Please Review Our Policies
+                                                </h3>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowPoliciesModal(false)}
+                                                aria-label="Close"
+                                                className="text-gray-400 hover:text-charcoal-900 transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                        <div className="p-6 overflow-y-auto flex-1">
+                                            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-3 mb-5">
+                                                You must read and acknowledge the policies below before completing your order.
+                                            </p>
+                                            <div className="space-y-5 text-sm text-gray-700">
+                                                <PoliciesContent />
+                                            </div>
+                                        </div>
+                                        <div className="p-6 border-t border-gray-100 space-y-3">
+                                            <label className="flex items-start gap-3 cursor-pointer select-none">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={policiesAccepted}
+                                                    onChange={(e) => setPoliciesAccepted(e.target.checked)}
+                                                    className="mt-1 w-4 h-4 text-brand-600 focus:ring-brand-500 rounded"
+                                                />
+                                                <span className="text-sm text-charcoal-900">
+                                                    I have read and agree to all policies above and take full responsibility for my purchasing decision.
+                                                </span>
+                                            </label>
+                                            <button
+                                                onClick={() => setShowPoliciesModal(false)}
+                                                disabled={!policiesAccepted}
+                                                className="w-full btn-primary py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {policiesAccepted ? 'Continue' : 'Please tick the checkbox to continue'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Sidebar Summary (Reused logic, simplified UI) */}
@@ -750,6 +860,12 @@ Please confirm this order. Thank you!
                                         <div className="flex justify-between text-brand-600 font-medium">
                                             <span>Discount</span>
                                             <span>-₱{discountAmount.toLocaleString()}</span>
+                                        </div>
+                                    )}
+                                    {effectivePointsRedeemed > 0 && (
+                                        <div className="flex justify-between text-emerald-700 font-medium">
+                                            <span>Points</span>
+                                            <span>-₱{effectivePointsRedeemed.toLocaleString()}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between font-bold text-charcoal-900 text-lg pt-2">
@@ -1116,6 +1232,34 @@ Please confirm this order. Thank you!
                             {promoSuccess && <p className="text-brand-600 text-xs mt-1 font-medium">{promoSuccess}</p>}
                         </div>
 
+                        {/* Points Redemption */}
+                        {user && pointsBalance > 0 && (
+                            <div className="mb-6 pt-2">
+                                <p className="text-xs font-bold text-brand-700 uppercase mb-2 flex items-center gap-1">
+                                    <Tag className="w-3 h-3" /> Use Points (Balance: {pointsBalance.toLocaleString()})
+                                </p>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        value={pointsToRedeem || ''}
+                                        onChange={(e) => setPointsToRedeem(Math.max(0, Math.min(maxRedeemable, Number(e.target.value) || 0)))}
+                                        placeholder="0"
+                                        min={0}
+                                        max={maxRedeemable}
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setPointsToRedeem(maxRedeemable)}
+                                        className="px-3 py-2 bg-brand-50 text-brand-700 rounded text-xs font-bold border border-brand-200 hover:bg-brand-100 shrink-0"
+                                    >
+                                        MAX
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">1 pt = ₱1 — up to ₱{maxRedeemable.toLocaleString()} on this order.</p>
+                            </div>
+                        )}
+
                         <div className="space-y-2 text-sm text-gray-600 border-t border-gray-100 pt-4">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
@@ -1127,9 +1271,15 @@ Please confirm this order. Thank you!
                                     <span>-₱{discountAmount.toLocaleString()}</span>
                                 </div>
                             )}
+                            {effectivePointsRedeemed > 0 && (
+                                <div className="flex justify-between text-emerald-700 font-medium">
+                                    <span>Points</span>
+                                    <span>-₱{effectivePointsRedeemed.toLocaleString()}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between font-bold text-charcoal-900 text-base pt-2">
                                 <span>Total Estimate</span>
-                                <span>₱{Math.max(0, totalPrice - discountAmount).toLocaleString()}</span>
+                                <span>₱{Math.max(0, totalPrice - discountAmount - effectivePointsRedeemed).toLocaleString()}</span>
                             </div>
                             <p className="text-xs text-gray-400 text-right italic">+ Shipping fee added at payment</p>
                         </div>
@@ -1153,5 +1303,67 @@ Please confirm this order. Thank you!
         </div>
     );
 };
+
+const PoliciesContent: React.FC = () => (
+    <>
+        <section>
+            <h4 className="font-bold text-charcoal-900 mb-1">📦 Shipping Policy</h4>
+            <p className="mb-2">We aim to process and dispatch all orders efficiently while maintaining product integrity.</p>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>Shipping is fulfilled based on order volume and availability</li>
+                <li>Orders are processed in the sequence they are received</li>
+                <li>Delivery times may vary depending on location and carrier conditions</li>
+            </ul>
+            <p className="mt-2">Once your order has been shipped, you will receive tracking details for full transparency.</p>
+        </section>
+
+        <section>
+            <h4 className="font-bold text-charcoal-900 mb-1">🔁 Returns & Refunds Policy</h4>
+            <p className="mb-2">Due to the nature of our products, we maintain a strict return policy to ensure quality and safety.</p>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>Returns are not accepted by default</li>
+                <li>Any return request must include valid evidence and a clear, justified reason</li>
+                <li>All return requests are subject to review and approval</li>
+            </ul>
+            <p className="mt-2">Approved cases may include:</p>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>Damaged product upon arrival</li>
+                <li>Incorrect item received</li>
+            </ul>
+            <p className="mt-2">We reserve the right to decline any return that does not meet our criteria.</p>
+        </section>
+
+        <section>
+            <h4 className="font-bold text-charcoal-900 mb-1">⚠️ Health & Safety Disclaimer</h4>
+            <p className="mb-2">Your health and safety are our top priority. Before purchasing, please ensure:</p>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>You do not have any pre-existing medical conditions that may conflict with peptide use</li>
+                <li>You are not allergic to any ingredients or compounds</li>
+                <li>You fully understand the nature of research-based peptide products</li>
+            </ul>
+            <p className="mt-2">Certain peptides (including GLP-1 related compounds such as tirzepatide) may carry specific health risks or contraindications.</p>
+        </section>
+
+        <section>
+            <h4 className="font-bold text-charcoal-900 mb-1">🚨 Important Recommendation</h4>
+            <p className="mb-2">If you have any past or current health concerns, you should:</p>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>Undergo a medical check-up</li>
+                <li>Consult with a licensed healthcare professional</li>
+            </ul>
+            <p className="mt-2">before purchasing or using any products.</p>
+        </section>
+
+        <section>
+            <h4 className="font-bold text-charcoal-900 mb-1">🧾 Final Notice</h4>
+            <p className="mb-2">By placing an order, you confirm that:</p>
+            <ul className="list-disc pl-5 space-y-1">
+                <li>You have reviewed and understood all policies</li>
+                <li>You take full responsibility for your purchasing decision</li>
+                <li>You have ensured the products are suitable for your personal situation</li>
+            </ul>
+        </section>
+    </>
+);
 
 export default Checkout;

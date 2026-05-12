@@ -58,7 +58,7 @@ export default function WelcomePopup() {
       {/* Modal */}
       <div
         className="relative w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up"
-        style={{ background: 'linear-gradient(180deg, #FFF0F5 0%, #FFFFFF 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #EAF4FA 0%, #FFFFFF 100%)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -70,7 +70,7 @@ export default function WelcomePopup() {
         </button>
 
         {/* Decorative top ribbon */}
-        <div className="h-2 w-full" style={{ background: 'linear-gradient(90deg, #FFB6C8, #E8739B, #FFB6C8)' }} />
+        <div className="h-2 w-full" style={{ background: 'linear-gradient(90deg, #A8D5E5, #5FA8C8, #A8D5E5)' }} />
 
         <div className="px-8 pt-8 pb-8 text-center">
           {status === 'success' ? (
@@ -89,7 +89,7 @@ export default function WelcomePopup() {
               <button
                 onClick={close}
                 className="w-full py-3 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
-                style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}
+                style={{ background: 'linear-gradient(135deg, #A8D5E5, #5FA8C8)' }}
               >
                 Start Shopping
               </button>
@@ -132,7 +132,7 @@ export default function WelcomePopup() {
                   disabled={status === 'loading'}
                   onClick={(e) => e.stopPropagation()}
                   className="w-full py-3 rounded-xl font-semibold text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60"
-                  style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}
+                  style={{ background: 'linear-gradient(135deg, #A8D5E5, #5FA8C8)' }}
                 >
                   {status === 'loading' ? 'Subscribing...' : 'Subscribe for Discounts'}
                 </button>

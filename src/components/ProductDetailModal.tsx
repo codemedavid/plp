@@ -362,7 +362,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
                     {tier.popular && (
                       <span
                         className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-white text-[10px] font-extrabold tracking-[0.08em] uppercase whitespace-nowrap shadow-glow"
-                        style={{ background: 'linear-gradient(135deg, #FF85A2, #E8739B)' }}
+                        style={{ background: 'linear-gradient(135deg, #D4A554, #5FA8C8)' }}
                       >
                         <Sparkles className="w-3 h-3" fill="currentColor" />
                         Most Popular

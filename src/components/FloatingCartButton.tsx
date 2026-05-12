@@ -12,13 +12,12 @@ const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({ itemCount, onCa
   return (
     <button
       onClick={onCartClick}
-      className="fixed bottom-4 right-4 md:bottom-6 md:right-6 lg:bottom-8 lg:right-8 text-white rounded-full shadow-glow hover:shadow-xl transition-all duration-300 transform hover:scale-105 z-50 p-3 md:p-4 group"
-      style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}
+      className="fixed bottom-4 right-4 md:bottom-6 md:right-6 lg:bottom-8 lg:right-8 text-white rounded-full shadow-luxury hover:shadow-xl transition-all duration-300 transform hover:scale-105 z-50 p-3 md:p-4 group bg-navy-900 hover:bg-navy-700"
       aria-label="View cart"
     >
       <div className="relative">
         <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7" />
-        <span className="absolute -top-2 -right-2 md:-top-3 md:-right-3 text-white text-[10px] md:text-xs font-bold rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center shadow-md animate-pulse" style={{ background: 'linear-gradient(135deg, #D4568A, #BE3D75)' }}>
+        <span className="absolute -top-2 -right-2 md:-top-3 md:-right-3 text-navy-900 text-[10px] md:text-xs font-bold rounded-full w-5 h-5 md:w-6 md:h-6 flex items-center justify-center shadow-md bg-gold-500">
           {itemCount}
         </span>
       </div>

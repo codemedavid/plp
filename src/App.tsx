@@ -13,6 +13,7 @@ const Cart = lazy(() => import('./components/Cart'));
 const Checkout = lazy(() => import('./components/Checkout'));
 const WelcomePopup = lazy(() => import('./components/WelcomePopup'));
 const PromoBanner = lazy(() => import('./components/PromoBanner'));
+const AuthModal = lazy(() => import('./components/AuthModal'));
 
 // Lazy load route components
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
@@ -21,8 +22,10 @@ const FAQ = lazy(() => import('./components/FAQ'));
 const PeptideCalculator = lazy(() => import('./components/PeptideCalculator'));
 const OrderTracking = lazy(() => import('./components/OrderTracking'));
 const ProtocolGuide = lazy(() => import('./components/ProtocolGuide'));
+const UserProfile = lazy(() => import('./components/UserProfile'));
 
 import { useMenu } from './hooks/useMenu';
+import { useReferralCapture } from './hooks/useReferralCapture';
 // import { useCOAPageSetting } from './hooks/useCOAPageSetting';
 
 function MainApp() {
@@ -30,6 +33,7 @@ function MainApp() {
     const { menuItems, refreshProducts } = useMenu();
     const [currentView, setCurrentView] = useState<'menu' | 'checkout'>('menu');
     const [cartOpen, setCartOpen] = useState(false);
+    const [authOpen, setAuthOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
     const handleViewChange = (view: 'menu' | 'checkout') => {
@@ -48,7 +52,7 @@ function MainApp() {
         : menuItems.filter(item => item.category === selectedCategory);
 
     return (
-        <div className="min-h-screen font-cute flex flex-col" style={{ background: 'linear-gradient(180deg, #FFF5F7, #FFFAFC)' }}>
+        <div className="min-h-screen font-cute flex flex-col bg-white">
             <Suspense fallback={null}>
                 <WelcomePopup />
             </Suspense>
@@ -56,12 +60,17 @@ function MainApp() {
                 cartItemsCount={cart.getTotalItems()}
                 onCartClick={() => setCartOpen(true)}
                 onMenuClick={() => handleViewChange('menu')}
+                onAccountClick={() => setAuthOpen(true)}
             />
+            <Suspense fallback={null}>
+                <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+            </Suspense>
             <Suspense fallback={null}>
                 <PromoBanner />
             </Suspense>
 
-            {currentView === 'menu' && (
+            {/* SubNav hidden in new design — categories accessible via Products nav */}
+            {false && currentView === 'menu' && (
                 <SubNav selectedCategory={selectedCategory} onCategoryClick={handleCategoryClick} />
             )}
 
@@ -125,7 +134,7 @@ function MainApp() {
 
 
 function App() {
-    //   const { coaPageEnabled } = useCOAPageSetting();
+    useReferralCapture();
 
     return (
         <Router>
@@ -138,6 +147,7 @@ function App() {
                     <Route path="/track-order" element={<OrderTracking />} />
                     <Route path="/protocols" element={<ProtocolGuide />} />
                     <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/user/profile" element={<UserProfile />} />
                 </Routes>
             </Suspense>
         </Router>

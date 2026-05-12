@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Award, CheckCircle, X, ExternalLink, Download, Sparkles, ArrowLeft, Copy, Check } from 'lucide-react';
+import { Shield, CheckCircle, X, ExternalLink, ArrowLeft, Copy, Check, FlaskConical, Award } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
+import Header from './Header';
+import Footer from './Footer';
+import { useCart } from '../hooks/useCart';
 
 interface COAReport {
   id: string;
@@ -18,10 +21,12 @@ interface COAReport {
 }
 
 const COA: React.FC = () => {
+  const { cartItems } = useCart();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [coaReports, setCOAReports] = useState<COAReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { coaPageEnabled, loading: settingLoading } = useCOAPageSetting();
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -30,45 +35,47 @@ const COA: React.FC = () => {
   };
 
   useEffect(() => {
+    const fetchCOAReports = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('coa_reports')
+          .select('*')
+          .order('test_date', { ascending: false });
+
+        if (error) throw error;
+        setCOAReports(data || []);
+      } catch (error) {
+        console.error('Error fetching COA reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCOAReports();
   }, []);
 
-  const fetchCOAReports = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('coa_reports')
-        .select('*')
-        .order('test_date', { ascending: false });
-
-      if (error) throw error;
-      setCOAReports(data || []);
-    } catch (error) {
-      console.error('Error fetching COA reports:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ... (inside component)
-  const { coaPageEnabled, loading: settingLoading } = useCOAPageSetting();
-
-  // ... (after loading check)
   if (settingLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-pink-50 to-brand-50/50 flex items-center justify-center">
-        <div className="spinner"></div>
+      <div className="min-h-screen bg-cream-light flex items-center justify-center">
+        <div className="w-10 h-10 border border-gold-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!coaPageEnabled) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-50 via-pink-50 to-brand-50/50 flex items-center justify-center">
-        <div className="text-center p-8">
-          <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Lab Reports Unavailable</h1>
-          <p className="text-gray-600 mb-6">The COA page is currently disabled.</p>
-          <a href="/" className="px-6 py-2 bg-brand-500 text-white rounded-2xl hover:bg-brand-600 transition-colors">
+      <div className="min-h-screen bg-cream-light flex items-center justify-center px-4">
+        <div className="max-w-md text-center border border-gold-200 bg-white p-12">
+          <div className="w-14 h-14 border border-gold-300 flex items-center justify-center text-gold-600 mx-auto mb-6">
+            <Shield className="w-6 h-6" strokeWidth={1.5} />
+          </div>
+          <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">Unavailable</span>
+          <h1 className="font-heading text-3xl text-navy-900 mb-3">Lab Reports</h1>
+          <p className="text-sm text-charcoal-500 font-light mb-8">The COA page is currently disabled.</p>
+          <a
+            href="/"
+            className="inline-flex items-center gap-3 px-6 py-3 bg-navy-900 text-white text-[11px] font-semibold tracking-[0.22em] uppercase hover:bg-navy-700 transition-colors"
+            style={{ borderRadius: '2px' }}
+          >
             Return Home
           </a>
         </div>
@@ -76,251 +83,294 @@ const COA: React.FC = () => {
     );
   }
 
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-pink-50 to-brand-50/50">
-      {/* Hero Section - Mobile Optimized */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-brand-100 to-pink-100 py-6 md:py-12">
-        <div className="absolute top-0 left-0 w-48 h-48 md:w-64 md:h-64 bg-brand-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
-        <div className="absolute bottom-0 right-0 w-48 h-48 md:w-64 md:h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+    <div className="min-h-screen bg-cream-light">
+      <Header
+        cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        onCartClick={() => { }}
+        onMenuClick={() => { window.location.href = '/'; }}
+      />
 
-        {/* Back Button */}
-        <a
-          href="/"
-          className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-soft border border-brand-200 text-gray-700 hover:text-brand-600 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">Back</span>
-        </a>
+      {/* Hero band */}
+      <section className="relative overflow-hidden bg-cream-light border-b border-gold-200">
+        <div className="container mx-auto px-4 md:px-8 py-16 md:py-20 max-w-6xl">
+          <a
+            href="/"
+            className="group inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-charcoal-500 hover:text-navy-900 transition-colors mb-10"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" strokeWidth={1.8} />
+            Back to Home
+          </a>
 
-        <div className="relative container mx-auto px-4">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 md:gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 md:px-6 md:py-3 rounded-full shadow-soft mb-3 md:mb-6 border-2 border-brand-200">
-              <Shield className="w-3.5 h-3.5 md:w-5 md:h-5 text-brand-500" />
-              <span className="text-xs md:text-sm font-bold font-cute text-brand-600">Lab Verified</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-end">
+            <div className="max-w-2xl">
+              <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-5">Lab Verified</span>
+              <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl font-normal leading-[0.95] text-navy-900 tracking-tight mb-6">
+                Certificate<br />of Analysis
+              </h1>
+              <div className="w-12 h-px bg-gold-500 mb-6" />
+              <p className="text-base md:text-lg text-charcoal-500 font-light leading-relaxed max-w-md">
+                Every batch independently tested by{' '}
+                <span className="text-navy-900 font-medium">Janoshik Analytical</span> and{' '}
+                <span className="text-navy-900 font-medium">Chromate</span> for purity and concentration.
+              </p>
             </div>
 
-            <h1 className="font-cute text-2xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 text-gray-800 px-2">
-              <span className="bg-gradient-to-r from-brand-500 to-brand-600 bg-clip-text text-transparent">
-                Lab Reports
-              </span>
-              <Sparkles className="inline-block w-5 h-5 md:w-8 md:h-8 text-yellow-400 ml-2 mb-1 animate-pulse" />
-            </h1>
-
-            <p className="text-sm md:text-lg font-cute text-gray-600 mb-4 md:mb-6 px-4">
-              Tested by <strong className="text-brand-600">Janoshik + Chromate</strong>
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-2 md:gap-4 text-xs md:text-sm px-2">
-              <div className="flex items-center gap-1.5 md:gap-2 bg-white/80 backdrop-blur-sm px-2.5 py-1.5 md:px-4 md:py-2 rounded-full shadow-soft border border-brand-200">
-                <CheckCircle className="w-3.5 h-3.5 md:w-5 md:h-5 text-green-500" />
-                <span className="font-medium text-gray-700">99%+ Purity</span>
-              </div>
-              <div className="flex items-center gap-1.5 md:gap-2 bg-white/80 backdrop-blur-sm px-2.5 py-1.5 md:px-4 md:py-2 rounded-full shadow-soft border border-brand-200">
-                <Award className="w-3.5 h-3.5 md:w-5 md:h-5 text-brand-500" />
-                <span className="font-medium text-gray-700">Certified</span>
-              </div>
-              <div className="flex items-center gap-1.5 md:gap-2 bg-white/80 backdrop-blur-sm px-2.5 py-1.5 md:px-4 md:py-2 rounded-full shadow-soft border border-brand-200">
-                <Shield className="w-3.5 h-3.5 md:w-5 md:h-5 text-brand-500" />
-                <span className="font-medium text-gray-700">Verified</span>
-              </div>
+            <div className="flex flex-wrap gap-x-10 gap-y-5 lg:justify-end">
+              {[
+                { icon: CheckCircle, label: '99%+\nPurity' },
+                { icon: Award, label: 'Independently\nCertified' },
+                { icon: Shield, label: 'Batch\nVerified' },
+              ].map((b, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full border border-gold-300 flex items-center justify-center text-gold-600">
+                    <b.icon className="w-4 h-4" strokeWidth={1.5} />
+                  </div>
+                  <span className="text-[11px] font-medium text-navy-900 leading-tight whitespace-pre-line tracking-wide">
+                    {b.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* COA Reports Grid - Mobile Optimized */}
-      <div className="container mx-auto px-3 md:px-4 py-6 md:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
-          {coaReports.length === 0 ? (
-            <div className="col-span-2 text-center py-20">
-              <Shield className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <p className="text-xl text-gray-500">No lab reports available yet.</p>
-            </div>
-          ) : (
-            coaReports.map((report) => (
-              <div
-                key={report.id}
-                className="bg-white rounded-2xl md:rounded-3xl shadow-soft hover:shadow-glow transition-all duration-300 overflow-hidden border-2 border-brand-100 hover:border-brand-200 transform hover:-translate-y-1 md:hover:-translate-y-2"
-              >
-                {/* Report Image - Mobile Optimized */}
-                <div
-                  className="relative cursor-pointer group"
-                  onClick={() => setSelectedImage(report.image_url)}
-                >
-                  <img
-                    src={report.image_url}
-                    alt={`${report.product_name} Certificate of Analysis`}
-                    className="w-full h-48 sm:h-56 md:h-64 lg:h-80 object-cover object-top"
-                    onError={(e) => {
-                      // Fallback if image doesn't exist
-                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23f0f9ff" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%230ea5e9" font-size="20" font-family="Arial"%3ECOA Image Coming Soon%3C/text%3E%3C/svg%3E';
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-brand-600/0 group-hover:bg-brand-600/10 transition-all duration-300 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/95 backdrop-blur-sm px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-lg">
-                      <p className="text-xs md:text-sm font-bold text-brand-600 flex items-center gap-1.5 md:gap-2">
-                        <ExternalLink className="w-3 h-3 md:w-4 md:h-4" />
-                        View full report
-                      </p>
+      <main className="container mx-auto px-4 md:px-8 py-16 max-w-6xl">
+        {/* Section header */}
+        <div className="text-center mb-12">
+          <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-4">The Reports</span>
+          <h2 className="font-heading text-4xl md:text-5xl font-normal text-navy-900 tracking-tight mb-4">
+            Latest Lab Results
+          </h2>
+          <div className="w-12 h-px bg-gold-500 mx-auto mb-5" />
+          <p className="text-sm text-charcoal-500 font-light max-w-xl mx-auto">
+            Click any certificate to view the full report. Verify authenticity directly with the issuing laboratory.
+          </p>
+        </div>
+
+        {coaReports.length === 0 ? (
+          <div className="border border-dashed border-gold-300 bg-white/50 p-16 text-center">
+            <Shield className="w-12 h-12 mx-auto mb-5 text-gold-400" strokeWidth={1.2} />
+            <p className="text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-2">No Reports Yet</p>
+            <p className="text-sm text-charcoal-500 font-light">Lab reports will appear here once published.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-gold-200 border border-gold-200">
+            {coaReports.map((report) => {
+              const isJanoshik = !report.laboratory || report.laboratory.toLowerCase().includes('janoshik');
+              const verificationUrl = isJanoshik
+                ? `https://www.janoshik.com/verify/?key=${report.verification_key}`
+                : 'https://chromate.org';
+              const labLabel = isJanoshik ? 'Janoshik' : 'Chromate';
+
+              return (
+                <article key={report.id} className="bg-white flex flex-col">
+                  {/* Image */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImage(report.image_url)}
+                    className="relative block group overflow-hidden bg-cream-light"
+                  >
+                    <img
+                      src={report.image_url}
+                      alt={`${report.product_name} Certificate of Analysis`}
+                      className="w-full h-72 object-cover object-top transition-transform duration-700 group-hover:scale-[1.02]"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23F5F1EA" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" fill="%23C9A876" font-size="14" font-family="serif"%3ECertificate Image Coming Soon%3C/text%3E%3C/svg%3E';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-navy-900/0 group-hover:bg-navy-900/40 transition-colors flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white px-5 py-2.5 text-[10px] uppercase tracking-[0.32em] text-navy-900 flex items-center gap-2 border border-gold-500">
+                        <ExternalLink className="w-3 h-3" strokeWidth={1.8} />
+                        View Full Report
+                      </span>
                     </div>
-                  </div>
-                </div>
 
-                {/* Report Details - Mobile Optimized */}
-                <div className="p-4 md:p-6">
-                  <div className="flex items-center justify-between mb-3 md:mb-4 gap-2">
-                    <h3 className="text-base md:text-xl font-bold text-gray-800">{report.product_name}</h3>
                     {report.featured && (
-                      <span className="bg-gradient-to-r from-brand-100 to-pink-100 text-brand-700 px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold border border-brand-300 whitespace-nowrap">
-                        ✓ VERIFIED
+                      <span className="absolute top-4 left-4 bg-white border border-gold-500 text-[9px] uppercase tracking-[0.32em] text-gold-700 px-3 py-1.5 font-semibold">
+                        ✓ Verified
                       </span>
                     )}
-                  </div>
+                    <span className="absolute top-4 right-4 bg-navy-900 text-white text-[9px] uppercase tracking-[0.32em] px-3 py-1.5 font-semibold">
+                      {labLabel}
+                    </span>
+                  </button>
 
-                  <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
-                    <div className="flex items-center justify-between py-1.5 md:py-2 border-b border-brand-100">
-                      <span className="text-xs md:text-sm text-gray-600 font-medium">Purity:</span>
-                      <span className="text-sm md:text-base font-bold text-green-600">{report.purity_percentage}%</span>
+                  {/* Details */}
+                  <div className="p-6 md:p-8 flex-1 flex flex-col">
+                    <div className="mb-5">
+                      <span className="block text-[10px] uppercase tracking-[0.32em] text-gold-600 mb-2">Product</span>
+                      <h3 className="font-heading text-2xl text-navy-900 leading-tight">{report.product_name}</h3>
                     </div>
-                    <div className="flex items-center justify-between py-1.5 md:py-2 border-b border-brand-100">
-                      <span className="text-xs md:text-sm text-gray-600 font-medium">Quantity:</span>
-                      <span className="text-sm md:text-base font-bold text-brand-600">{report.quantity}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5 md:py-2 border-b border-brand-100">
-                      <span className="text-xs md:text-sm text-gray-600 font-medium">Test Date:</span>
-                      <span className="text-xs md:text-sm text-gray-800">{new Date(report.test_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase()}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5 md:py-2 border-b border-brand-100">
-                      <span className="text-xs md:text-sm text-gray-600 font-medium">Task:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs md:text-sm text-gray-800 font-mono">#{report.task_number}</span>
-                        <button
-                          onClick={() => handleCopy(report.task_number, `${report.id}-task`)}
-                          className="p-1 hover:bg-brand-50 rounded-full transition-colors"
-                          title="Copy Task Number"
-                        >
-                          {copiedId === `${report.id}-task` ? (
-                            <Check className="w-3.5 h-3.5 text-green-500" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 text-brand-400" />
-                          )}
-                        </button>
+
+                    <dl className="divide-y divide-gold-100 mb-6">
+                      <div className="flex items-center justify-between py-3">
+                        <dt className="text-[10px] uppercase tracking-[0.32em] text-gold-600">Purity</dt>
+                        <dd className="font-heading text-xl text-navy-900">{report.purity_percentage}%</dd>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5 md:py-2 border-b border-brand-100">
-                      <span className="text-xs md:text-sm text-gray-600 font-medium">Unique Key:</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs md:text-sm text-gray-800 font-mono">{report.verification_key}</span>
-                        <button
-                          onClick={() => handleCopy(report.verification_key, `${report.id}-key`)}
-                          className="p-1 hover:bg-brand-50 rounded-full transition-colors"
-                          title="Copy Unique Key"
-                        >
-                          {copiedId === `${report.id}-key` ? (
-                            <Check className="w-3.5 h-3.5 text-green-500" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 text-brand-400" />
-                          )}
-                        </button>
+                      <div className="flex items-center justify-between py-3">
+                        <dt className="text-[10px] uppercase tracking-[0.32em] text-gold-600">Quantity</dt>
+                        <dd className="text-sm text-navy-900 font-mono">{report.quantity}</dd>
                       </div>
+                      <div className="flex items-center justify-between py-3">
+                        <dt className="text-[10px] uppercase tracking-[0.32em] text-gold-600">Test Date</dt>
+                        <dd className="text-sm text-charcoal-700 font-light">{formatDate(report.test_date)}</dd>
+                      </div>
+                      <div className="flex items-center justify-between py-3 gap-3">
+                        <dt className="text-[10px] uppercase tracking-[0.32em] text-gold-600 flex-shrink-0">Task</dt>
+                        <dd className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm font-mono text-navy-900 truncate">#{report.task_number}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(report.task_number, `${report.id}-task`)}
+                            className="w-7 h-7 border border-gold-200 flex items-center justify-center text-gold-600 hover:border-gold-500 hover:bg-cream-light transition-colors flex-shrink-0"
+                            title="Copy task number"
+                          >
+                            {copiedId === `${report.id}-task` ? (
+                              <Check className="w-3 h-3 text-emerald-600" strokeWidth={2} />
+                            ) : (
+                              <Copy className="w-3 h-3" strokeWidth={1.8} />
+                            )}
+                          </button>
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between py-3 gap-3">
+                        <dt className="text-[10px] uppercase tracking-[0.32em] text-gold-600 flex-shrink-0">Verification Key</dt>
+                        <dd className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm font-mono text-navy-900 truncate">{report.verification_key}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(report.verification_key, `${report.id}-key`)}
+                            className="w-7 h-7 border border-gold-200 flex items-center justify-center text-gold-600 hover:border-gold-500 hover:bg-cream-light transition-colors flex-shrink-0"
+                            title="Copy verification key"
+                          >
+                            {copiedId === `${report.id}-key` ? (
+                              <Check className="w-3 h-3 text-emerald-600" strokeWidth={2} />
+                            ) : (
+                              <Copy className="w-3 h-3" strokeWidth={1.8} />
+                            )}
+                          </button>
+                        </dd>
+                      </div>
+                    </dl>
+
+                    <div className="mt-auto space-y-2.5">
+                      <a
+                        href={verificationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-between gap-4 px-5 py-3.5 bg-navy-900 text-white text-[11px] font-semibold tracking-[0.22em] uppercase hover:bg-navy-700 transition-colors"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Shield className="w-3.5 h-3.5" strokeWidth={1.8} />
+                          Verify on {labLabel}
+                        </span>
+                        <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.8} />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedImage(report.image_url)}
+                        className="w-full flex items-center justify-between gap-4 px-5 py-3.5 border border-gold-500 text-navy-900 text-[11px] font-semibold tracking-[0.22em] uppercase hover:bg-gold-500 hover:text-white transition-colors"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        View Full Certificate
+                        <ExternalLink className="w-3.5 h-3.5" strokeWidth={1.8} />
+                      </button>
                     </div>
                   </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
 
-                  <div className="space-y-2 md:space-y-3">
-                    {(() => {
-                      const isJanoshik = !report.laboratory || report.laboratory.toLowerCase().includes('janoshik');
-                      const verificationUrl = isJanoshik
-                        ? `https://www.janoshik.com/verify/?key=${report.verification_key}`
-                        : 'https://chromate.org';
+        {/* Lab partners */}
+        <section className="mt-20 border-t border-gold-200 pt-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
+            <div className="md:col-span-1">
+              <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-4">Our Partners</span>
+              <h3 className="font-heading text-3xl md:text-4xl text-navy-900 leading-tight mb-4">
+                Independent Verification
+              </h3>
+              <div className="w-12 h-px bg-gold-500" />
+            </div>
 
-                      return (
-                        <a
-                          href={verificationUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`w-full flex items-center justify-center gap-1.5 md:gap-2 text-white px-3 py-2 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-sm md:text-base font-medium transition-all duration-300 shadow-lg hover:shadow-xl ${isJanoshik
-                            ? 'bg-gradient-to-r from-brand-400 to-brand-500 hover:from-brand-500 hover:to-brand-600'
-                            : 'bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700'
-                            }`}
-                        >
-                          <Shield className="w-4 h-4 md:w-5 md:h-5" />
-                          {isJanoshik ? 'Verify on Janoshik' : 'Verify on Chromate'}
-                        </a>
-                      );
-                    })()}
+            <div className="md:col-span-2 space-y-6">
+              <p className="text-base text-charcoal-700 font-light leading-relaxed max-w-2xl">
+                We partner with top-tier third-party laboratories to ensure the highest quality standards.
+                Each batch is rigorously tested for purity and concentration using HPLC and Mass Spectrometry.
+              </p>
 
-                    <button
-                      onClick={() => setSelectedImage(report.image_url)}
-                      className="w-full flex items-center justify-center gap-1.5 md:gap-2 bg-white text-brand-600 border-2 border-brand-400 hover:border-brand-500 hover:bg-brand-50 px-3 py-2 md:px-4 md:py-3 rounded-xl md:rounded-2xl text-sm md:text-base font-medium transition-all duration-300"
-                    >
-                      <Download className="w-4 h-4 md:w-5 md:h-5" />
-                      View Full Report
-                    </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-gold-200 border border-gold-200">
+                <a
+                  href="https://www.janoshik.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-white p-6 flex items-center justify-between hover:bg-cream-light transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 border border-gold-300 flex items-center justify-center text-gold-600 group-hover:border-gold-500 transition-colors">
+                      <FlaskConical className="w-4 h-4" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-[0.32em] text-gold-600 mb-1">Laboratory</span>
+                      <span className="font-heading text-lg text-navy-900">Janoshik Analytical</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                  <ExternalLink className="w-4 h-4 text-charcoal-400 group-hover:text-navy-900 group-hover:translate-x-0.5 transition-all" strokeWidth={1.8} />
+                </a>
 
-        {/* Info Section - Mobile Optimized */}
-        <div className="mt-6 md:mt-12 max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-brand-50 to-pink-50 rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 border-2 border-brand-200 shadow-soft">
-            <div className="flex flex-col md:flex-row items-start gap-3 md:gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-brand-400 to-brand-500 rounded-xl md:rounded-2xl flex items-center justify-center">
-                  <Shield className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base md:text-xl font-bold text-gray-800 mb-2 md:mb-3">Independent Laboratory Verification</h3>
-                <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3 md:mb-4">
-                  We partner with top-tier third-party laboratories like <strong>Janoshik Analytical</strong> and <strong>Chromate</strong> to ensure the highest quality standards.
-                  Each batch is rigorously tested for purity and concentration using HPLC and Mass Spectrometry.
-                </p>
-                <div className="flex gap-4">
-                  <a
-                    href="https://www.janoshik.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 md:gap-2 text-sm md:text-base text-brand-600 hover:text-brand-700 font-medium"
-                  >
-                    <span>Janoshik</span>
-                    <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  </a>
-                  <a
-                    href="https://chromate.org"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 md:gap-2 text-sm md:text-base text-brand-600 hover:text-brand-700 font-medium"
-                  >
-                    <span>Chromate</span>
-                    <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  </a>
-                </div>
+                <a
+                  href="https://chromate.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-white p-6 flex items-center justify-between hover:bg-cream-light transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 border border-gold-300 flex items-center justify-center text-gold-600 group-hover:border-gold-500 transition-colors">
+                      <FlaskConical className="w-4 h-4" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-[0.32em] text-gold-600 mb-1">Laboratory</span>
+                      <span className="font-heading text-lg text-navy-900">Chromate</span>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-charcoal-400 group-hover:text-navy-900 group-hover:translate-x-0.5 transition-all" strokeWidth={1.8} />
+                </a>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
-      {/* Image Modal - Mobile Optimized */}
+      <Footer />
+
+      {/* Image Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-2 md:p-4"
+          className="fixed inset-0 z-50 bg-navy-900/90 backdrop-blur-sm flex items-center justify-center p-4 md:p-8"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative w-full max-w-5xl">
             <button
+              type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute -top-10 md:-top-12 right-0 bg-white/95 hover:bg-white text-gray-800 rounded-full p-2 md:p-2.5 transition-all shadow-lg"
+              className="absolute -top-12 right-0 flex items-center gap-2 px-4 py-2 bg-white border border-gold-500 text-navy-900 text-[10px] uppercase tracking-[0.32em] hover:bg-gold-500 hover:text-white transition-colors"
+              style={{ borderRadius: '2px' }}
             >
-              <X className="w-5 h-5 md:w-6 md:h-6" />
+              Close
+              <X className="w-3.5 h-3.5" strokeWidth={1.8} />
             </button>
             <img
               src={selectedImage}
               alt="Certificate of Analysis"
-              className="w-full h-auto rounded-2xl md:rounded-3xl shadow-2xl"
+              className="w-full h-auto border border-gold-300 shadow-luxury"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -331,4 +381,3 @@ const COA: React.FC = () => {
 };
 
 export default COA;
-

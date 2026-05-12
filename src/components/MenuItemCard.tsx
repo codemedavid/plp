@@ -70,7 +70,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       />
 
       {/* Product Image */}
-      <div className="relative h-44 sm:h-64 overflow-hidden border-b border-brand-100" style={{ background: 'linear-gradient(135deg, #FFF0F5, #FFE4EE)' }}>
+      <div className="relative h-44 sm:h-64 overflow-hidden border-b border-brand-100" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
         {product.image_url && !imageError ? (
           <img
             src={product.image_url}
@@ -79,7 +79,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-brand-200" style={{ background: 'linear-gradient(135deg, #FFF0F5, #FFE4EE)' }}>
+          <div className="w-full h-full flex items-center justify-center text-brand-200" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
             <Heart className="w-16 h-16 opacity-30" fill="currentColor" />
           </div>
         )}
@@ -87,12 +87,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-20">
           {product.featured && (
-            <span className="px-2 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm" style={{ background: 'linear-gradient(135deg, #FF85A2, #E8739B)' }}>
+            <span className="px-2 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm" style={{ background: 'linear-gradient(135deg, #D4A554, #5FA8C8)' }}>
               Featured
             </span>
           )}
           {hasDiscount && (
-            <span className="px-2 py-1 text-white text-[10px] font-bold rounded-full shadow-sm" style={{ background: 'linear-gradient(135deg, #E8739B, #D4568A)' }}>
+            <span className="px-2 py-1 text-white text-[10px] font-bold rounded-full shadow-sm" style={{ background: 'linear-gradient(135deg, #5FA8C8, #4A93B5)' }}>
               {Math.round((1 - basePrice / (selectedVariation ? selectedVariation.price : product.base_price)) * 100)}% OFF
             </span>
           )}

@@ -5,32 +5,33 @@
 @tailwind utilities;
 
 :root {
-  /* VR Jonina - Cute Coquette Pink Theme */
-  --theme-bg: #FFF5F7;
-  --theme-text: #4A3040;
+  /* Peptide Lifestyle Program — Navy / Gold / Cream */
+  --theme-bg: #FAF6EF;
+  --theme-text: #0F2447;
 
   /* Primary Palette */
-  --primary-pink: #E8739B;
-  --soft-pink: #FFB6C8;
-  --light-pink: #FFCDD8;
-  --blush: #FFF0F5;
-  --ribbon-pink: #FF85A2;
-  --rose-gold: #D4A574;
+  --navy: #0F2447;
+  --navy-deep: #0A1A35;
+  --navy-soft: #1A2B4C;
+  --gold: #C9A876;
+  --gold-light: #DDC18A;
+  --gold-dark: #B08F5B;
 
   /* Backgrounds */
-  --cream: #FFF5F7;
-  --soft-bg: #FFF0F5;
-  --warm-white: #FFFAFC;
+  --cream: #F5F1EA;
+  --cream-light: #FAF6EF;
+  --soft-bg: #FAF6EF;
+  --warm-white: #FFFFFF;
 
-  /* Gradient */
-  --brand-gradient: linear-gradient(135deg, #FFB6C8, #E8739B);
-  --ribbon-gradient: linear-gradient(135deg, #FF85A2, #FFB6C8);
+  /* Gradients */
+  --brand-gradient: linear-gradient(135deg, #1A2B4C, #0F2447);
+  --gold-gradient: linear-gradient(135deg, #DDC18A, #C9A876);
 }
 
 @layer base {
   body {
-    @apply font-sans text-charcoal-800 antialiased leading-relaxed;
-    background: linear-gradient(180deg, #FFF5F7 0%, #FFFAFC 50%, #FFF0F5 100%);
+    @apply font-sans text-navy-900 antialiased leading-relaxed;
+    background: #FFFFFF;
     min-height: 100vh;
   }
 
@@ -40,48 +41,79 @@
   h4,
   h5,
   h6 {
-    @apply font-heading font-semibold text-charcoal-900 tracking-tight;
+    @apply font-heading font-normal text-navy-900 tracking-tight;
   }
 }
 
 @layer components {
 
-  /* VR Jonina Button Styles */
+  /* Luxury Navy/Gold Button Styles */
   .btn-primary {
-    @apply text-white px-8 py-4 rounded-2xl font-semibold text-sm tracking-wide transition-all duration-300 shadow-soft hover:shadow-luxury active:transform active:scale-[0.98];
-    background: linear-gradient(135deg, #FFB6C8, #E8739B);
+    @apply text-white px-8 py-4 font-semibold text-xs tracking-[0.18em] uppercase transition-all duration-300 shadow-soft hover:shadow-luxury active:transform active:scale-[0.98];
+    background: #0F2447;
+    border-radius: 2px;
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, #FF9BB4, #D4568A);
+    background: #1A2B4C;
   }
 
   .btn-secondary {
-    @apply bg-transparent text-brand-600 border-2 border-brand-200 px-8 py-4 rounded-2xl font-semibold text-sm transition-all duration-300 hover:bg-brand-50 hover:border-brand-400 active:transform active:scale-[0.98];
+    @apply bg-transparent text-navy-900 border border-navy-900 px-8 py-4 font-semibold text-xs tracking-[0.18em] uppercase transition-all duration-300 hover:bg-navy-900 hover:text-white active:transform active:scale-[0.98];
+    border-radius: 2px;
   }
 
-  /* Cute Card Styles with ribbon border */
+  .btn-gold {
+    @apply text-white px-8 py-4 font-semibold text-xs tracking-[0.18em] uppercase transition-all duration-300 shadow-soft hover:shadow-luxury;
+    background: #C9A876;
+    border-radius: 2px;
+  }
+  .btn-gold:hover {
+    background: #B08F5B;
+  }
+
   .card {
-    @apply bg-white rounded-2xl shadow-soft border border-brand-200 p-6 transition-all duration-300 hover:shadow-luxury hover:border-brand-400;
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFF8FA 100%);
+    @apply bg-white border border-charcoal-100 p-6 transition-all duration-300 hover:shadow-luxury;
+    background: #FFFFFF;
+    border-radius: 2px;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 bg-white border border-brand-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent transition-all placeholder-charcoal-300 text-charcoal-800;
+    @apply w-full px-4 py-3 bg-white border border-charcoal-200 focus:outline-none focus:ring-1 focus:ring-navy-900 focus:border-navy-900 transition-all placeholder-charcoal-400 text-navy-900;
+    border-radius: 2px;
   }
 
   .badge {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-3 py-1 text-xs font-medium tracking-wider uppercase;
+    border-radius: 2px;
   }
 
   .badge-primary {
-    @apply bg-brand-50 text-brand-700;
+    @apply bg-navy-50 text-navy-900;
   }
 
   .badge-accent {
-    @apply bg-brand-100 text-brand-800;
+    @apply text-white;
+    background: #C9A876;
   }
 
-  /* Ribbon decoration */
+  .badge-gold {
+    @apply text-white;
+    background: #C9A876;
+  }
+
+  /* Section eyebrow label (small uppercase gold text above headings) */
+  .eyebrow {
+    @apply text-xs font-semibold tracking-[0.28em] uppercase text-gold-600 inline-flex items-center gap-3;
+  }
+  .eyebrow::after {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: #C9A876;
+    display: inline-block;
+  }
+
+  /* Gold ribbon wave (echoes the Peptide logo) */
   .ribbon {
     position: relative;
   }
@@ -93,9 +125,9 @@
     transform: translateX(-50%);
     width: 60px;
     height: 16px;
-    background: linear-gradient(135deg, #FF85A2, #FFB6C8);
+    background: linear-gradient(135deg, #E5C485, #D4A554);
     border-radius: 0 0 30px 30px;
-    opacity: 0.8;
+    opacity: 0.85;
   }
 }
 

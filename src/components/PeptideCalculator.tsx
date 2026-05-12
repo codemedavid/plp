@@ -77,7 +77,7 @@ const PeptideCalculator: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen font-cute flex flex-col" style={{ background: 'linear-gradient(180deg, #FFF5F7, #FFFAFC)' }}>
+        <div className="min-h-screen font-cute flex flex-col" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
             <Header
                 cartItemsCount={cart.getTotalItems()}
                 onCartClick={() => window.location.href = '/'}
@@ -109,7 +109,7 @@ const PeptideCalculator: React.FC = () => {
                     <div className="grid md:grid-cols-2 gap-8 items-start">
                         {/* Calculator Card */}
                         <div className="bg-white rounded-2xl shadow-soft border border-brand-100 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-brand-200" style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}>
+                            <div className="px-6 py-4 border-b border-brand-200" style={{ background: 'linear-gradient(135deg, #A8D5E5, #5FA8C8)' }}>
                                 <h2 className="text-white font-cute font-medium flex items-center gap-2">
                                     <Calculator className="w-5 h-5 opacity-80" />
                                     Calculator Input
@@ -241,7 +241,7 @@ const PeptideCalculator: React.FC = () => {
 
                         {/* Results Card */}
                         <div className={`bg-white rounded-2xl shadow-soft border border-brand-100 overflow-hidden transition-all duration-300 ${resultUnits !== null ? 'opacity-100 translate-y-0' : 'opacity-50 translate-y-4'}`}>
-                            <div className="px-6 py-8" style={{ background: 'linear-gradient(135deg, #FFB6C8, #E8739B)' }}>
+                            <div className="px-6 py-8" style={{ background: 'linear-gradient(135deg, #A8D5E5, #5FA8C8)' }}>
                                 <div className="text-center text-white">
                                     <p className="text-5xl md:text-6xl font-black mb-2">{resultUnits || '0'}</p>
                                     <p className="text-lg font-medium opacity-90">Units</p>

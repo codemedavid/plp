@@ -29,14 +29,14 @@ const FAQ: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #FFF5F7, #FFFAFC)' }}>
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
                 <div className="animate-spin w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen font-cute" style={{ background: 'linear-gradient(180deg, #FFF5F7, #FFFAFC)' }}>
+        <div className="min-h-screen font-cute" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
             {/* Header */}
             <div className="bg-white border-b-4 border-brand-500 sticky top-0 z-10 shadow-soft">
                 <div className="container mx-auto px-4 py-4">
