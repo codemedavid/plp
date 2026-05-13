@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Copy, Check, Share2, Wallet, Gift, TrendingUp, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Share2, Wallet, Gift, TrendingUp, AlertCircle, Camera, Pencil, Mail } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useReferral, type WithdrawalRow } from '../hooks/useReferral';
+import { useReferral, type WithdrawalRow, type UserProfile as UserProfileRow, type UpdateProfileInput } from '../hooks/useReferral';
+import { supabase } from '../lib/supabase';
 
 const REASON_LABEL: Record<string, string> = {
   referral_l1: 'Level 1 referral',
@@ -23,7 +24,7 @@ const STATUS_LABEL: Record<WithdrawalRow['status'], string> = {
 
 export default function UserProfile() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { profile, balance, ledger, withdrawals, hasOrderThisMonth, loading, error, requestWithdrawal } = useReferral();
+  const { profile, balance, ledger, withdrawals, hasOrderThisMonth, loading, error, requestWithdrawal, updateProfile } = useReferral();
 
   if (authLoading) {
     return <FullPage>Loading…</FullPage>;
@@ -49,12 +50,22 @@ export default function UserProfile() {
             Back to shop
           </Link>
           <div className="flex items-end justify-between flex-wrap gap-4">
-            <div>
-              <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">My Account</span>
-              <h1 className="font-heading text-4xl md:text-5xl font-normal text-navy-900 tracking-tight">
-                {profile?.full_name || user.email}
-              </h1>
-              <p className="text-sm text-charcoal-500 mt-2">{user.email}</p>
+            <div className="flex items-center gap-5">
+              <AvatarUploader
+                userId={user.id}
+                avatarUrl={profile?.avatar_url ?? null}
+                fallback={(profile?.nickname || profile?.full_name || user.email || '?').charAt(0).toUpperCase()}
+                onUploaded={url => updateProfile({ avatar_url: url })}
+              />
+              <div>
+                <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">My Account</span>
+                <h1 className="font-heading text-4xl md:text-5xl font-normal text-navy-900 tracking-tight">
+                  {profile?.nickname || profile?.full_name || user.email}
+                </h1>
+                <p className="text-sm text-charcoal-500 mt-2 flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5" /> Signed up with {user.email}
+                </p>
+              </div>
             </div>
             <button onClick={signOut} className="text-xs uppercase tracking-widest text-charcoal-500 hover:text-navy-900">
               Sign out
@@ -76,6 +87,9 @@ export default function UserProfile() {
           <Stat icon={<Gift className="w-5 h-5" />} label="Lifetime earned" value={loading ? '—' : `${lifetimeEarned(ledger).toLocaleString()} pts`} />
           <Stat icon={<TrendingUp className="w-5 h-5" />} label="This month order" value={hasOrderThisMonth ? 'Active' : 'None yet'} sub={hasOrderThisMonth ? 'Withdrawal eligible' : 'Place ≥1 order to withdraw'} />
         </section>
+
+        {/* Profile details */}
+        <ProfileDetails profile={profile} email={user.email ?? ''} onSave={updateProfile} />
 
         {/* Referral code + share */}
         <section className="bg-white border border-gold-200 rounded-sm p-6 md:p-8">
@@ -347,5 +361,196 @@ function WithdrawForm({
 
 function lifetimeEarned(ledger: { delta: number }[]): number {
   return ledger.reduce((sum, e) => (e.delta > 0 ? sum + e.delta : sum), 0);
+}
+
+function AvatarUploader({
+  userId,
+  avatarUrl,
+  fallback,
+  onUploaded,
+}: {
+  userId: string;
+  avatarUrl: string | null;
+  fallback: string;
+  onUploaded: (url: string) => Promise<{ error: string | null }>;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const handleFile = async (file: File) => {
+    setErr(null);
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      const { error: saveErr } = await onUploaded(data.publicUrl);
+      if (saveErr) throw new Error(saveErr);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-gold-100 border border-gold-200 overflow-hidden flex items-center justify-center text-2xl font-heading text-navy-900 group"
+        title="Change avatar"
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+        ) : (
+          <span>{fallback}</span>
+        )}
+        <span className="absolute inset-0 bg-navy-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-cream-light">
+          <Camera className="w-5 h-5" />
+        </span>
+        {uploading && (
+          <span className="absolute inset-0 bg-navy-900/60 flex items-center justify-center text-cream-light text-[10px] uppercase tracking-wider">
+            Uploading…
+          </span>
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={e => {
+          const f = e.target.files?.[0];
+          if (f) handleFile(f);
+          e.target.value = '';
+        }}
+      />
+      {err && <div className="absolute top-full mt-1 text-xs text-red-600 whitespace-nowrap">{err}</div>}
+    </div>
+  );
+}
+
+function ProfileDetails({
+  profile,
+  email,
+  onSave,
+}: {
+  profile: UserProfileRow | null;
+  email: string;
+  onSave: (updates: UpdateProfileInput) => Promise<{ error: string | null }>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [nickname, setNickname] = useState(profile?.nickname ?? '');
+  const [fullName, setFullName] = useState(profile?.full_name ?? '');
+  const [phone, setPhone] = useState(profile?.phone ?? '');
+  const [address, setAddress] = useState(profile?.address ?? '');
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
+
+  const start = () => {
+    setNickname(profile?.nickname ?? '');
+    setFullName(profile?.full_name ?? '');
+    setPhone(profile?.phone ?? '');
+    setAddress(profile?.address ?? '');
+    setFeedback(null);
+    setEditing(true);
+  };
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setFeedback(null);
+    const { error } = await onSave({
+      nickname: nickname.trim() || null,
+      full_name: fullName.trim() || null,
+      phone: phone.trim() || null,
+      address: address.trim() || null,
+    });
+    setSaving(false);
+    if (error) setFeedback({ kind: 'err', msg: error });
+    else {
+      setFeedback({ kind: 'ok', msg: 'Profile updated.' });
+      setEditing(false);
+    }
+  };
+
+  return (
+    <section className="bg-white border border-gold-200 rounded-sm p-6 md:p-8">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="font-heading text-2xl text-navy-900">My details</h2>
+          <p className="text-sm text-charcoal-500">Update your nickname, contact, and shipping address.</p>
+        </div>
+        {!editing && (
+          <button onClick={start} className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-navy-900 border border-navy-900 px-3 py-2 hover:bg-navy-900 hover:text-cream-light">
+            <Pencil className="w-3.5 h-3.5" /> Edit
+          </button>
+        )}
+      </div>
+
+      {!editing ? (
+        <dl className="grid sm:grid-cols-2 gap-4 text-sm">
+          <DetailRow label="Email (signed up)" value={email} />
+          <DetailRow label="Nickname" value={profile?.nickname || '—'} />
+          <DetailRow label="Full name" value={profile?.full_name || '—'} />
+          <DetailRow label="Phone" value={profile?.phone || '—'} />
+          <div className="sm:col-span-2">
+            <DetailRow label="Address" value={profile?.address || '—'} />
+          </div>
+        </dl>
+      ) : (
+        <form onSubmit={save} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-xs uppercase tracking-wider text-charcoal-500">Email (signed up)</span>
+              <input value={email} disabled className="mt-1 w-full border border-gold-200 px-3 py-2 bg-gold-50 text-charcoal-500" />
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase tracking-wider text-charcoal-500">Nickname</span>
+              <input value={nickname} onChange={e => setNickname(e.target.value)} className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase tracking-wider text-charcoal-500">Full name</span>
+              <input value={fullName} onChange={e => setFullName(e.target.value)} className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase tracking-wider text-charcoal-500">Phone</span>
+              <input value={phone} onChange={e => setPhone(e.target.value)} className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
+            </label>
+          </div>
+          <label className="block">
+            <span className="text-xs uppercase tracking-wider text-charcoal-500">Address</span>
+            <textarea value={address} onChange={e => setAddress(e.target.value)} rows={3} className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
+          </label>
+          <div className="flex items-center gap-3">
+            <button type="submit" disabled={saving} className="bg-navy-900 text-cream-light px-6 py-3 text-xs uppercase tracking-widest disabled:opacity-50">
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+            <button type="button" onClick={() => setEditing(false)} className="text-xs uppercase tracking-widest text-charcoal-500 hover:text-navy-900">
+              Cancel
+            </button>
+          </div>
+          {feedback && (
+            <div className={`text-sm ${feedback.kind === 'ok' ? 'text-emerald-700' : 'text-red-600'}`}>{feedback.msg}</div>
+          )}
+        </form>
+      )}
+    </section>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs uppercase tracking-wider text-charcoal-500">{label}</dt>
+      <dd className="text-navy-900 mt-1 break-words whitespace-pre-wrap">{value}</dd>
+    </div>
+  );
 }
 

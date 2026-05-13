@@ -8,7 +8,18 @@ export interface UserProfile {
   referred_by: string | null;
   full_name: string | null;
   phone: string | null;
+  nickname: string | null;
+  address: string | null;
+  avatar_url: string | null;
   frozen: boolean;
+}
+
+export interface UpdateProfileInput {
+  nickname?: string | null;
+  address?: string | null;
+  full_name?: string | null;
+  phone?: string | null;
+  avatar_url?: string | null;
 }
 
 export interface LedgerEntry {
@@ -121,6 +132,20 @@ export function useReferral() {
     [user, balance, hasOrderThisMonth, refresh]
   );
 
+  const updateProfile = useCallback(
+    async (updates: UpdateProfileInput): Promise<{ error: string | null }> => {
+      if (!user) return { error: 'Not signed in' };
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', user.id);
+      if (error) return { error: error.message };
+      await refresh();
+      return { error: null };
+    },
+    [user, refresh]
+  );
+
   return {
     profile,
     balance,
@@ -131,6 +156,7 @@ export function useReferral() {
     error,
     refresh,
     requestWithdrawal,
+    updateProfile,
   };
 }
 
