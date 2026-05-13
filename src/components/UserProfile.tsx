@@ -59,7 +59,10 @@ export default function UserProfile() {
               />
               <div className="min-w-0 flex-1">
                 <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-2 sm:mb-3">My Account</span>
-                <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-normal text-navy-900 tracking-tight break-words">
+                <h1
+                  className="font-heading text-xl sm:text-3xl md:text-5xl font-normal text-navy-900 tracking-tight truncate"
+                  title={profile?.nickname || profile?.full_name || user.email || ''}
+                >
                   {profile?.nickname || profile?.full_name || user.email}
                 </h1>
                 <p className="text-xs sm:text-sm text-charcoal-500 mt-2 flex items-center gap-1.5 min-w-0">
