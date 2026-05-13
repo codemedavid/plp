@@ -27,6 +27,7 @@ const UserProfile = lazy(() => import('./components/UserProfile'));
 import { useMenu } from './hooks/useMenu';
 import { useReferralCapture } from './hooks/useReferralCapture';
 import { useAuth } from './hooks/useAuth';
+import { useCartAbandonment } from './hooks/useCartAbandonment';
 import type { Product, ProductVariation, KitType } from './types';
 // import { useCOAPageSetting } from './hooks/useCOAPageSetting';
 
@@ -34,6 +35,7 @@ function MainApp() {
     const cart = useCart();
     const { menuItems, refreshProducts } = useMenu();
     const { user } = useAuth();
+    useCartAbandonment(cart.cartItems, user);
     const [currentView, setCurrentView] = useState<'menu' | 'checkout'>('menu');
     const [cartOpen, setCartOpen] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);

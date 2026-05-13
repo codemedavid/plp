@@ -204,7 +204,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                 city: city,
                 state: state,
             });
-            posthog.capture('vrjonina_checkout_started', {
+            posthog.capture('plp_checkout_started', {
                 total_price: totalPrice,
                 item_count: cartItems.reduce((sum, item) => sum + item.quantity, 0),
                 items: cartItems.map(item => ({
@@ -391,7 +391,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             console.log('📧 PostHog event properties:', JSON.stringify(eventProps, null, 2));
 
             // Track order placed event for PostHog email workflows
-            posthog.capture('vrjonina_order_placed', eventProps);
+            posthog.capture('plp_order_placed', eventProps);
 
             setOrderNumber(customOrderNumber);
 

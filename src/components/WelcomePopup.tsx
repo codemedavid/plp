@@ -32,7 +32,7 @@ export default function WelcomePopup() {
 
     // Only capture event — do NOT identify here to avoid cross-customer
     // identity merging when a different customer checks out later on the same device
-    posthog.capture('vrjonina_promo', { email: trimmed, $set: { email: trimmed } }, { send_instantly: true });
+    posthog.capture('plp_promo', { email: trimmed, $set: { email: trimmed } }, { send_instantly: true });
 
     // Send welcome email via edge function (fire and forget — don't block the UI)
     supabase.functions.invoke('send-promo-welcome', {

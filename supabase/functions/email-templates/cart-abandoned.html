@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You left something behind</title>
+  <style>
+    @media only screen and (max-width: 480px) {
+      .container { width: 100% !important; }
+      .content { padding: 24px 18px !important; }
+      .header { padding: 32px 18px !important; }
+      .item-img { width: 64px !important; height: 64px !important; }
+      .item-name { font-size: 14px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #FAF6EF; font-family: 'Helvetica Neue', Arial, sans-serif; color: #0F2447;">
+  <!-- Preheader (hidden) -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#FAF6EF;opacity:0;">
+    Your peptides are still in your cart — complete your order before they're gone.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #FAF6EF;">
+    <tr>
+      <td align="center" style="padding: 32px 12px;">
+        <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #EDE6D8; box-shadow: 0 4px 24px rgba(15,36,71,0.08);">
+
+          <!-- Navy header with gold accent -->
+          <tr>
+            <td class="header" align="center" style="background-color: #0F2447; padding: 40px 24px; border-bottom: 2px solid #C9A876;">
+              <p style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 400; color: #ffffff; letter-spacing: 0.5px;">PLP</p>
+              <p style="margin: 10px 0 0; font-size: 11px; color: #C9A876; letter-spacing: 3px; text-transform: uppercase;">Premium Peptide Solutions</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td class="content" style="padding: 40px 32px 24px;">
+              <p style="margin: 0 0 6px; font-size: 11px; color: #C9A876; letter-spacing: 3px; text-transform: uppercase; font-weight: 600;">Your Cart</p>
+              <h1 style="margin: 0 0 16px; font-family: 'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 400; color: #0F2447; line-height: 1.25;">
+                {{full_name_or_hi}}, you left something behind.
+              </h1>
+              <p style="margin: 0 0 8px; font-size: 15px; color: #4B5563; line-height: 1.7;">
+                Your selected peptides are still waiting in your cart. Stock is limited — complete your order before it's gone.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Cart items -->
+          <tr>
+            <td style="padding: 0 32px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top: 1px solid #EDE6D8;">
+                <!-- {{#each items}} -->
+                <tr>
+                  <td style="padding: 18px 0; border-bottom: 1px solid #EDE6D8;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td width="80" valign="top" style="padding-right: 16px;">
+                          <img class="item-img" src="{{item_image_url}}" alt="{{item_name}}" width="72" height="72" style="display:block; width:72px; height:72px; object-fit:cover; border:1px solid #EDE6D8; background:#FAF6EF;" />
+                        </td>
+                        <td valign="top">
+                          <p class="item-name" style="margin: 0 0 4px; font-size: 15px; font-weight: 600; color: #0F2447; line-height: 1.35;">{{item_name}}</p>
+                          <p style="margin: 0 0 4px; font-size: 12px; color: #6B7785;">{{item_variation}} · {{item_kit_label}}</p>
+                          <p style="margin: 0; font-size: 12px; color: #6B7785;">Qty: {{item_quantity}}</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- {{/each}} -->
+              </table>
+            </td>
+          </tr>
+
+          <!-- Total -->
+          <tr>
+            <td style="padding: 20px 32px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size: 13px; color: #6B7785; letter-spacing: 2px; text-transform: uppercase;">Cart Total</td>
+                  <td align="right" style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 400; color: #0F2447;">₱{{cart_total}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td align="center" style="padding: 28px 32px 8px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="background-color: #0F2447; border: 1px solid #C9A876;">
+                    <a href="{{checkout_url}}" style="display:inline-block; padding: 16px 36px; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; text-decoration: none;">
+                      Complete Your Order
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Trust line -->
+          <tr>
+            <td align="center" style="padding: 16px 32px 36px;">
+              <p style="margin: 0; font-size: 12px; color: #8A95A8; line-height: 1.6;">
+                Questions? Reply to this email and we'll help you out.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background-color: #FAF6EF; padding: 24px; border-top: 1px solid #EDE6D8;">
+              <p style="margin: 0 0 6px; font-size: 11px; color: #8A95A8; letter-spacing: 2px; text-transform: uppercase;">PLP — Premium Peptide Solutions</p>
+              <p style="margin: 0; font-size: 11px; color: #B8C1D0;">
+                You're receiving this because you have an active account with us.
+                <br />
+                <a href="{{unsubscribe_url}}" style="color: #8A95A8; text-decoration: underline;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

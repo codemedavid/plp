@@ -273,7 +273,7 @@ describe('useCart Hook', () => {
         result.current.addToCart(mockProduct, mockVariation, 1, 'vial_only');
       });
 
-      expect(posthog.capture).toHaveBeenCalledWith('vrjonina_add_to_cart', expect.objectContaining({
+      expect(posthog.capture).toHaveBeenCalledWith('plp_add_to_cart', expect.objectContaining({
         product_name: 'Tirzepatide',
         product_id: 'prod-1',
         variation: '5mg',
@@ -290,7 +290,7 @@ describe('useCart Hook', () => {
       });
 
       // variation discount_price is 2500
-      expect(posthog.capture).toHaveBeenCalledWith('vrjonina_add_to_cart', expect.objectContaining({
+      expect(posthog.capture).toHaveBeenCalledWith('plp_add_to_cart', expect.objectContaining({
         price: 2500,
       }));
     });
@@ -303,7 +303,7 @@ describe('useCart Hook', () => {
       });
 
       // variation discount_price 2500 + KIT_UPGRADE_PRICE 150 = 2650
-      expect(posthog.capture).toHaveBeenCalledWith('vrjonina_add_to_cart', expect.objectContaining({
+      expect(posthog.capture).toHaveBeenCalledWith('plp_add_to_cart', expect.objectContaining({
         price: 2500 + KIT_UPGRADE_PRICE,
       }));
     });

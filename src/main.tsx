@@ -9,9 +9,9 @@ posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
   flush_at: 1,
   flush_interval: 0,
   loaded: (ph) => {
-    if (!localStorage.getItem('vrjonina_welcomed')) {
-      ph.capture('vrjonina_welcome_user');
-      localStorage.setItem('vrjonina_welcomed', 'true');
+    if (!localStorage.getItem('plp_welcomed')) {
+      ph.capture('plp_welcome_user');
+      localStorage.setItem('plp_welcomed', 'true');
     }
   },
 });

@@ -17,6 +17,7 @@ import PromoCodeManager from './PromoCodeManager';
 import CourierManager from './CourierManager';
 import ProtocolManager from './ProtocolManager';
 import ReferralManager from './ReferralManager';
+import PostHogEventTester from './PostHogEventTester';
 // GuideManager removed (Peptalk functionality disabled)
 
 type CollapsibleSectionProps = {
@@ -1969,6 +1970,8 @@ const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
+          <PostHogEventTester />
         </div>
       </div>
 

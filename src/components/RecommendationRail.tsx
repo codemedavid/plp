@@ -65,7 +65,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
   useEffect(() => {
     if (products.length === 0 || impressionFiredRef.current) return;
     impressionFiredRef.current = true;
-    posthog.capture('vrjonina_recommendation_impression', {
+    posthog.capture('plp_recommendation_impression', {
       placement,
       product_ids: products.map((p) => p.id),
       product_names: products.map((p) => p.name),
@@ -77,7 +77,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
 
   const handleAdd = (product: Product) => {
     const variation = pickFirstAvailableVariation(product);
-    posthog.capture('vrjonina_recommendation_add_to_cart', {
+    posthog.capture('plp_recommendation_add_to_cart', {
       placement,
       product_id: product.id,
       product_name: product.name,
@@ -86,7 +86,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
   };
 
   const handleClick = (product: Product) => {
-    posthog.capture('vrjonina_recommendation_click', {
+    posthog.capture('plp_recommendation_click', {
       placement,
       product_id: product.id,
       product_name: product.name,

@@ -27,7 +27,7 @@ export default function PromoBanner() {
 
     setStatus('success');
     setShowConfirmPopup(true);
-    posthog.capture('vrjonina_promo_banner', { email: trimmed });
+    posthog.capture('plp_promo_banner', { email: trimmed });
   };
 
   const close = () => {

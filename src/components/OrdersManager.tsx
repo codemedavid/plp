@@ -89,7 +89,7 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           api_key: import.meta.env.VITE_POSTHOG_KEY,
-          event: `vrjonina_order_${newStatus}`,
+          event: `plp_order_${newStatus}`,
           distinct_id: order.customer_email,
           properties: {
             customer_name: String(order.customer_name),

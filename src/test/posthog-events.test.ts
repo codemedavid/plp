@@ -106,7 +106,7 @@ const testEmail = 'mitwinter825@gmail.com';
 // 1. ADD TO CART EVENT TESTS
 // ─────────────────────────────────────────────────────
 
-describe('PostHog Event: vrjonina_add_to_cart', () => {
+describe('PostHog Event: plp_add_to_cart', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -125,7 +125,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
     const kitUpgrade = kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
     const actualPrice = basePrice + kitUpgrade;
 
-    posthog.capture('vrjonina_add_to_cart', {
+    posthog.capture('plp_add_to_cart', {
       product_name: product.name,
       product_id: product.id,
       variation: variation?.name,
@@ -134,7 +134,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
       kit_type: kitType,
     });
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_add_to_cart', {
+    expect(posthog.capture).toHaveBeenCalledWith('plp_add_to_cart', {
       product_name: 'Tirzepatide',
       product_id: 'prod-1',
       variation: '5mg',
@@ -169,7 +169,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
     const actualPrice = basePrice;
 
     // Simulate the fixed code path: existing item quantity increment now also fires event
-    posthog.capture('vrjonina_add_to_cart', {
+    posthog.capture('plp_add_to_cart', {
       product_name: product.name,
       product_id: product.id,
       variation: variation?.name,
@@ -178,7 +178,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
       kit_type: kitType,
     });
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_add_to_cart', expect.objectContaining({
+    expect(posthog.capture).toHaveBeenCalledWith('plp_add_to_cart', expect.objectContaining({
       product_name: 'Tirzepatide',
       quantity: 1,
       price: 2500,
@@ -197,7 +197,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
       : variation.price;
     const actualPrice = basePrice + KIT_UPGRADE_PRICE;
 
-    posthog.capture('vrjonina_add_to_cart', {
+    posthog.capture('plp_add_to_cart', {
       product_name: product.name,
       product_id: product.id,
       variation: variation?.name,
@@ -206,7 +206,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
       kit_type: kitType,
     });
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_add_to_cart', expect.objectContaining({
+    expect(posthog.capture).toHaveBeenCalledWith('plp_add_to_cart', expect.objectContaining({
       price: 2650, // 2500 (discount) + 150 (kit upgrade)
       kit_type: 'complete_kit',
     }));
@@ -217,7 +217,7 @@ describe('PostHog Event: vrjonina_add_to_cart', () => {
 // 2. CHECKOUT STARTED EVENT TESTS
 // ─────────────────────────────────────────────────────
 
-describe('PostHog Event: vrjonina_checkout_started', () => {
+describe('PostHog Event: plp_checkout_started', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -256,7 +256,7 @@ describe('PostHog Event: vrjonina_checkout_started', () => {
     ];
     const totalPrice = 8500; // subtotal from cart
 
-    posthog.capture('vrjonina_checkout_started', {
+    posthog.capture('plp_checkout_started', {
       total_price: totalPrice,
       item_count: cartItems.reduce((sum, item) => sum + item.quantity, 0),
       items: cartItems.map(item => ({
@@ -266,7 +266,7 @@ describe('PostHog Event: vrjonina_checkout_started', () => {
       })),
     });
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_checkout_started', {
+    expect(posthog.capture).toHaveBeenCalledWith('plp_checkout_started', {
       total_price: 8500,
       item_count: 3,
       items: [
@@ -298,7 +298,7 @@ describe('PostHog Event: vrjonina_checkout_started', () => {
 // 3. ORDER PLACED EVENT TESTS
 // ─────────────────────────────────────────────────────
 
-describe('PostHog Event: vrjonina_order_placed', () => {
+describe('PostHog Event: plp_order_placed', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -348,7 +348,7 @@ describe('PostHog Event: vrjonina_order_placed', () => {
       return `${name} x${item.quantity} - P${item.total.toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
     }).join('\n');
 
-    posthog.capture('vrjonina_order_placed', {
+    posthog.capture('plp_order_placed', {
       $set: {
         last_order_number: orderData.order_number,
         last_order_total: orderData.total_price,
@@ -375,7 +375,7 @@ describe('PostHog Event: vrjonina_order_placed', () => {
     const eventName = captureCall[0];
     const eventProps = captureCall[1];
 
-    expect(eventName).toBe('vrjonina_order_placed');
+    expect(eventName).toBe('plp_order_placed');
 
     // Verify all required properties exist
     expect(eventProps).toHaveProperty('$set');
@@ -442,7 +442,7 @@ describe('PostHog Event: vrjonina_order_placed', () => {
 // 4. ORDER DELIVERED EVENT TESTS
 // ─────────────────────────────────────────────────────
 
-describe('PostHog Event: vrjonina_order_delivered', () => {
+describe('PostHog Event: plp_order_delivered', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -501,7 +501,7 @@ describe('PostHog Event: vrjonina_order_delivered', () => {
     const total = order.total_price;
     const subtotal = total - shippingFee + discount;
 
-    posthog.capture('vrjonina_order_delivered', {
+    posthog.capture('plp_order_delivered', {
       order_number: order.order_number || order.id,
       customer_name: order.customer_name,
       total_price_raw: total,
@@ -522,7 +522,7 @@ describe('PostHog Event: vrjonina_order_delivered', () => {
     });
 
     const captureCall = (posthog.capture as any).mock.calls[0];
-    expect(captureCall[0]).toBe('vrjonina_order_delivered');
+    expect(captureCall[0]).toBe('plp_order_delivered');
 
     const props = captureCall[1];
     expect(props.order_number).toBe('VRJ-1234');
@@ -565,7 +565,7 @@ describe('PostHog Event: vrjonina_order_delivered', () => {
 // 5. WELCOME & PROMO EVENT TESTS
 // ─────────────────────────────────────────────────────
 
-describe('PostHog Event: vrjonina_welcome_user', () => {
+describe('PostHog Event: plp_welcome_user', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
@@ -573,36 +573,36 @@ describe('PostHog Event: vrjonina_welcome_user', () => {
 
   it('should fire welcome event only on first visit', () => {
     // Simulate main.tsx lines 12-14
-    if (!localStorage.getItem('vrjonina_welcomed')) {
-      posthog.capture('vrjonina_welcome_user');
-      localStorage.setItem('vrjonina_welcomed', 'true');
+    if (!localStorage.getItem('plp_welcomed')) {
+      posthog.capture('plp_welcome_user');
+      localStorage.setItem('plp_welcomed', 'true');
     }
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_welcome_user');
-    expect(localStorage.getItem('vrjonina_welcomed')).toBe('true');
+    expect(posthog.capture).toHaveBeenCalledWith('plp_welcome_user');
+    expect(localStorage.getItem('plp_welcomed')).toBe('true');
   });
 
   it('should not fire welcome event on subsequent visits', () => {
-    localStorage.setItem('vrjonina_welcomed', 'true');
+    localStorage.setItem('plp_welcomed', 'true');
 
-    if (!localStorage.getItem('vrjonina_welcomed')) {
-      posthog.capture('vrjonina_welcome_user');
+    if (!localStorage.getItem('plp_welcomed')) {
+      posthog.capture('plp_welcome_user');
     }
 
     expect(posthog.capture).not.toHaveBeenCalled();
   });
 });
 
-describe('PostHog Event: vrjonina_promo', () => {
+describe('PostHog Event: plp_promo', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should capture promo event with email (WelcomePopup)', () => {
     const email = testEmail;
-    posthog.capture('vrjonina_promo', { email });
+    posthog.capture('plp_promo', { email });
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_promo', {
+    expect(posthog.capture).toHaveBeenCalledWith('plp_promo', {
       email: testEmail,
     });
   });
@@ -611,29 +611,29 @@ describe('PostHog Event: vrjonina_promo', () => {
     // WelcomePopup.tsx line 37-38: intentionally does NOT identify
     // to avoid cross-customer identity merging
     const email = testEmail;
-    posthog.capture('vrjonina_promo', { email });
+    posthog.capture('plp_promo', { email });
 
     expect(posthog.identify).not.toHaveBeenCalled();
   });
 });
 
-describe('PostHog Event: vrjonina_promo_banner', () => {
+describe('PostHog Event: plp_promo_banner', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('should capture promo_banner event with email', () => {
     const email = testEmail;
-    posthog.capture('vrjonina_promo_banner', { email });
+    posthog.capture('plp_promo_banner', { email });
 
-    expect(posthog.capture).toHaveBeenCalledWith('vrjonina_promo_banner', {
+    expect(posthog.capture).toHaveBeenCalledWith('plp_promo_banner', {
       email: testEmail,
     });
   });
 
   it('should NOT call posthog.identify for banner subscriptions', () => {
     const email = testEmail;
-    posthog.capture('vrjonina_promo_banner', { email });
+    posthog.capture('plp_promo_banner', { email });
 
     expect(posthog.identify).not.toHaveBeenCalled();
   });
@@ -779,10 +779,10 @@ describe('Full Order Flow - PostHog Event Sequence', () => {
     });
 
     // 1. First visit
-    posthog.capture('vrjonina_welcome_user');
+    posthog.capture('plp_welcome_user');
 
     // 2. Add items to cart
-    posthog.capture('vrjonina_add_to_cart', {
+    posthog.capture('plp_add_to_cart', {
       product_name: 'Tirzepatide',
       product_id: 'prod-1',
       variation: '5mg',
@@ -793,7 +793,7 @@ describe('Full Order Flow - PostHog Event Sequence', () => {
     // 3. Proceed to payment
     posthog.reset();
     posthog.identify(testEmail, { $email: testEmail, name: 'Test' });
-    posthog.capture('vrjonina_checkout_started', {
+    posthog.capture('plp_checkout_started', {
       total_price: 3000,
       item_count: 1,
       items: [{ product_name: 'Tirzepatide', variation: '5mg', quantity: 1 }],
@@ -802,17 +802,17 @@ describe('Full Order Flow - PostHog Event Sequence', () => {
     // 4. Place order
     posthog.reset();
     posthog.identify(testEmail, { $email: testEmail, name: 'Test', phone: '123' });
-    posthog.capture('vrjonina_order_placed', {
+    posthog.capture('plp_order_placed', {
       order_number: 'VRJ-1234',
       total_price_raw: 3200,
       item_count: 1,
     });
 
     expect(callOrder).toEqual([
-      'vrjonina_welcome_user',
-      'vrjonina_add_to_cart',
-      'vrjonina_checkout_started',
-      'vrjonina_order_placed',
+      'plp_welcome_user',
+      'plp_add_to_cart',
+      'plp_checkout_started',
+      'plp_order_placed',
     ]);
 
     // reset should be called twice (before checkout_started and order_placed)
@@ -824,7 +824,7 @@ describe('Full Order Flow - PostHog Event Sequence', () => {
   it('email should be consistent across identify and events', () => {
     posthog.reset();
     posthog.identify(testEmail, { $email: testEmail });
-    posthog.capture('vrjonina_checkout_started', { total_price: 1000 });
+    posthog.capture('plp_checkout_started', { total_price: 1000 });
 
     const identifyCall = (posthog.identify as any).mock.calls[0];
     expect(identifyCall[0]).toBe(testEmail);

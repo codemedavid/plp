@@ -71,7 +71,7 @@ export function useCart() {
       const updatedItems = [...cartItems];
       updatedItems[existingItemIndex].quantity += quantity;
       setCartItems(updatedItems);
-      posthog.capture('vrjonina_add_to_cart', {
+      posthog.capture('plp_add_to_cart', {
         product_name: product.name,
         product_id: product.id,
         variation: variation?.name,
@@ -92,7 +92,7 @@ export function useCart() {
         quantity
       };
       setCartItems([...cartItems, newItem]);
-      posthog.capture('vrjonina_add_to_cart', {
+      posthog.capture('plp_add_to_cart', {
         product_name: product.name,
         product_id: product.id,
         variation: variation?.name,

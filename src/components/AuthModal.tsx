@@ -58,7 +58,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     if (mode === 'signup') {
       const trimmedEmail = email.trim().toLowerCase();
       posthog.capture(
-        'vrjonina_user_signed_up',
+        'plp_user_signed_up',
         {
           email: trimmedEmail,
           name: trimmedEmail.split('@')[0],
