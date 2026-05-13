@@ -1,22 +1,34 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Lock, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
+const hashLooksLikeRecovery = () =>
+  typeof window !== 'undefined' &&
+  (window.location.hash.includes('type=recovery') ||
+    new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery');
+
 const ResetPasswordModal: React.FC = () => {
   const { passwordRecovery, updatePassword, clearPasswordRecovery } = useAuth();
+  const [hashRecovery, setHashRecovery] = useState<boolean>(hashLooksLikeRecovery);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  if (!passwordRecovery) return null;
+  useEffect(() => {
+    if (passwordRecovery) setHashRecovery(true);
+  }, [passwordRecovery]);
+
+  const open = passwordRecovery || hashRecovery;
+  if (!open) return null;
 
   const close = () => {
     setPassword('');
     setConfirm('');
     setError(null);
     setInfo(null);
+    setHashRecovery(false);
     clearPasswordRecovery();
     if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
       history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -53,7 +65,7 @@ const ResetPasswordModal: React.FC = () => {
       aria-modal="true"
       aria-labelledby="reset-password-title"
     >
-      <div className="absolute inset-0 bg-navy-900/50 backdrop-blur-sm" onClick={close} />
+      <div className="absolute inset-0 bg-navy-900/50 backdrop-blur-sm" />
       <div className="relative w-full max-w-md bg-white rounded-lg shadow-2xl">
         <button
           onClick={close}

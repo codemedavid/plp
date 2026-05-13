@@ -93,9 +93,6 @@ function MainApp() {
                 <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
             </Suspense>
             <Suspense fallback={null}>
-                <ResetPasswordModal />
-            </Suspense>
-            <Suspense fallback={null}>
                 <PromoBanner />
             </Suspense>
 
@@ -178,6 +175,9 @@ function App() {
 
     return (
         <Router>
+            <Suspense fallback={null}>
+                <ResetPasswordModal />
+            </Suspense>
             <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                     <Route path="/" element={<MainApp />} />
