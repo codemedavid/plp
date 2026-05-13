@@ -14,6 +14,7 @@ import { useReferral } from '../hooks/useReferral';
 import { useAddresses, type UserAddress } from '../hooks/useAddresses';
 import RecommendationRail from './RecommendationRail';
 import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
+import Toast from './Toast';
 
 interface CheckoutProps {
     cartItems: CartItem[];
@@ -59,6 +60,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     const [contactOpened] = useState(false);
 
     const [orderNumber, setOrderNumber] = useState<string>('');
+    const [toast, setToast] = useState<{ message: string; variant: 'info' | 'error' | 'warning' | 'success' } | null>(null);
+    const notify = (message: string, variant: 'info' | 'error' | 'warning' | 'success' = 'error') => setToast({ message, variant });
 
     // Policies acknowledgment
     const [policiesAccepted, setPoliciesAccepted] = useState(false);
@@ -265,17 +268,17 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
         }
 
         if (!contactMethod) {
-            alert('Please select your preferred contact method.');
+            notify('Please select your preferred contact method.', 'warning');
             return;
         }
 
         if (!shippingLocation) {
-            alert('Please select your shipping location.');
+            notify('Please select your shipping location.', 'warning');
             return;
         }
 
         if (!paymentProof) {
-            alert('Please upload a screenshot of your payment proof to proceed.');
+            notify('Please upload a screenshot of your payment proof to proceed.', 'warning');
             return;
         }
 
@@ -296,7 +299,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                     paymentProofUrl = await uploadImage(paymentProof);
                 } catch (uploadError: any) {
                     console.error('Failed to upload payment proof:', uploadError);
-                    alert(`Failed to upload payment proof: ${uploadError.message}`);
+                    notify(`Failed to upload payment proof: ${uploadError.message}`, 'error');
                     return;
                 }
             }
@@ -370,11 +373,37 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                     errorMessage = `The orders table doesn't exist in the database. Please run the migration.`;
                 }
 
-                alert(`Failed to save order: ${errorMessage}\n\nPlease contact support if this issue persists.`);
+                notify(`Failed to save order: ${errorMessage}. Please contact support if this issue persists.`, 'error');
                 return;
             }
 
-            // Write points-redemption ledger debit
+            // Update promo code usage atomically via RPC FIRST (race-safe; returns null if limit hit).
+            // Running this before the points-redemption ledger insert avoids leaving an
+            // orphan ledger row pointing at a deleted order if the promo RPC fails or the
+            // limit has been hit.
+            if (appliedPromo) {
+                const { data: promoRpcData, error: promoUpdateError } = await supabase.rpc(
+                    'increment_promo_usage',
+                    { promo_id: appliedPromo.id }
+                );
+
+                if (promoUpdateError) {
+                    console.error('Failed to update promo usage count:', promoUpdateError);
+                    await supabase.from('orders').delete().eq('id', orderData.id);
+                    notify(`Failed to apply promo code: ${promoUpdateError.message}. Order was not placed.`, 'error');
+                    return;
+                }
+                if (!promoRpcData) {
+                    // null = limit reached; abort order
+                    await supabase.from('orders').delete().eq('id', orderData.id);
+                    notify('Promo code usage limit reached. Please remove the promo and try again.', 'error');
+                    return;
+                }
+            }
+
+            // Write points-redemption ledger debit (authoritative — fail order on error)
+            // Redemption debits are immediately 'available' (spent now); referral credits
+            // are recorded server-side as 'pending' and settle later.
             if (user && effectivePointsRedeemed > 0 && orderData?.id) {
                 const { error: ledgerError } = await supabase.from('points_ledger').insert({
                     user_id: user.id,
@@ -382,21 +411,23 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                     reason: 'redemption',
                     source_order_id: orderData.id,
                     notes: `Order ${orderData.order_number}`,
+                    status: 'available',
                 });
-                if (ledgerError) console.error('Failed to write points ledger:', ledgerError);
-                else refreshReferral();
-            }
-
-            // Update promo code usage count
-            if (appliedPromo) {
-                const { error: promoUpdateError } = await supabase
-                    .from('promo_codes')
-                    .update({ usage_count: appliedPromo.usage_count + 1 })
-                    .eq('id', appliedPromo.id);
-
-                if (promoUpdateError) {
-                    console.error('Failed to update promo usage count:', promoUpdateError);
+                if (ledgerError) {
+                    console.error('Failed to write points ledger:', ledgerError);
+                    // Roll back the order we just created so points balance is not silently desynced.
+                    // We also roll back the promo usage increment (best-effort).
+                    await supabase.from('orders').delete().eq('id', orderData.id);
+                    if (appliedPromo) {
+                        await supabase.rpc('decrement_promo_usage', { promo_id: appliedPromo.id });
+                    }
+                    notify(
+                        `Failed to redeem points: ${ledgerError.message}. Your order was not placed. Please try again.`,
+                        'error'
+                    );
+                    return;
                 }
+                refreshReferral();
             }
 
             console.log('✅ Order saved to database:', orderData);
@@ -529,7 +560,7 @@ Please confirm this order. Thank you!
             }, 1500);
         } catch (error) {
             console.error('❌ Error placing order:', error);
-            alert(`Failed to place order: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+            notify(`Failed to place order: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`, 'error');
         }
     };
 
@@ -541,7 +572,7 @@ Please confirm this order. Thank you!
         } catch (error) {
             console.error('Failed to copy:', error);
             // Fallback
-            alert('Failed to copy. Please manually select and copy the message.');
+            notify('Failed to copy. Please manually select and copy the message.', 'warning');
         }
     };
 
@@ -1174,27 +1205,6 @@ Please confirm this order. Thank you!
                             </div>
                         </div>
 
-                        {/* Contact Method */}
-                        <div className="bg-white rounded-2xl shadow-soft p-6 border border-brand-100">
-                            <h2 className="font-heading text-lg font-bold text-charcoal-900 mb-3 flex items-center gap-2">
-                                <MessageCircle className="w-5 h-5 text-brand-600" />
-                                Contact Method
-                            </h2>
-                            <p className="text-xs text-gray-500 mb-4">
-                                Your order details will be sent via WhatsApp after checkout.
-                            </p>
-                            <div className="p-4 rounded border border-brand-600 bg-brand-50 ring-1 ring-brand-600 flex items-center gap-3">
-                                <div className="w-6 h-6 flex items-center justify-center bg-green-500 rounded-full text-white">
-                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                                    </svg>
-                                </div>
-                                <div className="text-left">
-                                    <p className="font-bold text-charcoal-900 text-sm">WhatsApp</p>
-                                    <p className="text-xs text-gray-500">0905 842 9200</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Courier Selection */}
@@ -1304,7 +1314,7 @@ Please confirm this order. Thank you!
                                 const pct = showSavings ? Math.round((1 - lineTotal / fullTotal) * 100) : 0;
 
                                 return (
-                                    <div key={index} className="pb-4 border-b border-gray-100">
+                                    <div key={`${item.product.id}-${item.variation?.id ?? 'novar'}-${item.kitType ?? 'vial'}-${index}`} className="pb-4 border-b border-gray-100">
                                         <div className="flex justify-between items-start mb-1">
                                             <div className="flex-1">
                                                 <h4 className="font-bold text-charcoal-900 text-sm">{item.product.name}</h4>
@@ -1442,6 +1452,7 @@ Please confirm this order. Thank you!
                     </div>
                 </div>
             </div>
+            {toast && <Toast message={toast.message} variant={toast.variant} onClose={() => setToast(null)} />}
         </div>
     );
 };

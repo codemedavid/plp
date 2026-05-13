@@ -33,6 +33,10 @@ export interface LedgerEntry {
   period_month: string | null;
   notes: string | null;
   created_at: string;
+  status?: 'pending' | 'available' | 'reversed';
+  available_at?: string | null;
+  reversed_at?: string | null;
+  reverses_ledger_id?: string | null;
 }
 
 export interface WithdrawalRow {
@@ -57,6 +61,8 @@ export function useReferral() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [balance, setBalance] = useState<number>(0);
+  const [pendingBalance, setPendingBalance] = useState<number>(0);
+  const [lifetimeEarned, setLifetimeEarned] = useState<number>(0);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRow[]>([]);
   const [hasOrderThisMonth, setHasOrderThisMonth] = useState<boolean>(false);
@@ -67,6 +73,8 @@ export function useReferral() {
     if (!user) {
       setProfile(null);
       setBalance(0);
+      setPendingBalance(0);
+      setLifetimeEarned(0);
       setLedger([]);
       setWithdrawals([]);
       setLoading(false);
@@ -75,9 +83,14 @@ export function useReferral() {
     setLoading(true);
     setError(null);
     try {
+      // Fire-and-forget settlement: any eligible pending rows (linked order completed
+      // and 7+ days old) get flipped to available before we read the balance.
+      // Failure is non-fatal — caller's row-level RLS will simply show pre-settlement state.
+      supabase.rpc('settle_referral_points').then(() => undefined, () => undefined);
+
       const [profileRes, balanceRes, ledgerRes, withdrawalsRes, orderRes] = await Promise.all([
         supabase.from('user_profiles').select('*').eq('id', user.id).maybeSingle(),
-        supabase.from('user_point_balance').select('balance').eq('user_id', user.id).maybeSingle(),
+        supabase.from('user_point_balance').select('balance, pending, lifetime_earned').eq('user_id', user.id).maybeSingle(),
         supabase
           .from('points_ledger')
           .select('*')
@@ -99,7 +112,10 @@ export function useReferral() {
 
       if (profileRes.error) throw profileRes.error;
       setProfile(profileRes.data as UserProfile | null);
-      setBalance(((balanceRes.data as { balance: number } | null)?.balance) ?? 0);
+      const bal = balanceRes.data as { balance: number; pending: number; lifetime_earned: number } | null;
+      setBalance(bal?.balance ?? 0);
+      setPendingBalance(bal?.pending ?? 0);
+      setLifetimeEarned(bal?.lifetime_earned ?? 0);
       setLedger((ledgerRes.data as LedgerEntry[]) ?? []);
       setWithdrawals((withdrawalsRes.data as WithdrawalRow[]) ?? []);
       setHasOrderThisMonth((orderRes.count ?? 0) > 0);
@@ -152,6 +168,8 @@ export function useReferral() {
   return {
     profile,
     balance,
+    pendingBalance,
+    lifetimeEarned,
     ledger,
     withdrawals,
     hasOrderThisMonth,

@@ -138,6 +138,9 @@ serve(async (req) => {
             source_referral_invitee_id: inviteeId,
             period_month: periodMonth,
             notes: `${orderCount} qualifying order(s)`,
+            // Referral credits are pending; settle_referral_points() will flip them
+            // to 'available' 7 days after the linked order is marked completed.
+            status: "pending",
           });
           inviterIds.add(ancestorId);
         }

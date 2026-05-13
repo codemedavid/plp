@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import Cart from '../components/Cart';
 import type { CartItem, Product, ProductVariation } from '../types';
-import { KIT_UPGRADE_PRICE } from '../types';
 
 // ─────────────────────────────────────────────────────
 // Test Fixtures
@@ -56,6 +55,8 @@ const createCartItem = (overrides: Partial<CartItem> = {}): CartItem => ({
 });
 
 const defaultProps = {
+  isOpen: true,
+  onClose: vi.fn(),
   cartItems: [] as CartItem[],
   updateQuantity: vi.fn(),
   removeFromCart: vi.fn(),
@@ -74,6 +75,13 @@ beforeEach(() => {
 // ─────────────────────────────────────────────────────
 
 describe('Cart Component', () => {
+  describe('Closed state', () => {
+    it('renders nothing when isOpen is false', () => {
+      const { container } = render(<Cart {...defaultProps} isOpen={false} />);
+      expect(container).toBeEmptyDOMElement();
+    });
+  });
+
   describe('Empty Cart', () => {
     it('shows empty cart message', () => {
       render(<Cart {...defaultProps} />);
@@ -119,7 +127,7 @@ describe('Cart Component', () => {
       expect(screen.getByText('5mg')).toBeInTheDocument();
     });
 
-    it('shows Vial Only badge for vial_only items', () => {
+    it('shows Vial badge for vial_only items', () => {
       const items = [createCartItem({ kitType: 'vial_only' })];
       render(
         <Cart
@@ -129,10 +137,10 @@ describe('Cart Component', () => {
         />
       );
 
-      expect(screen.getByText('Vial Only')).toBeInTheDocument();
+      expect(screen.getByText(/Vial/)).toBeInTheDocument();
     });
 
-    it('shows Complete Kit badge for complete_kit items', () => {
+    it('shows Kit badge for complete_kit items', () => {
       const items = [createCartItem({ kitType: 'complete_kit' })];
       render(
         <Cart
@@ -142,7 +150,7 @@ describe('Cart Component', () => {
         />
       );
 
-      expect(screen.getByText('Complete Kit')).toBeInTheDocument();
+      expect(screen.getByText(/Kit/)).toBeInTheDocument();
     });
 
     it('displays correct item count in header', () => {
@@ -158,10 +166,11 @@ describe('Cart Component', () => {
         />
       );
 
-      expect(screen.getByText('5 Items')).toBeInTheDocument();
+      // Header shows "(5)" next to Cart title
+      expect(screen.getByText('(5)')).toBeInTheDocument();
     });
 
-    it('displays total price in order summary', () => {
+    it('displays subtotal price in footer', () => {
       const items = [createCartItem({ quantity: 2 })];
       render(
         <Cart
@@ -171,38 +180,12 @@ describe('Cart Component', () => {
         />
       );
 
-      // The total appears in both Subtotal and Total sections
       const priceElements = screen.getAllByText(/₱4,000/);
       expect(priceElements.length).toBeGreaterThan(0);
+      expect(screen.getByText('Subtotal')).toBeInTheDocument();
     });
 
-    it('shows per-unit price for items', () => {
-      const items = [createCartItem({ quantity: 2 })];
-      render(
-        <Cart
-          {...defaultProps}
-          cartItems={items}
-          getTotalPrice={() => 4000}
-        />
-      );
-
-      expect(screen.getByText(/₱2,000 \/ unit/)).toBeInTheDocument();
-    });
-
-    it('shows "(incl. kit)" text for complete kit items', () => {
-      const items = [createCartItem({ kitType: 'complete_kit', quantity: 1 })];
-      render(
-        <Cart
-          {...defaultProps}
-          cartItems={items}
-          getTotalPrice={() => 2150}
-        />
-      );
-
-      expect(screen.getByText('(incl. kit)')).toBeInTheDocument();
-    });
-
-    it('shows shipping info', () => {
+    it('shows shipping calculated message', () => {
       const items = [createCartItem()];
       render(
         <Cart
@@ -212,25 +195,7 @@ describe('Cart Component', () => {
         />
       );
 
-      expect(screen.getByText('Metro Manila')).toBeInTheDocument();
-      expect(screen.getByText('₱150')).toBeInTheDocument();
-      expect(screen.getByText('Provincial')).toBeInTheDocument();
-      expect(screen.getByText('₱200')).toBeInTheDocument();
-    });
-
-    it('shows trust badges', () => {
-      const items = [createCartItem()];
-      render(
-        <Cart
-          {...defaultProps}
-          cartItems={items}
-          getTotalPrice={() => 2000}
-        />
-      );
-
-      expect(screen.getByText('Secure Checkout')).toBeInTheDocument();
-      expect(screen.getByText('Quality Guaranteed')).toBeInTheDocument();
-      expect(screen.getByText('Discreet Packaging')).toBeInTheDocument();
+      expect(screen.getByText(/Shipping calculated at checkout/i)).toBeInTheDocument();
     });
   });
 
@@ -248,19 +213,13 @@ describe('Cart Component', () => {
         />
       );
 
-      // Find all buttons and look for the one containing a minus SVG
-      const allButtons = screen.getAllByRole('button');
-      const minusBtn = allButtons.find(btn =>
-        btn.querySelector('.lucide-minus')
-      );
-
-      expect(minusBtn).toBeDefined();
-      fireEvent.click(minusBtn!);
+      const minusBtn = screen.getByRole('button', { name: /Decrease quantity/i });
+      fireEvent.click(minusBtn);
 
       expect(updateQuantity).toHaveBeenCalledWith(0, 2);
     });
 
-    it('calls removeFromCart when trash button clicked', () => {
+    it('calls removeFromCart when remove button clicked', () => {
       const removeFromCart = vi.fn();
       const items = [createCartItem()];
 
@@ -273,13 +232,13 @@ describe('Cart Component', () => {
         />
       );
 
-      const removeButton = screen.getByTitle('Remove item');
+      const removeButton = screen.getByRole('button', { name: /Remove Tirzepatide/i });
       fireEvent.click(removeButton);
 
       expect(removeFromCart).toHaveBeenCalledWith(0);
     });
 
-    it('calls clearCart when Clear Cart clicked', () => {
+    it('calls clearCart when Clear cart clicked', () => {
       const clearCart = vi.fn();
       const items = [createCartItem()];
 
@@ -292,7 +251,9 @@ describe('Cart Component', () => {
         />
       );
 
-      fireEvent.click(screen.getByText('Clear Cart'));
+      fireEvent.click(screen.getByText(/Clear cart/i));
+      // Confirm step
+      fireEvent.click(screen.getByText(/Yes, clear/i));
 
       expect(clearCart).toHaveBeenCalled();
     });
@@ -315,7 +276,7 @@ describe('Cart Component', () => {
       expect(onCheckout).toHaveBeenCalled();
     });
 
-    it('calls onContinueShopping when Back to Products clicked', () => {
+    it('calls onContinueShopping when Continue shopping clicked', () => {
       const onContinueShopping = vi.fn();
       const items = [createCartItem()];
 
@@ -328,25 +289,7 @@ describe('Cart Component', () => {
         />
       );
 
-      fireEvent.click(screen.getByText('Back to Products'));
-
-      expect(onContinueShopping).toHaveBeenCalled();
-    });
-
-    it('calls onContinueShopping when Continue Browsing clicked', () => {
-      const onContinueShopping = vi.fn();
-      const items = [createCartItem()];
-
-      render(
-        <Cart
-          {...defaultProps}
-          cartItems={items}
-          onContinueShopping={onContinueShopping}
-          getTotalPrice={() => 2000}
-        />
-      );
-
-      fireEvent.click(screen.getByText('Continue Browsing'));
+      fireEvent.click(screen.getByText(/Continue shopping/i));
 
       expect(onContinueShopping).toHaveBeenCalled();
     });
@@ -365,20 +308,20 @@ describe('Cart Component', () => {
         />
       );
 
-      // The plus button should be disabled when at max stock
-      const buttons = screen.getAllByRole('button');
-      // Find plus button and click it
-      const plusBtn = buttons.find(btn => {
-        const svg = btn.querySelector('svg');
-        return svg && btn.closest('.flex.items-center.border');
-      });
-
-      if (plusBtn) {
-        fireEvent.click(plusBtn);
-        // Either alert was called or button was disabled
-      }
+      const plusBtn = screen.getByRole('button', { name: /Increase quantity/i });
+      // Plus button is disabled at stock max
+      expect(plusBtn).toBeDisabled();
 
       alertSpy.mockRestore();
+    });
+
+    it('calls onClose when close button clicked', () => {
+      const onClose = vi.fn();
+      render(<Cart {...defaultProps} onClose={onClose} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /Close cart/i }));
+
+      expect(onClose).toHaveBeenCalled();
     });
   });
 
@@ -393,23 +336,9 @@ describe('Cart Component', () => {
         />
       );
 
-      // Line total: 2000 * 3 = 6000 (appears in multiple places)
+      // Line total: 2000 * 3 = 6000 (appears in line + subtotal)
       const priceElements = screen.getAllByText(/₱6,000/);
       expect(priceElements.length).toBeGreaterThan(0);
-    });
-
-    it('shows discount price when variation has active discount', () => {
-      const items = [createCartItem({ variation: mockVariation, quantity: 1 })];
-      render(
-        <Cart
-          {...defaultProps}
-          cartItems={items}
-          getTotalPrice={() => 2500}
-        />
-      );
-
-      // Should show variation discount price of 2500
-      expect(screen.getByText(/₱2,500 \/ unit/)).toBeInTheDocument();
     });
   });
 });

@@ -322,13 +322,28 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
   ) => {
     try {
       setIsProcessing(true);
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          order_status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
+      // Route lifecycle-affecting statuses through the dedicated RPCs so referral
+      // points settle / reverse correctly.
+      let error: { message: string } | null = null;
+      if (newStatus === 'completed' || newStatus === 'delivered') {
+        const { error: rpcErr } = await supabase.rpc('complete_order', { p_order_id: orderId });
+        error = rpcErr;
+      } else if (newStatus === 'cancelled' || newStatus === 'refunded') {
+        const { error: rpcErr } = await supabase.rpc('refund_order', {
+          p_order_id: orderId,
+          p_status: newStatus,
+        });
+        error = rpcErr;
+      } else {
+        const { error: updErr } = await supabase
+          .from('orders')
+          .update({
+            order_status: newStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', orderId);
+        error = updErr;
+      }
 
       if (error) throw error;
 
@@ -915,7 +930,7 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
             <h3 className="font-bold text-gray-900 mb-2 md:mb-3 text-sm md:text-base">Order Items ({totalItems} items)</h3>
             <div className="space-y-2">
               {order.order_items.map((item, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-3 md:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div key={`${item.product_id ?? item.product_name}-${item.variation_name ?? 'novar'}-${index}`} className="bg-gray-50 rounded-lg p-3 md:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 text-xs md:text-sm">
                       {item.product_name} {item.variation_name ? `- ${item.variation_name}` : ''}

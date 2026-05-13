@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Truck, Link } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Truck, Link, Power, PowerOff } from 'lucide-react';
 import { useCouriers, Courier } from '../hooks/useCouriers';
 
 interface CourierManagerProps {
@@ -41,6 +41,19 @@ const CourierManager: React.FC<CourierManagerProps> = ({ onBack }) => {
             sort_order: courier.sort_order
         });
         setCurrentView('edit');
+    };
+
+    const handleToggleAvailability = async (courier: Courier) => {
+        const action = courier.is_active ? 'mark as not available' : 'mark as available';
+        if (!confirm(`Are you sure you want to ${action} "${courier.name}"?`)) return;
+        try {
+            setIsProcessing(true);
+            await updateCourier(courier.id, { is_active: !courier.is_active });
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Failed to update courier');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const handleDeleteCourier = async (id: string) => {
@@ -301,6 +314,19 @@ const CourierManager: React.FC<CourierManagerProps> = ({ onBack }) => {
                                                 }`}>
                                                 {courier.is_active ? 'Active' : 'Inactive'}
                                             </span>
+
+                                            <button
+                                                onClick={() => handleToggleAvailability(courier)}
+                                                disabled={isProcessing}
+                                                className={`p-2 rounded-lg transition-colors duration-200 border disabled:opacity-50 ${courier.is_active
+                                                    ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200'
+                                                    : 'text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200'
+                                                    }`}
+                                                aria-label={courier.is_active ? 'Mark as not available' : 'Mark as available'}
+                                                title={courier.is_active ? 'Mark as not available' : 'Mark as available'}
+                                            >
+                                                {courier.is_active ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+                                            </button>
 
                                             <button
                                                 onClick={() => handleEditCourier(courier)}

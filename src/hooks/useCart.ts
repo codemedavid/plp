@@ -1,32 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import posthog from 'posthog-js';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
 import { KIT_UPGRADE_PRICE } from '../types';
 import { getEffectiveUnitPrice } from '../lib/bundlePricing';
 
 export function useCart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
     const savedCart = localStorage.getItem('peptide_cart');
-    if (savedCart) {
-      try {
-        const parsed = JSON.parse(savedCart);
-        // Migrate old cart items that don't have kitType
-        const migrated = parsed.map((item: CartItem) => ({
-          ...item,
-          kitType: item.kitType || 'vial_only',
-        }));
-        setCartItems(migrated);
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
-      }
+    if (!savedCart) return [];
+    try {
+      const parsed = JSON.parse(savedCart);
+      return parsed.map((item: CartItem) => ({
+        ...item,
+        kitType: item.kitType || 'vial_only',
+      }));
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+      return [];
     }
-  }, []);
+  });
 
-  // Save cart to localStorage whenever it changes
+  const isFirstRender = useRef(true);
+
+  // Save cart to localStorage whenever it changes (skip first render to avoid overwriting loaded state)
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     localStorage.setItem('peptide_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 

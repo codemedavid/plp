@@ -1,5 +1,7 @@
-import { Suspense, lazy, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useIsAdmin } from './hooks/useIsAdmin';
+import NotFound from './pages/NotFound';
 import { useCart } from './hooks/useCart';
 import Header from './components/Header';
 import SubNav from './components/SubNav';
@@ -23,6 +25,9 @@ const PeptideCalculator = lazy(() => import('./components/PeptideCalculator'));
 const OrderTracking = lazy(() => import('./components/OrderTracking'));
 const ProtocolGuide = lazy(() => import('./components/ProtocolGuide'));
 const UserProfile = lazy(() => import('./components/UserProfile'));
+const ShippingReturns = lazy(() => import('./components/ShippingReturns'));
+const TermsConditions = lazy(() => import('./components/TermsConditions'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 
 import { useMenu } from './hooks/useMenu';
 import { useReferralCapture } from './hooks/useReferralCapture';
@@ -33,8 +38,9 @@ import type { Product, ProductVariation, KitType } from './types';
 
 function MainApp() {
     const cart = useCart();
-    const { menuItems, refreshProducts } = useMenu();
+    const { menuItems, loading: menuLoading, error: menuError, refreshProducts } = useMenu();
     const { user } = useAuth();
+    void refreshProducts;
     useCartAbandonment(cart.cartItems, user);
     const [currentView, setCurrentView] = useState<'menu' | 'checkout'>('menu');
     const [cartOpen, setCartOpen] = useState(false);
@@ -102,6 +108,9 @@ function MainApp() {
                             addToCart={gatedAddToCart}
                             cartItems={cart.cartItems}
                             updateQuantity={cart.updateQuantity}
+                            loading={menuLoading}
+                            error={menuError}
+                            onRetry={refreshProducts}
                         />
                     )}
 
@@ -153,6 +162,13 @@ function MainApp() {
 }
 
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+    const { isAdmin, loading } = useIsAdmin();
+    if (loading) return <LoadingSpinner />;
+    if (!isAdmin) return <Navigate to="/" replace />;
+    return <>{children}</>;
+}
+
 function App() {
     useReferralCapture();
 
@@ -167,8 +183,19 @@ function App() {
                     <Route path="/calculator" element={<PeptideCalculator />} />
                     <Route path="/track-order" element={<OrderTracking />} />
                     <Route path="/protocols" element={<ProtocolGuide />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminRoute>
+                                <AdminDashboard />
+                            </AdminRoute>
+                        }
+                    />
                     <Route path="/user/profile" element={<UserProfile />} />
+                    <Route path="/shipping-returns" element={<ShippingReturns />} />
+                    <Route path="/terms" element={<TermsConditions />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </Suspense>
         </Router>

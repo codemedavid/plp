@@ -16,9 +16,12 @@ interface MenuProps {
   addToCart: (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => void;
   cartItems: CartItem[];
   updateQuantity: (index: number, quantity: number) => void;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems }) => {
+const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, loading, error, onRetry }) => {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const selectedProduct = slug ? findProductBySlug(menuItems, slug) ?? null : null;
@@ -248,7 +251,35 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems }) => {
               </h2>
             </div>
 
-            {sortedProducts.length === 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-charcoal-100 overflow-hidden animate-pulse"
+                  >
+                    <div className="aspect-square bg-charcoal-100" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-charcoal-100 rounded w-3/4" />
+                      <div className="h-3 bg-charcoal-100 rounded w-1/2" />
+                      <div className="h-9 bg-charcoal-100 rounded-full mt-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-20 space-y-4">
+                <p className="text-red-600">Failed to load products: {error}</p>
+                {onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="px-6 py-3 bg-navy-900 hover:bg-gold-600 text-white text-[11px] font-semibold tracking-[0.22em] uppercase transition-colors rounded"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            ) : sortedProducts.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-charcoal-500">No products available.</p>
               </div>

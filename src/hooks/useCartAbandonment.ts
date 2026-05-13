@@ -30,6 +30,15 @@ export function useCartAbandonment(cartItems: CartItem[], user: User | null) {
   const itemsRef = useRef(cartItems);
   itemsRef.current = cartItems;
 
+  // Hash cart contents so the timer only resets on real cart changes (not on every render).
+  // Use an explicit field-separator sentinel so missing variation/kitType values can't
+  // collide across distinct items (e.g. "abc||5" must not match "ab|c|5").
+  const cartHash = cartItems
+    .map((i) =>
+      [i.product.id, i.variation?.id ?? '∅', i.kitType ?? '∅', i.quantity].join('␟'),
+    )
+    .join('␞');
+
   useEffect(() => {
     if (!user || cartItems.length === 0) return;
 
@@ -66,5 +75,6 @@ export function useCartAbandonment(cartItems: CartItem[], user: User | null) {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [cartItems, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartHash, user]);
 }

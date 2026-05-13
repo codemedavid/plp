@@ -1,11 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Product, ProductVariation } from '../types';
+
+const REFETCH_DEBOUNCE_MS = 500;
 
 export function useMenu() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fetchIdRef = useRef(0);
+  // Keep a ref to the latest products so async fallbacks can read fresh state
+  // without taking it as a dependency / creating stale closures.
+  const productsRef = useRef<Product[]>([]);
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
+
+  // Schedules a debounced refetch; bursts of realtime/focus events collapse into one call.
+  const scheduleFetch = (delay: number = REFETCH_DEBOUNCE_MS) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchProducts();
+      debounceRef.current = null;
+    }, delay);
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -21,9 +40,8 @@ export function useMenu() {
           schema: 'public',
           table: 'products'
         },
-        (payload) => {
-          console.log('✅ Product changed:', payload);
-          fetchProducts(); // Refetch all products when any change occurs
+        () => {
+          scheduleFetch();
         }
       )
       .on(
@@ -33,14 +51,11 @@ export function useMenu() {
           schema: 'public',
           table: 'product_variations'
         },
-        (payload) => {
-          console.log('✅ Variation changed:', payload);
-          fetchProducts(); // Refetch all products when variations change
+        () => {
+          scheduleFetch();
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Real-time subscription status:', status);
-      });
+      .subscribe();
 
     // Refetch data when window regains focus (user switches back from admin)
     // But only if we're not on the admin page to avoid interfering with forms
@@ -48,10 +63,7 @@ export function useMenu() {
     const handleFocus = () => {
       // Check if we're on admin page - if so, don't refresh
       const isAdminPage = window.location.pathname === '/admin';
-      if (isAdminPage) {
-        console.log('👁️ Window focused on admin page - skipping refresh to avoid form interference');
-        return;
-      }
+      if (isAdminPage) return;
 
       // Debounce focus refresh to avoid too frequent refreshes
       if (focusRefreshTimeout) {
@@ -59,8 +71,7 @@ export function useMenu() {
       }
 
       focusRefreshTimeout = setTimeout(() => {
-        console.log('👁️ Window focused - refreshing products...');
-        fetchProducts();
+        scheduleFetch(0);
         focusRefreshTimeout = null;
       }, 1000); // Wait 1 second before refreshing
     };
@@ -71,10 +82,7 @@ export function useMenu() {
       if (document.hidden) return;
 
       const isAdminPage = window.location.pathname === '/admin';
-      if (isAdminPage) {
-        console.log('👁️ Tab became visible on admin page - skipping refresh');
-        return;
-      }
+      if (isAdminPage) return;
 
       // Debounce visibility refresh
       if (focusRefreshTimeout) {
@@ -82,8 +90,7 @@ export function useMenu() {
       }
 
       focusRefreshTimeout = setTimeout(() => {
-        console.log('👁️ Tab became visible - refreshing products...');
-        fetchProducts();
+        scheduleFetch(0);
         focusRefreshTimeout = null;
       }, 1000);
     };
@@ -99,16 +106,19 @@ export function useMenu() {
       if (focusRefreshTimeout) {
         clearTimeout(focusRefreshTimeout);
       }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchProducts = async () => {
+    const myFetchId = ++fetchIdRef.current;
     try {
       setLoading(true);
-      console.log('🔄 Fetching products from database...');
 
-      // Force fresh data by clearing any potential cache
-      const timestamp = Date.now();
       const { data, error } = await supabase
         .from('products')
         .select('id, name, description, category, base_price, discount_price, discount_start_date, discount_end_date, discount_active, purity_percentage, molecular_weight, cas_number, sequence, storage_conditions, inclusions, stock_quantity, available, featured, image_url, safety_sheet_url, sort_order, paired_product_ids, bundle_tiers, created_at, updated_at')
@@ -119,48 +129,24 @@ export function useMenu() {
 
       if (error) throw error;
 
-      console.log(`📦 Found ${data?.length || 0} products`);
-
-      // Log products with discounts
-      const productsWithDiscounts = (data || []).filter(p => p.discount_active && p.discount_price);
-      if (productsWithDiscounts.length > 0) {
-        console.log(`💰 Products with ACTIVE discounts: ${productsWithDiscounts.length}`,
-          productsWithDiscounts.map(p => ({
-            name: p.name,
-            base_price: p.base_price,
-            discount_price: p.discount_price,
-            discount_active: p.discount_active,
-            savings: p.base_price - (p.discount_price || 0)
-          }))
-        );
-      } else {
-        console.log('⚠️ No products found with discount_active=true AND discount_price set');
-      }
-
-      // Log products with images for debugging
-      const productsWithImages = (data || []).filter(p => p.image_url);
-      if (productsWithImages.length > 0) {
-        console.log(`🖼️ Products with images: ${productsWithImages.length}`,
-          productsWithImages.map(p => ({ name: p.name, image_url: p.image_url?.substring(0, 50) + '...' }))
-        );
-      }
-
-      // Fetch variations for each product
+      // Fetch variations for each product. Surface (and log) per-product variation errors
+      // rather than silently swallowing them — keep previous variations when possible.
+      // Use productsRef to avoid stale-closure bugs: the freshest products available
+      // at variation-load time should be used as the fallback source.
+      const previousById = new Map(productsRef.current.map((p) => [p.id, p.variations || []]));
+      let variationErrorMessage: string | null = null;
       const productsWithVariations = await Promise.all(
         (data || []).map(async (product) => {
-          const { data: variations } = await supabase
+          const { data: variations, error: varErr } = await supabase
             .from('product_variations')
             .select('*')
             .eq('product_id', product.id)
             .order('quantity_mg', { ascending: true });
 
-          if (variations && variations.length > 0) {
-            console.log(`  └─ ${product.name}: ${variations.length} variations, prices:`, variations.map(v => `${v.name}:₱${v.price}`));
-          }
-
-          // Log if product has image_url
-          if (product.image_url) {
-            console.log(`  🖼️ ${product.name} has image: ${product.image_url.substring(0, 60)}...`);
+          if (varErr) {
+            console.error(`Failed to load variations for ${product.name}:`, varErr);
+            variationErrorMessage = varErr.message;
+            return { ...product, variations: previousById.get(product.id) || [] };
           }
 
           return {
@@ -170,14 +156,21 @@ export function useMenu() {
         })
       );
 
-      console.log('✅ Products updated successfully at', new Date().toLocaleTimeString());
+      // Drop result if a newer fetch started after this one began.
+      if (myFetchId !== fetchIdRef.current) {
+        return;
+      }
+
       setProducts(productsWithVariations);
-      setError(null);
+      setError(variationErrorMessage);
     } catch (err) {
+      if (myFetchId !== fetchIdRef.current) return;
       setError(err instanceof Error ? err.message : 'Failed to fetch products');
-      console.error('❌ Error fetching products:', err);
+      console.error('Error fetching products:', err);
     } finally {
-      setLoading(false);
+      if (myFetchId === fetchIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -189,7 +182,6 @@ export function useMenu() {
         image_url: product.image_url !== undefined ? product.image_url : null,
       };
 
-      console.log('📤 Adding product to database:', { name: productData.name, image_url: productData.image_url });
       const { data, error } = await supabase
         .from('products')
         .insert([productData])
@@ -197,18 +189,16 @@ export function useMenu() {
         .single();
 
       if (error) {
-        console.error('❌ Supabase insert error:', error);
+        console.error('Supabase insert error:', error);
         throw error;
       }
 
-      console.log('✅ Product added to database:', { id: data?.id, image_url: data?.image_url });
-
       if (data) {
-        setProducts([...products, data]);
+        setProducts(prev => [...prev, data]);
       }
       return { success: true, data };
     } catch (err) {
-      console.error('❌ Error adding product:', err);
+      console.error('Error adding product:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Failed to add product' };
     }
   };
@@ -232,15 +222,6 @@ export function useMenu() {
       // Force image_url to be included even if it was somehow excluded
       updatePayload.image_url = imageUrlValue;
 
-      console.log('📤 Updating product in database:', {
-        id,
-        image_url: updatePayload.image_url,
-        image_url_type: typeof updatePayload.image_url,
-        image_url_length: updatePayload.image_url?.length || 0,
-        payload_keys: Object.keys(updatePayload),
-        fullPayload: updatePayload
-      });
-
       // Explicitly select image_url to ensure it's returned
       const { data, error } = await supabase
         .from('products')
@@ -250,11 +231,7 @@ export function useMenu() {
         .single();
 
       if (error) {
-        console.error('❌ Supabase update error:', error);
-        console.error('❌ Error details:', JSON.stringify(error, null, 2));
-        console.error('❌ Error code:', error.code);
-        console.error('❌ Error message:', error.message);
-        console.error('❌ Error hint:', error.hint);
+        console.error('Supabase update error:', error);
 
         // Provide more helpful error message
         let errorMessage = error.message || 'Unknown error';
@@ -267,33 +244,13 @@ export function useMenu() {
         throw new Error(errorMessage);
       }
 
-      console.log('✅ Product updated in database:', {
-        id,
-        image_url: data?.image_url,
-        image_url_type: typeof data?.image_url,
-        image_url_length: data?.image_url?.length || 0,
-        fullData: data
-      });
-
-      // Verify the image_url was actually saved
-      if (updatePayload.image_url && data?.image_url !== updatePayload.image_url) {
-        console.warn('⚠️ WARNING: image_url mismatch!', {
-          sent: updatePayload.image_url,
-          sent_type: typeof updatePayload.image_url,
-          received: data?.image_url,
-          received_type: typeof data?.image_url
-        });
-      } else if (updatePayload.image_url && data?.image_url === updatePayload.image_url) {
-        console.log('✅ Image URL verified - matches what was sent');
-      }
-
       if (data) {
         // Update local state immediately
-        setProducts(products.map(p => p.id === id ? { ...data, variations: p.variations } : p));
+        setProducts(prev => prev.map(p => p.id === id ? { ...data, variations: p.variations } : p));
       }
       return { success: true, data };
     } catch (err) {
-      console.error('❌ Error updating product:', err);
+      console.error('Error updating product:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to update product';
       return { success: false, error: errorMessage };
     }
@@ -308,7 +265,7 @@ export function useMenu() {
 
       if (error) throw error;
 
-      setProducts(products.filter(p => p.id !== id));
+      setProducts(prev => prev.filter(p => p.id !== id));
       return { success: true };
     } catch (err) {
       console.error('Error deleting product:', err);

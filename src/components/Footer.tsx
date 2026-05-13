@@ -17,10 +17,10 @@ const Footer: React.FC = () => {
     {
       title: 'Help',
       links: [
-        { label: 'Shipping & Returns', href: '#' },
+        { label: 'Shipping & Returns', href: '/shipping-returns' },
         { label: 'Track Order', href: '/track-order' },
-        { label: 'Terms & Conditions', href: '#' },
-        { label: 'Privacy Policy', href: '#' },
+        { label: 'Terms & Conditions', href: '/terms' },
+        { label: 'Privacy Policy', href: '/privacy' },
       ],
     },
   ];

@@ -25,7 +25,7 @@ const STATUS_LABEL: Record<WithdrawalRow['status'], string> = {
 
 export default function UserProfile() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { profile, balance, ledger, withdrawals, hasOrderThisMonth, loading, error, requestWithdrawal, updateProfile } = useReferral();
+  const { profile, balance, pendingBalance, lifetimeEarned: lifetimeEarnedFromHook, ledger, withdrawals, hasOrderThisMonth, loading, error, requestWithdrawal, updateProfile } = useReferral();
 
   if (authLoading) {
     return <FullPage>Loading…</FullPage>;
@@ -89,9 +89,24 @@ export default function UserProfile() {
         )}
 
         {/* Balance card */}
-        <section className="grid md:grid-cols-3 gap-4">
-          <Stat icon={<Wallet className="w-5 h-5" />} label="Available points" value={loading ? '—' : `${balance.toLocaleString()} pts`} sub={`≈ ₱${balance.toLocaleString()}`} />
-          <Stat icon={<Gift className="w-5 h-5" />} label="Lifetime earned" value={loading ? '—' : `${lifetimeEarned(ledger).toLocaleString()} pts`} />
+        <section className="grid md:grid-cols-4 gap-4">
+          <Stat
+            icon={<Wallet className="w-5 h-5" />}
+            label="Available points"
+            value={loading ? '—' : `${balance.toLocaleString()} pts`}
+            sub={`≈ ₱${balance.toLocaleString()} · redeemable`}
+          />
+          <Stat
+            icon={<Wallet className="w-5 h-5" />}
+            label="Pending points"
+            value={loading ? '—' : `${pendingBalance.toLocaleString()} pts`}
+            sub="Available 7 days after the referred order is completed."
+          />
+          <Stat
+            icon={<Gift className="w-5 h-5" />}
+            label="Lifetime earned"
+            value={loading ? '—' : `${(lifetimeEarnedFromHook || lifetimeEarned(ledger)).toLocaleString()} pts`}
+          />
           <Stat icon={<TrendingUp className="w-5 h-5" />} label="This month order" value={hasOrderThisMonth ? 'Active' : 'None yet'} sub={hasOrderThisMonth ? 'Withdrawal eligible' : 'Place ≥1 order to withdraw'} />
         </section>
 

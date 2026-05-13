@@ -44,6 +44,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
 
   const handleClick = () => onProductClick?.(product);
 
+  // The inner "View" button is the single focusable / role="button" interactive control.
+  // The outer card is a non-interactive visual surface that forwards bubbled clicks for
+  // mouse convenience, but keyboard users tab to the inner button (no nested interactives).
   return (
     <div
       onClick={handleClick}

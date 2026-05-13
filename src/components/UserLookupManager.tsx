@@ -14,6 +14,7 @@ interface ProfileRow {
   email: string | null;
   facebook: string | null;
   frozen: boolean;
+  role: 'user' | 'admin' | string;
   created_at: string;
 }
 
@@ -259,13 +260,47 @@ export default function UserLookupManager({ onBack }: UserLookupManagerProps) {
         )}
       </main>
 
-      {selected && <UserDetailDrawer overview={selected} onClose={() => setSelectedId(null)} />}
+      {selected && (
+        <UserDetailDrawer
+          overview={selected}
+          onClose={() => setSelectedId(null)}
+          onRoleChanged={(id, role) =>
+            setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, role } : p)))
+          }
+        />
+      )}
     </div>
   );
 }
 
-function UserDetailDrawer({ overview, onClose }: { overview: UserOverview; onClose: () => void }) {
+function UserDetailDrawer({
+  overview,
+  onClose,
+  onRoleChanged,
+}: {
+  overview: UserOverview;
+  onClose: () => void;
+  onRoleChanged: (id: string, role: 'user' | 'admin') => void;
+}) {
   const { profile, email, balance, orderCount, totalSpent, referralCount, orders, referredBy, referrals } = overview;
+  const [roleSaving, setRoleSaving] = useState(false);
+  const [roleError, setRoleError] = useState<string | null>(null);
+
+  const toggleRole = async () => {
+    setRoleSaving(true);
+    setRoleError(null);
+    const nextRole: 'user' | 'admin' = profile.role === 'admin' ? 'user' : 'admin';
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ role: nextRole })
+      .eq('id', profile.id);
+    setRoleSaving(false);
+    if (error) {
+      setRoleError(error.message);
+      return;
+    }
+    onRoleChanged(profile.id, nextRole);
+  };
 
   return (
     <div className="fixed inset-0 z-50">
@@ -306,6 +341,33 @@ function UserDetailDrawer({ overview, onClose }: { overview: UserOverview; onClo
             <Stat icon={<Wallet className="w-4 h-4" />} label="Points" value={balance.toLocaleString()} />
             <Stat icon={<UsersIcon className="w-4 h-4" />} label="Referrals" value={String(referralCount)} />
           </div>
+
+          <Section title="Role & Access">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span
+                className={`inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${
+                  profile.role === 'admin' ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                {profile.role || 'user'}
+              </span>
+              <button
+                onClick={toggleRole}
+                disabled={roleSaving}
+                className={`text-xs px-3 py-1.5 rounded border transition-colors ${
+                  profile.role === 'admin'
+                    ? 'border-red-200 text-red-700 hover:bg-red-50'
+                    : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
+                } disabled:opacity-50`}
+              >
+                {roleSaving ? 'Saving…' : profile.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
+              </button>
+            </div>
+            {roleError && <p className="text-xs text-red-600 mt-2">{roleError}</p>}
+            <p className="text-[11px] text-gray-500 mt-2">
+              Only admins can change roles. The database enforces this with RLS.
+            </p>
+          </Section>
 
           <Section title="Contact">
             <Field icon={<Mail className="w-3.5 h-3.5" />} label="Email">{email || '—'}</Field>

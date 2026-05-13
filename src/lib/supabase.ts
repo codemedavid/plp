@@ -1,20 +1,77 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+if (!isSupabaseConfigured) {
+  // Don't throw at import time — render a friendly error via ErrorBoundary instead.
+  // eslint-disable-next-line no-console
+  console.error(
+    '[supabase] Missing VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY env vars. ' +
+      'The app will run in a degraded "not configured" mode until these are set.'
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-  },
-});
+// When env is missing, build a Proxy that returns sensible "not configured" errors
+// from any method/chain. Real client otherwise.
+function createStub(): SupabaseClient {
+  const notConfigured = () => ({
+    data: null,
+    error: { message: 'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' },
+  });
+  const chainHandler: ProxyHandler<object> = {
+    get: (_t, prop) => {
+      if (prop === 'then') return undefined; // not a thenable
+      // Methods that return a promise-like with { data, error }
+      return (..._args: unknown[]) => new Proxy(() => notConfigured(), chainHandler) as never;
+    },
+    apply: () => Promise.resolve(notConfigured()),
+  };
+  const root: ProxyHandler<object> = {
+    get: (_t, prop) => {
+      if (prop === 'auth') {
+        return new Proxy(function () {}, {
+          get: () =>
+            (..._args: unknown[]) =>
+              Promise.resolve({ data: { session: null, user: null }, error: notConfigured().error }),
+        });
+      }
+      if (prop === 'channel') {
+        // Callers expect: supabase.channel(id).on(...).on(...).subscribe(...)
+        // and the resulting subscription to be unsubscribable via removeChannel
+        // OR a returned object's .unsubscribe(). Build a chainable stub where every
+        // method returns the same chainable object, and a final subscription object
+        // with no-op unsubscribe.
+        const subscription = { unsubscribe: () => undefined };
+        const chain: Record<string, (...args: unknown[]) => unknown> = {} as never;
+        const buildChain = () => {
+          chain.on = () => chain;
+          chain.subscribe = () => subscription;
+          chain.unsubscribe = () => undefined;
+          return chain;
+        };
+        return () => buildChain();
+      }
+      if (prop === 'removeChannel') return () => undefined;
+      if (prop === 'rpc') return (..._args: unknown[]) => Promise.resolve(notConfigured());
+      return (..._args: unknown[]) => new Proxy(function () {}, chainHandler);
+    },
+  };
+  return new Proxy(function () {}, root) as unknown as SupabaseClient;
+}
+
+export const supabase: SupabaseClient = isSupabaseConfigured
+  ? createClient(supabaseUrl as string, supabaseAnonKey as string, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      },
+    })
+  : createStub();
 
 export type Database = {
   public: {

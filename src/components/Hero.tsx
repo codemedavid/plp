@@ -25,8 +25,7 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
           </h1>
 
           <p className="text-base md:text-lg text-charcoal-500 mt-8 mb-10 leading-relaxed max-w-md font-light">
-            Elevated wellness through precision peptides.<br />
-            Science-backed. Elegantly delivered.
+            More than fat loss — peptides designed to support performance, recovery, and long-term health.
           </p>
 
           <div className="flex flex-col sm:flex-row items-start gap-4 mb-12">

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { ShoppingCart, Menu, X, User, LogOut, Gift, Settings } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ShoppingCart, Menu, X, User, LogOut, Gift, Settings, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useReferral } from '../hooks/useReferral';
+import { useIsAdmin } from '../hooks/useIsAdmin';
 import AuthModal from './AuthModal';
 
 interface HeaderProps {
@@ -18,6 +19,9 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const [authOpen, setAuthOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { profile } = useReferral();
+  const { isAdmin } = useIsAdmin();
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
   const displayName = profile?.nickname || profile?.full_name || user?.email || '';
   const avatarFallback = (displayName || '?').charAt(0).toUpperCase();
 
@@ -43,7 +47,44 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
     { label: 'PROTOCOLS', href: '/protocols' },
     { label: 'COA', href: '/coa' },
     { label: 'TRACK ORDER', href: '/track-order' },
+    ...(isAdmin ? [{ label: 'ADMIN', href: '/admin' } as { label: string; href: string; onClick?: () => void }] : []),
   ];
+
+  // Mobile drawer accessibility: Escape closes, focus management
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    openerRef.current = (document.activeElement as HTMLElement) ?? null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+      if (e.key === 'Tab' && drawerRef.current) {
+        const focusables = drawerRef.current.querySelectorAll<HTMLElement>(
+          'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    // Focus the first focusable element in the drawer
+    setTimeout(() => {
+      const first = drawerRef.current?.querySelector<HTMLElement>(
+        'a, button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+      );
+      first?.focus();
+    }, 0);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      openerRef.current?.focus?.();
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <>
@@ -51,9 +92,11 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
         <div className="container mx-auto px-4 md:px-8 py-5">
           <div className="flex items-center justify-between gap-4">
             {/* Logo */}
-            <button
+            <Link
+              to="/"
               onClick={() => { onMenuClick(); setMobileMenuOpen(false); }}
               className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
+              aria-label="Go to homepage"
             >
               <span className="flex flex-col leading-tight items-start">
                 <span className="font-heading text-base sm:text-lg font-normal tracking-[0.18em] text-gold-600 uppercase">
@@ -63,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                   Lifestyle Program
                 </span>
               </span>
-            </button>
+            </Link>
 
             {/* Center Navigation */}
             <nav className="hidden md:flex items-center gap-6 lg:gap-8 absolute left-1/2 -translate-x-1/2">
@@ -117,6 +160,16 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                       <Gift className="w-4 h-4" strokeWidth={1.5} />
                       My Rewards
                     </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-xs tracking-[0.18em] uppercase text-navy-900 hover:bg-cream-light hover:text-gold-600 transition-colors border-b border-charcoal-100"
+                      >
+                        <Shield className="w-4 h-4" strokeWidth={1.5} />
+                        Admin
+                      </Link>
+                    )}
                     <button
                       onClick={async () => {
                         setAccountMenuOpen(false);
@@ -161,12 +214,18 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[60]">
+        <div
+          className="md:hidden fixed inset-0 z-[60]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+        >
           <div
             className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
           <div
+            ref={drawerRef}
             className="absolute top-0 right-0 bottom-0 w-[300px] bg-white shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >

@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trash2, ShoppingBag, ArrowRight, Plus, Minus, Heart, Gift, Package, X } from 'lucide-react';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
 import { KIT_UPGRADE_PRICE } from '../types';
 import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
 import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
+import Toast from './Toast';
 
 interface CartProps {
   isOpen: boolean;
@@ -38,6 +39,8 @@ const Cart: React.FC<CartProps> = ({
     cartItems,
     limit: 3,
   });
+  const [toast, setToast] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -117,7 +120,7 @@ const Cart: React.FC<CartProps> = ({
                 const availableStock = item.variation ? item.variation.stock_quantity : item.product.stock_quantity;
                 return (
                   <div
-                    key={index}
+                    key={`${item.product.id}-${item.variation?.id ?? 'novar'}-${item.kitType ?? 'vial'}-${index}`}
                     className="bg-white rounded-2xl p-3 border border-brand-100 flex gap-3"
                   >
                     {/* Thumbnail */}
@@ -186,7 +189,7 @@ const Cart: React.FC<CartProps> = ({
                           <button
                             onClick={() => {
                               if (item.quantity >= availableStock) {
-                                alert(`Only ${availableStock} item(s) available in stock.`);
+                                setToast(`Only ${availableStock} item(s) available in stock.`);
                                 return;
                               }
                               updateQuantity(index, item.quantity + 1);
@@ -244,13 +247,31 @@ const Cart: React.FC<CartProps> = ({
                 </div>
               )}
 
-              <button
-                onClick={clearCart}
-                className="text-xs text-red-400 hover:text-red-500 flex items-center gap-1 mx-auto mt-3 font-cute"
-              >
-                <Trash2 className="w-3 h-3" />
-                Clear cart
-              </button>
+              {confirmClear ? (
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <span className="text-xs text-charcoal-500 font-cute">Clear all items?</span>
+                  <button
+                    onClick={() => { clearCart(); setConfirmClear(false); }}
+                    className="text-xs px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded font-cute"
+                  >
+                    Yes, clear
+                  </button>
+                  <button
+                    onClick={() => setConfirmClear(false)}
+                    className="text-xs px-2 py-1 border border-charcoal-200 text-charcoal-600 hover:bg-charcoal-50 rounded font-cute"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmClear(true)}
+                  className="text-xs text-red-400 hover:text-red-500 flex items-center gap-1 mx-auto mt-3 font-cute"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Clear cart
+                </button>
+              )}
             </div>
 
             {/* Footer */}
@@ -282,6 +303,7 @@ const Cart: React.FC<CartProps> = ({
           </>
         )}
       </aside>
+      {toast && <Toast message={toast} variant="warning" onClose={() => setToast(null)} />}
     </div>
   );
 };
