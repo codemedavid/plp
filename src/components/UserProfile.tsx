@@ -49,25 +49,26 @@ export default function UserProfile() {
             <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" strokeWidth={1.8} />
             Back to shop
           </Link>
-          <div className="flex items-end justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-5">
+          <div className="flex items-start sm:items-end justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4 sm:gap-5 min-w-0 flex-1">
               <AvatarUploader
                 userId={user.id}
                 avatarUrl={profile?.avatar_url ?? null}
                 fallback={(profile?.nickname || profile?.full_name || user.email || '?').charAt(0).toUpperCase()}
                 onUploaded={url => updateProfile({ avatar_url: url })}
               />
-              <div>
-                <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">My Account</span>
-                <h1 className="font-heading text-4xl md:text-5xl font-normal text-navy-900 tracking-tight">
+              <div className="min-w-0 flex-1">
+                <span className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-2 sm:mb-3">My Account</span>
+                <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-normal text-navy-900 tracking-tight break-words">
                   {profile?.nickname || profile?.full_name || user.email}
                 </h1>
-                <p className="text-sm text-charcoal-500 mt-2 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5" /> Signed up with {user.email}
+                <p className="text-xs sm:text-sm text-charcoal-500 mt-2 flex items-start gap-1.5 break-all">
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                  <span className="break-all">Signed up with {user.email}</span>
                 </p>
               </div>
             </div>
-            <button onClick={signOut} className="text-xs uppercase tracking-widest text-charcoal-500 hover:text-navy-900">
+            <button onClick={signOut} className="text-xs uppercase tracking-widest text-charcoal-500 hover:text-navy-900 flex-shrink-0">
               Sign out
             </button>
           </div>

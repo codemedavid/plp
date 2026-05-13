@@ -69,7 +69,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
     // Points redemption (1 pt = ₱1)
     const { user } = useAuth();
-    const { balance: pointsBalance, refresh: refreshReferral } = useReferral();
+    const { balance: pointsBalance, refresh: refreshReferral, profile: userProfile } = useReferral();
     const [pointsToRedeem, setPointsToRedeem] = useState<number>(0);
 
     // Promo Code State
@@ -83,6 +83,18 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     React.useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [step]);
+
+    // Auto-fill from signed-in user profile (only when empty so user edits are kept)
+    React.useEffect(() => {
+        if (user?.email && !email) setEmail(user.email);
+    }, [user?.email, email]);
+
+    React.useEffect(() => {
+        if (!userProfile) return;
+        if (!fullName && userProfile.full_name) setFullName(userProfile.full_name);
+        if (!phone && userProfile.phone) setPhone(userProfile.phone);
+        if (!address && userProfile.address) setAddress(userProfile.address);
+    }, [userProfile, fullName, phone, address]);
 
     React.useEffect(() => {
         if (paymentMethods.length > 0 && !selectedPaymentMethod) {

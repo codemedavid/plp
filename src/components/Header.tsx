@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Menu, X, User, LogOut, Gift } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, LogOut, Gift, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useReferral } from '../hooks/useReferral';
 import AuthModal from './AuthModal';
 
 interface HeaderProps {
@@ -16,6 +17,9 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { profile } = useReferral();
+  const displayName = profile?.nickname || profile?.full_name || user?.email || '';
+  const avatarFallback = (displayName || '?').charAt(0).toUpperCase();
 
   const openAuth = () => {
     if (onAccountClick) onAccountClick();
@@ -173,8 +177,39 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
               </button>
             </div>
 
+            {user && (
+              <Link
+                to="/user/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 p-5 border-b border-charcoal-100 bg-cream-light hover:bg-gold-50 transition-colors"
+              >
+                <div className="w-14 h-14 rounded-full bg-gold-100 border border-gold-200 overflow-hidden flex items-center justify-center text-xl font-heading text-navy-900 flex-shrink-0">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{avatarFallback}</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] uppercase tracking-[0.22em] text-gold-600">Signed in</div>
+                  <div className="font-heading text-navy-900 truncate text-sm">{displayName}</div>
+                  <div className="text-[11px] text-charcoal-500 truncate">{user.email}</div>
+                </div>
+                <Settings className="w-4 h-4 text-charcoal-500 flex-shrink-0" strokeWidth={1.5} />
+              </Link>
+            )}
+
             <nav className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col">
+                {user && (
+                  <Link
+                    to="/user/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 flex items-center gap-2"
+                  >
+                    <Settings className="w-4 h-4" strokeWidth={1.5} /> PROFILE SETTINGS
+                  </Link>
+                )}
                 {navLinks.map((link) => (
                   <a
                     key={link.label}
