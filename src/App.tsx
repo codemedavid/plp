@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useCart } from './hooks/useCart';
 import Header from './components/Header';
@@ -38,6 +38,12 @@ function MainApp() {
     const [cartOpen, setCartOpen] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+    useEffect(() => {
+        const handler = () => setAuthOpen(true);
+        window.addEventListener('open-auth', handler);
+        return () => window.removeEventListener('open-auth', handler);
+    }, []);
 
     // Sign-in required before adding to cart
     const gatedAddToCart = (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => {
