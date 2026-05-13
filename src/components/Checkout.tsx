@@ -11,6 +11,7 @@ import { useImageUpload } from '../hooks/useImageUpload';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { useAuth } from '../hooks/useAuth';
 import { useReferral } from '../hooks/useReferral';
+import { useAddresses, type UserAddress } from '../hooks/useAddresses';
 import RecommendationRail from './RecommendationRail';
 import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
 
@@ -72,6 +73,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     const { balance: pointsBalance, refresh: refreshReferral, profile: userProfile } = useReferral();
     const [pointsToRedeem, setPointsToRedeem] = useState<number>(0);
 
+    // Saved addresses
+    const { addresses: savedAddresses, primary: primaryAddress, addAddress } = useAddresses();
+    const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+    const [saveAddressForNextTime, setSaveAddressForNextTime] = useState(false);
+    const [newAddressLabel, setNewAddressLabel] = useState('');
+    const [makeNewAddressPrimary, setMakeNewAddressPrimary] = useState(false);
+
     // Promo Code State
     const [promoCode, setPromoCode] = useState('');
     const [appliedPromo, setAppliedPromo] = useState<any>(null);
@@ -93,8 +101,28 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
         if (!userProfile) return;
         if (!fullName && userProfile.full_name) setFullName(userProfile.full_name);
         if (!phone && userProfile.phone) setPhone(userProfile.phone);
-        if (!address && userProfile.address) setAddress(userProfile.address);
-    }, [userProfile, fullName, phone, address]);
+    }, [userProfile, fullName, phone]);
+
+    const applyAddress = React.useCallback((addr: UserAddress) => {
+        setSelectedAddressId(addr.id);
+        setFullName(addr.recipient_name);
+        setPhone(addr.phone);
+        setAddress(addr.address);
+        setBarangay(addr.barangay);
+        setCity(addr.city);
+        setState(addr.state);
+        setZipCode(addr.zip_code);
+    }, []);
+
+    // Auto-apply the primary saved address on first load
+    const didApplyPrimary = React.useRef(false);
+    React.useEffect(() => {
+        if (didApplyPrimary.current) return;
+        if (primaryAddress && !selectedAddressId) {
+            applyAddress(primaryAddress);
+            didApplyPrimary.current = true;
+        }
+    }, [primaryAddress, selectedAddressId, applyAddress]);
 
     React.useEffect(() => {
         if (paymentMethods.length > 0 && !selectedPaymentMethod) {
@@ -372,6 +400,22 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             }
 
             console.log('✅ Order saved to database:', orderData);
+
+            // Save address to user's address book if requested
+            if (user && saveAddressForNextTime && !selectedAddressId) {
+                const { error: addrError } = await addAddress({
+                    label: newAddressLabel.trim() || null,
+                    recipient_name: fullName,
+                    phone,
+                    address,
+                    barangay,
+                    city,
+                    state,
+                    zip_code: zipCode,
+                    is_primary: makeNewAddressPrimary || savedAddresses.length === 0,
+                });
+                if (addrError) console.error('Failed to save address:', addrError);
+            }
 
             // Build items summary from saved order data (source of truth)
             const savedItems = orderData.order_items as Array<{ product_name: string; variation_name: string | null; quantity: number; price: number; total: number }>;
@@ -973,6 +1017,54 @@ Please confirm this order. Thank you!
                                 </div>
                                 Shipping Address
                             </h2>
+
+                            {user && savedAddresses.length > 0 && (
+                                <div className="mb-5">
+                                    <p className="text-xs font-bold text-brand-700 uppercase tracking-wide mb-2">Saved addresses</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        {savedAddresses.map(addr => (
+                                            <button
+                                                type="button"
+                                                key={addr.id}
+                                                onClick={() => applyAddress(addr)}
+                                                className={`text-left p-3 rounded border transition-all text-sm ${selectedAddressId === addr.id
+                                                    ? 'border-brand-600 bg-brand-50 ring-1 ring-brand-600'
+                                                    : 'border-gray-200 hover:border-brand-300'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                    <span className="font-bold text-charcoal-900 truncate">{addr.recipient_name}</span>
+                                                    {addr.label && (
+                                                        <span className="text-[10px] uppercase tracking-wider bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{addr.label}</span>
+                                                    )}
+                                                    {addr.is_primary && (
+                                                        <span className="text-[10px] uppercase tracking-wider bg-brand-600 text-white px-1.5 py-0.5 rounded">Primary</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-600 truncate">{addr.phone}</p>
+                                                <p className="text-xs text-gray-600 line-clamp-2">{addr.address}, {addr.barangay}, {addr.city}, {addr.state} {addr.zip_code}</p>
+                                            </button>
+                                        ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedAddressId('');
+                                                setFullName('');
+                                                setPhone('');
+                                                setAddress('');
+                                                setBarangay('');
+                                                setCity('');
+                                                setState('');
+                                                setZipCode('');
+                                            }}
+                                            className="text-left p-3 rounded border border-dashed border-gray-300 text-sm text-gray-500 hover:border-brand-300 hover:text-brand-600"
+                                        >
+                                            + Use a new address
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-brand-700 uppercase tracking-wide mb-2">
@@ -1041,6 +1133,44 @@ Please confirm this order. Thank you!
                                         required
                                     />
                                 </div>
+
+                                {user && !selectedAddressId && (
+                                    <div className="bg-brand-50/40 border border-brand-100 rounded p-3 space-y-3">
+                                        <label className="flex items-start gap-2 cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={saveAddressForNextTime}
+                                                onChange={(e) => setSaveAddressForNextTime(e.target.checked)}
+                                                className="mt-0.5 w-4 h-4 text-brand-600 focus:ring-brand-500 rounded"
+                                            />
+                                            <span className="text-sm text-charcoal-900">
+                                                Save this address for next time
+                                            </span>
+                                        </label>
+                                        {saveAddressForNextTime && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-6">
+                                                <input
+                                                    type="text"
+                                                    value={newAddressLabel}
+                                                    onChange={(e) => setNewAddressLabel(e.target.value)}
+                                                    placeholder="Label (e.g. Home, Office)"
+                                                    className="input-field text-sm"
+                                                />
+                                                {savedAddresses.length > 0 && (
+                                                    <label className="flex items-center gap-2 text-sm text-charcoal-700">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={makeNewAddressPrimary}
+                                                            onChange={(e) => setMakeNewAddressPrimary(e.target.checked)}
+                                                            className="w-4 h-4 text-brand-600 focus:ring-brand-500 rounded"
+                                                        />
+                                                        Set as primary
+                                                    </label>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

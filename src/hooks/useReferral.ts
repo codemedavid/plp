@@ -11,6 +11,8 @@ export interface UserProfile {
   nickname: string | null;
   address: string | null;
   avatar_url: string | null;
+  email: string | null;
+  facebook: string | null;
   frozen: boolean;
 }
 
@@ -20,6 +22,7 @@ export interface UpdateProfileInput {
   full_name?: string | null;
   phone?: string | null;
   avatar_url?: string | null;
+  facebook?: string | null;
 }
 
 export interface LedgerEntry {

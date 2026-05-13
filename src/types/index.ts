@@ -5,6 +5,7 @@ export interface Product {
   description: string;
   category: string;
   base_price: number;
+  cost: number;
   discount_price: number | null;
   discount_start_date: string | null;
   discount_end_date: string | null;
@@ -55,6 +56,7 @@ export interface ProductVariation {
   name: string;
   quantity_mg: number;
   price: number;
+  cost: number | null;
   // Pen type pricing - null means not available for this product
   disposable_pen_price: number | null;
   reusable_pen_price: number | null;

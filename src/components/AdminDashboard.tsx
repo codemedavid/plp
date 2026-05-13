@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown, BarChart3 } from 'lucide-react';
 import type { Product, BundleTier } from '../types';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
@@ -17,6 +17,8 @@ import PromoCodeManager from './PromoCodeManager';
 import CourierManager from './CourierManager';
 import ProtocolManager from './ProtocolManager';
 import ReferralManager from './ReferralManager';
+import UserLookupManager from './UserLookupManager';
+import AnalyticsDashboard from './analytics/AnalyticsDashboard';
 import PostHogEventTester from './PostHogEventTester';
 // GuideManager removed (Peptalk functionality disabled)
 
@@ -77,7 +79,7 @@ const AdminDashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const { products, loading, addProduct, updateProduct, deleteProduct, refreshProducts } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals' | 'users' | 'analytics'>('dashboard');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [managingVariationsProductId, setManagingVariationsProductId] = useState<string | null>(null);
@@ -112,6 +114,7 @@ const AdminDashboard: React.FC = () => {
     name: '',
     description: '',
     base_price: 0,
+    cost: 0,
     category: 'research',
     featured: false,
     available: true,
@@ -273,6 +276,7 @@ const AdminDashboard: React.FC = () => {
           'description',
           'category',
           'base_price',
+          'cost',
           'discount_price',
           'discount_active',
           'purity_percentage',
@@ -624,6 +628,21 @@ const AdminDashboard: React.FC = () => {
                         <span>This product has <strong>{editingProduct.variations.length} size variation(s)</strong>. Customers will see those prices instead of this base price. Use the <strong>"Manage Sizes"</strong> button to update the prices shown on the website.</span>
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Cost (₱)</label>
+                    <input
+                      type="number"
+                      step="1"
+                      value={formData.cost ?? ''}
+                      onChange={(e) => setFormData({ ...formData, cost: Number(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent transition-all bg-white text-black placeholder-gray-400"
+                      placeholder="0"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Unit cost (COGS). Used by Analytics → Product Profit. Per-variation cost overrides this in “Manage Sizes”.
+                    </p>
                   </div>
                 </div>
                 </CollapsibleSection>
@@ -1583,6 +1602,14 @@ const AdminDashboard: React.FC = () => {
     return <ReferralManager onBack={() => setCurrentView('dashboard')} />;
   }
 
+  if (currentView === 'analytics') {
+    return <AnalyticsDashboard onBack={() => setCurrentView('dashboard')} />;
+  }
+
+  if (currentView === 'users') {
+    return <UserLookupManager onBack={() => setCurrentView('dashboard')} />;
+  }
+
   if (currentView === 'protocols') {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -1933,6 +1960,30 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <span className="block text-sm font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors">Referrals</span>
                     <span className="text-xs text-gray-500">Config & withdrawals</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setCurrentView('analytics')}
+                  className="group flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-cyan-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-cyan-600" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-gray-900 group-hover:text-cyan-600 transition-colors">Analytics</span>
+                    <span className="text-xs text-gray-500">Sales, profit & liability</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setCurrentView('users')}
+                  className="group flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-4 w-4 md:h-5 md:w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">User Lookup</span>
+                    <span className="text-xs text-gray-500">Profiles, orders, referrals</span>
                   </div>
                 </button>
               </div>

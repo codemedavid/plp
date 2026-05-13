@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
             </button>
 
             {/* Center Navigation */}
-            <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            <nav className="hidden md:flex items-center gap-6 lg:gap-8 absolute left-1/2 -translate-x-1/2">
               {navLinks.map((link) => (
                 <a
                   key={link.label}
@@ -106,6 +106,14 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                       onClick={() => setAccountMenuOpen(false)}
                       className="w-full flex items-center gap-2 px-4 py-3 text-xs tracking-[0.18em] uppercase text-navy-900 hover:bg-cream-light hover:text-gold-600 transition-colors border-b border-charcoal-100"
                     >
+                      <Settings className="w-4 h-4" strokeWidth={1.5} />
+                      Profile Settings
+                    </Link>
+                    <Link
+                      to="/user/profile"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-xs tracking-[0.18em] uppercase text-navy-900 hover:bg-cream-light hover:text-gold-600 transition-colors border-b border-charcoal-100"
+                    >
                       <Gift className="w-4 h-4" strokeWidth={1.5} />
                       My Rewards
                     </Link>
@@ -139,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 text-navy-900 hover:text-gold-600 transition-colors"
+                className="md:hidden p-2 text-navy-900 hover:text-gold-600 transition-colors"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" strokeWidth={1.5} /> : <Menu className="w-6 h-6" strokeWidth={1.5} />}
@@ -153,7 +161,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[60]">
+        <div className="md:hidden fixed inset-0 z-[60]">
           <div
             className="absolute inset-0 bg-navy-900/40 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
@@ -202,13 +210,22 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
             <nav className="flex-1 overflow-y-auto p-4">
               <div className="flex flex-col">
                 {user && (
-                  <Link
-                    to="/user/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 flex items-center gap-2"
-                  >
-                    <Settings className="w-4 h-4" strokeWidth={1.5} /> PROFILE SETTINGS
-                  </Link>
+                  <>
+                    <Link
+                      to="/user/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 flex items-center gap-2"
+                    >
+                      <Settings className="w-4 h-4" strokeWidth={1.5} /> PROFILE SETTINGS
+                    </Link>
+                    <Link
+                      to="/user/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 flex items-center gap-2"
+                    >
+                      <Gift className="w-4 h-4" strokeWidth={1.5} /> MY REWARDS
+                    </Link>
+                  </>
                 )}
                 {navLinks.map((link) => (
                   <a
@@ -224,21 +241,12 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
                   </a>
                 ))}
                 {user ? (
-                  <>
-                    <Link
-                      to="/user/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 flex items-center gap-2"
-                    >
-                      <Gift className="w-4 h-4" strokeWidth={1.5} /> MY REWARDS
-                    </Link>
-                    <button
-                      onClick={async () => { setMobileMenuOpen(false); await signOut(); }}
-                      className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 text-left flex items-center gap-2"
-                    >
-                      <LogOut className="w-4 h-4" strokeWidth={1.5} /> SIGN OUT
-                    </button>
-                  </>
+                  <button
+                    onClick={async () => { setMobileMenuOpen(false); await signOut(); }}
+                    className="px-4 py-4 text-xs font-medium tracking-[0.22em] text-navy-900 hover:text-gold-600 hover:bg-cream-light transition-colors border-b border-charcoal-100 text-left flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" strokeWidth={1.5} /> SIGN OUT
+                  </button>
                 ) : (
                   <button
                     onClick={() => { setMobileMenuOpen(false); openAuth(); }}

@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Copy, Check, Share2, Wallet, Gift, TrendingUp, AlertCircle, Camera, Pencil, Mail } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Share2, Wallet, Gift, TrendingUp, AlertCircle, Camera, Pencil, Mail, MapPin, Plus, Star, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useReferral, type WithdrawalRow, type UserProfile as UserProfileRow, type UpdateProfileInput } from '../hooks/useReferral';
+import { useAddresses, type UserAddress, type AddressInput } from '../hooks/useAddresses';
 import { supabase } from '../lib/supabase';
 
 const REASON_LABEL: Record<string, string> = {
@@ -96,6 +97,10 @@ export default function UserProfile() {
 
         {/* Profile details */}
         <ProfileDetails profile={profile} email={user.email ?? ''} onSave={updateProfile} />
+
+        {/* Delivery addresses */}
+        <AddressBook />
+
 
         {/* Referral code + share */}
         <section className="bg-white border border-gold-200 rounded-sm p-6 md:p-8">
@@ -455,7 +460,7 @@ function ProfileDetails({
   const [nickname, setNickname] = useState(profile?.nickname ?? '');
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
-  const [address, setAddress] = useState(profile?.address ?? '');
+  const [facebook, setFacebook] = useState(profile?.facebook ?? '');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
 
@@ -463,7 +468,7 @@ function ProfileDetails({
     setNickname(profile?.nickname ?? '');
     setFullName(profile?.full_name ?? '');
     setPhone(profile?.phone ?? '');
-    setAddress(profile?.address ?? '');
+    setFacebook(profile?.facebook ?? '');
     setFeedback(null);
     setEditing(true);
   };
@@ -476,7 +481,7 @@ function ProfileDetails({
       nickname: nickname.trim() || null,
       full_name: fullName.trim() || null,
       phone: phone.trim() || null,
-      address: address.trim() || null,
+      facebook: facebook.trim() || null,
     });
     setSaving(false);
     if (error) setFeedback({ kind: 'err', msg: error });
@@ -491,7 +496,7 @@ function ProfileDetails({
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="font-heading text-2xl text-navy-900">My details</h2>
-          <p className="text-sm text-charcoal-500">Update your nickname, contact, and shipping address.</p>
+          <p className="text-sm text-charcoal-500">Update your nickname and contact info. Delivery addresses are managed below.</p>
         </div>
         {!editing && (
           <button onClick={start} className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-navy-900 border border-navy-900 px-3 py-2 hover:bg-navy-900 hover:text-cream-light">
@@ -506,9 +511,7 @@ function ProfileDetails({
           <DetailRow label="Nickname" value={profile?.nickname || '—'} />
           <DetailRow label="Full name" value={profile?.full_name || '—'} />
           <DetailRow label="Phone" value={profile?.phone || '—'} />
-          <div className="sm:col-span-2">
-            <DetailRow label="Address" value={profile?.address || '—'} />
-          </div>
+          <DetailRow label="Facebook" value={profile?.facebook || '—'} />
         </dl>
       ) : (
         <form onSubmit={save} className="space-y-4">
@@ -529,11 +532,11 @@ function ProfileDetails({
               <span className="text-xs uppercase tracking-wider text-charcoal-500">Phone</span>
               <input value={phone} onChange={e => setPhone(e.target.value)} className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
             </label>
+            <label className="block sm:col-span-2">
+              <span className="text-xs uppercase tracking-wider text-charcoal-500">Facebook (profile URL or username)</span>
+              <input value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="facebook.com/yourname" className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
+            </label>
           </div>
-          <label className="block">
-            <span className="text-xs uppercase tracking-wider text-charcoal-500">Address</span>
-            <textarea value={address} onChange={e => setAddress(e.target.value)} rows={3} className="mt-1 w-full border border-gold-200 px-3 py-2 bg-cream-light" />
-          </label>
           <div className="flex items-center gap-3">
             <button type="submit" disabled={saving} className="bg-navy-900 text-cream-light px-6 py-3 text-xs uppercase tracking-widest disabled:opacity-50">
               {saving ? 'Saving…' : 'Save changes'}
@@ -557,6 +560,232 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <dt className="text-xs uppercase tracking-wider text-charcoal-500">{label}</dt>
       <dd className="text-navy-900 mt-1 break-words whitespace-pre-wrap">{value}</dd>
     </div>
+  );
+}
+
+function AddressBook() {
+  const { addresses, loading, error, addAddress, updateAddress, deleteAddress, setPrimary } = useAddresses();
+  const [editing, setEditing] = useState<UserAddress | 'new' | null>(null);
+  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'err'; msg: string } | null>(null);
+
+  const handleSave = async (input: AddressInput, id?: string) => {
+    setFeedback(null);
+    const res = id ? await updateAddress(id, input) : await addAddress(input);
+    if (res.error) setFeedback({ kind: 'err', msg: res.error });
+    else {
+      setFeedback({ kind: 'ok', msg: id ? 'Address updated.' : 'Address saved.' });
+      setEditing(null);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this address?')) return;
+    const { error: err } = await deleteAddress(id);
+    if (err) setFeedback({ kind: 'err', msg: err });
+  };
+
+  return (
+    <section className="bg-white border border-gold-200 rounded-sm p-6 md:p-8">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div>
+          <h2 className="font-heading text-2xl text-navy-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-gold-600" /> Delivery addresses
+          </h2>
+          <p className="text-sm text-charcoal-500">Save multiple addresses. Your primary address auto-fills at checkout.</p>
+        </div>
+        {editing === null && (
+          <button
+            onClick={() => setEditing('new')}
+            className="inline-flex items-center gap-1.5 text-xs uppercase tracking-widest text-cream-light bg-navy-900 px-3 py-2 hover:bg-navy-800"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add address
+          </button>
+        )}
+      </div>
+
+      {error && <div className="text-sm text-red-600 mb-3">{error}</div>}
+      {feedback && (
+        <div className={`text-sm mb-3 ${feedback.kind === 'ok' ? 'text-emerald-700' : 'text-red-600'}`}>{feedback.msg}</div>
+      )}
+
+      {editing === 'new' && (
+        <AddressForm
+          onCancel={() => setEditing(null)}
+          onSubmit={input => handleSave(input)}
+          allowSetPrimary={addresses.length > 0}
+        />
+      )}
+
+      {loading ? (
+        <p className="text-sm text-charcoal-500">Loading…</p>
+      ) : addresses.length === 0 && editing !== 'new' ? (
+        <div className="border border-dashed border-gold-200 rounded p-6 text-center text-sm text-charcoal-500">
+          No saved addresses yet. Add one to speed up checkout.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {addresses.map(addr =>
+            editing && editing !== 'new' && editing.id === addr.id ? (
+              <AddressForm
+                key={addr.id}
+                initial={addr}
+                onCancel={() => setEditing(null)}
+                onSubmit={input => handleSave(input, addr.id)}
+                allowSetPrimary
+              />
+            ) : (
+              <div
+                key={addr.id}
+                className={`border rounded p-4 ${addr.is_primary ? 'border-gold-400 bg-gold-50/40' : 'border-gold-200'}`}
+              >
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="font-medium text-navy-900">{addr.recipient_name}</span>
+                      <span className="text-charcoal-500 text-sm">{addr.phone}</span>
+                      {addr.label && (
+                        <span className="text-[10px] uppercase tracking-wider bg-cream-light border border-gold-200 px-2 py-0.5 rounded">
+                          {addr.label}
+                        </span>
+                      )}
+                      {addr.is_primary && (
+                        <span className="text-[10px] uppercase tracking-wider bg-gold-600 text-cream-light px-2 py-0.5 rounded inline-flex items-center gap-1">
+                          <Star className="w-3 h-3" /> Primary
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-charcoal-700 break-words">
+                      {addr.address}, {addr.barangay}, {addr.city}, {addr.state} {addr.zip_code}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {!addr.is_primary && (
+                      <button
+                        onClick={() => setPrimary(addr.id)}
+                        className="text-xs uppercase tracking-wider text-navy-900 border border-navy-900 px-2.5 py-1 hover:bg-navy-900 hover:text-cream-light"
+                      >
+                        Set primary
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setEditing(addr)}
+                      className="text-xs uppercase tracking-wider text-charcoal-700 border border-gold-300 px-2.5 py-1 hover:bg-gold-100"
+                    >
+                      <Pencil className="w-3 h-3 inline -mt-0.5 mr-1" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(addr.id)}
+                      className="text-xs uppercase tracking-wider text-red-600 border border-red-200 px-2.5 py-1 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3 inline -mt-0.5 mr-1" /> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AddressForm({
+  initial,
+  onSubmit,
+  onCancel,
+  allowSetPrimary,
+}: {
+  initial?: UserAddress;
+  onSubmit: (input: AddressInput) => Promise<void> | void;
+  onCancel: () => void;
+  allowSetPrimary: boolean;
+}) {
+  const [label, setLabel] = useState(initial?.label ?? '');
+  const [recipientName, setRecipientName] = useState(initial?.recipient_name ?? '');
+  const [phone, setPhone] = useState(initial?.phone ?? '');
+  const [address, setAddress] = useState(initial?.address ?? '');
+  const [barangay, setBarangay] = useState(initial?.barangay ?? '');
+  const [city, setCity] = useState(initial?.city ?? '');
+  const [state, setState] = useState(initial?.state ?? '');
+  const [zipCode, setZipCode] = useState(initial?.zip_code ?? '');
+  const [makePrimary, setMakePrimary] = useState(initial?.is_primary ?? false);
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    await onSubmit({
+      label: label.trim() || null,
+      recipient_name: recipientName.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      barangay: barangay.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      zip_code: zipCode.trim(),
+      is_primary: makePrimary || undefined,
+    });
+    setSaving(false);
+  };
+
+  const required = recipientName && phone && address && barangay && city && state && zipCode;
+
+  return (
+    <form onSubmit={submit} className="border border-gold-300 bg-cream-light/50 rounded p-4 mb-4 space-y-3">
+      <div className="grid sm:grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">Label (optional)</span>
+          <input value={label} onChange={e => setLabel(e.target.value)} placeholder="Home / Office" className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">Recipient name *</span>
+          <input value={recipientName} onChange={e => setRecipientName(e.target.value)} required className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">Phone *</span>
+          <input value={phone} onChange={e => setPhone(e.target.value)} required placeholder="09XX XXX XXXX" className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">Street address *</span>
+          <input value={address} onChange={e => setAddress(e.target.value)} required placeholder="House/Unit, Street Name" className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">Barangay *</span>
+          <input value={barangay} onChange={e => setBarangay(e.target.value)} required className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">City *</span>
+          <input value={city} onChange={e => setCity(e.target.value)} required className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">Province *</span>
+          <input value={state} onChange={e => setState(e.target.value)} required className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+        <label className="block">
+          <span className="text-[11px] uppercase tracking-wider text-charcoal-500">ZIP code *</span>
+          <input value={zipCode} onChange={e => setZipCode(e.target.value)} required className="mt-1 w-full border border-gold-200 px-3 py-2 bg-white text-sm" />
+        </label>
+      </div>
+      {allowSetPrimary && (
+        <label className="flex items-center gap-2 text-sm text-charcoal-700">
+          <input type="checkbox" checked={makePrimary} onChange={e => setMakePrimary(e.target.checked)} />
+          Set as primary address
+        </label>
+      )}
+      <div className="flex items-center gap-3 pt-1">
+        <button
+          type="submit"
+          disabled={!required || saving}
+          className="bg-navy-900 text-cream-light px-5 py-2 text-xs uppercase tracking-widest disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : initial ? 'Save changes' : 'Save address'}
+        </button>
+        <button type="button" onClick={onCancel} className="text-xs uppercase tracking-widest text-charcoal-500 hover:text-navy-900">
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 
