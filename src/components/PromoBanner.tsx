@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Check, Sparkles, ArrowRight } from 'lucide-react';
 import posthog from 'posthog-js';
 
-const BANNER_DISMISSED_KEY = 'biorich_banner_dismissed';
+const BANNER_DISMISSED_KEY = 'plp_banner_dismissed';
 
 export default function PromoBanner() {
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(BANNER_DISMISSED_KEY) === 'true');

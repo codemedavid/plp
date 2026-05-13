@@ -341,7 +341,4 @@ For technical support or questions:
 # glow-with-joo
 # glow-with-joo
 # the-babe-studio
-# IgorotaPepGlow
-# biorich
-# vr-jonina-website
 # plp

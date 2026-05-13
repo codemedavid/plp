@@ -30,7 +30,7 @@ const emailHtml = (email: string) => `<!DOCTYPE html>
           <!-- Pink gradient header -->
           <tr>
             <td class="header" align="center" style="background: linear-gradient(135deg, #FFB6C8, #E8739B); padding: 36px 24px;">
-              <p style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">VR Jonina</p>
+              <p style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">Peptide Lifestyle Program</p>
               <p style="margin: 8px 0 0; font-size: 13px; color: rgba(255,255,255,0.85); letter-spacing: 1px; text-transform: uppercase;">Your Trusted Partner</p>
             </td>
           </tr>
@@ -42,7 +42,7 @@ const emailHtml = (email: string) => `<!DOCTYPE html>
                 Hi there,
               </p>
               <p style="margin: 16px 0 0; font-size: 15px; color: #333; line-height: 1.7;">
-                Welcome and thank you for subscribing to <strong style="color: #E8739B;">VR Jonina</strong>!
+                Welcome and thank you for subscribing to <strong style="color: #E8739B;">Peptide Lifestyle Program</strong>!
               </p>
               <p style="margin: 16px 0 0; font-size: 15px; color: #333; line-height: 1.7;">
                 We'll notify you whenever there's a promo available.
@@ -59,7 +59,7 @@ const emailHtml = (email: string) => `<!DOCTYPE html>
 
               <p style="margin: 0; font-size: 15px; color: #555; line-height: 1.7;">
                 With love,<br>
-                <strong style="color: #333;">VR Jonina Team</strong>
+                <strong style="color: #333;">Peptide Lifestyle Program Team</strong>
               </p>
             </td>
           </tr>
@@ -68,7 +68,7 @@ const emailHtml = (email: string) => `<!DOCTYPE html>
           <tr>
             <td style="background-color: #FDF2F4; padding: 20px 28px; border-top: 1px solid #F5D5DC;">
               <p style="margin: 0; font-size: 12px; color: #bbb; line-height: 1.6; text-align: center;">
-                VR Jonina &bull; <a href="https://vrjonina.com" style="color: #E8739B; text-decoration: none;">vrjonina.com</a>
+                Peptide Lifestyle Program &bull; <a href="https://peptidelifestyleprogram.com" style="color: #E8739B; text-decoration: none;">peptidelifestyleprogram.com</a>
               </p>
             </td>
           </tr>
@@ -109,9 +109,9 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "VR Jonina <hello@vrjonina.com>",
+        from: "Peptide Lifestyle Program <hello@peptidelifestyleprogram.com>",
         to: [email],
-        subject: "Welcome to VR Jonina! 💖",
+        subject: "Welcome PLP Babe 💖",
         html: emailHtml(email),
       }),
     });
