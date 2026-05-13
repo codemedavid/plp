@@ -13,15 +13,18 @@ export interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  passwordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, extras?: SignUpExtras) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  clearPasswordRecovery: () => void;
 }
 
 // Shared module-level store so every useAuth() consumer sees the same session
 // and we only call getSession()/subscribe once across the app.
-type Store = { session: Session | null; loading: boolean };
-let store: Store = { session: null, loading: true };
+type Store = { session: Session | null; loading: boolean; passwordRecovery: boolean };
+let store: Store = { session: null, loading: true, passwordRecovery: false };
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach(l => l());
@@ -53,6 +56,10 @@ const ensureInit = () => {
       (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')
     ) {
       posthog.identify(newSession.user.id, { email: newSession.user.email });
+    }
+    if (event === 'PASSWORD_RECOVERY') {
+      setStore({ session: newSession, loading: false, passwordRecovery: true });
+      return;
     }
     setStore({ session: newSession, loading: false });
   });
@@ -124,12 +131,27 @@ export function useAuth(): AuthState {
     posthog.reset();
   };
 
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (!error) {
+      setStore({ passwordRecovery: false });
+    }
+    return { error: error?.message ?? null };
+  };
+
+  const clearPasswordRecovery = () => {
+    setStore({ passwordRecovery: false });
+  };
+
   return {
     user: snap.session?.user ?? null,
     session: snap.session,
     loading: snap.loading,
+    passwordRecovery: snap.passwordRecovery,
     signIn,
     signUp,
     signOut,
+    updatePassword,
+    clearPasswordRecovery,
   };
 }

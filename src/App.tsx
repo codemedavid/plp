@@ -16,6 +16,7 @@ const Checkout = lazy(() => import('./components/Checkout'));
 const WelcomePopup = lazy(() => import('./components/WelcomePopup'));
 const PromoBanner = lazy(() => import('./components/PromoBanner'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
+const ResetPasswordModal = lazy(() => import('./components/ResetPasswordModal'));
 
 // Lazy load route components
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
@@ -90,6 +91,9 @@ function MainApp() {
             />
             <Suspense fallback={null}>
                 <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
+            </Suspense>
+            <Suspense fallback={null}>
+                <ResetPasswordModal />
             </Suspense>
             <Suspense fallback={null}>
                 <PromoBanner />
