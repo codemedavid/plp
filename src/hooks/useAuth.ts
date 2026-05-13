@@ -38,13 +38,22 @@ const ensureInit = () => {
   supabase.auth
     .getSession()
     .then(({ data }) => {
+      if (data.session?.user) {
+        posthog.identify(data.session.user.id, { email: data.session.user.email });
+      }
       setStore({ session: data.session, loading: false });
     })
     .catch(() => {
       setStore({ loading: false });
     });
 
-  supabase.auth.onAuthStateChange((_event, newSession) => {
+  supabase.auth.onAuthStateChange((event, newSession) => {
+    if (
+      newSession?.user &&
+      (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED')
+    ) {
+      posthog.identify(newSession.user.id, { email: newSession.user.email });
+    }
     setStore({ session: newSession, loading: false });
   });
 };
