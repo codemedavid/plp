@@ -7,6 +7,15 @@ const hashLooksLikeRecovery = () =>
   (window.location.hash.includes('type=recovery') ||
     new URLSearchParams(window.location.hash.replace(/^#/, '')).get('type') === 'recovery');
 
+const hashHasRecoveryError = () => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const err = params.get('error') || params.get('error_code');
+  const desc = params.get('error_description');
+  if (!err && !desc) return null;
+  return desc ? decodeURIComponent(desc.replace(/\+/g, ' ')) : err;
+};
+
 const ResetPasswordModal: React.FC = () => {
   const { passwordRecovery, updatePassword, clearPasswordRecovery } = useAuth();
   const [hashRecovery, setHashRecovery] = useState<boolean>(hashLooksLikeRecovery);
@@ -19,6 +28,18 @@ const ResetPasswordModal: React.FC = () => {
   useEffect(() => {
     if (passwordRecovery) setHashRecovery(true);
   }, [passwordRecovery]);
+
+  useEffect(() => {
+    if (!hashRecovery) return;
+    const hashErr = hashHasRecoveryError();
+    if (hashErr) {
+      setError(
+        /expired|invalid|otp/i.test(hashErr)
+          ? 'This password reset link has expired or has already been used. Please request a new one from the sign-in screen.'
+          : hashErr
+      );
+    }
+  }, [hashRecovery]);
 
   const open = passwordRecovery || hashRecovery;
   if (!open) return null;
@@ -51,7 +72,20 @@ const ResetPasswordModal: React.FC = () => {
     const { error: updateError } = await updatePassword(password);
     setSubmitting(false);
     if (updateError) {
-      setError(updateError);
+      const lower = updateError.toLowerCase();
+      if (
+        lower.includes('session') ||
+        lower.includes('expired') ||
+        lower.includes('invalid') ||
+        lower.includes('not authenticated') ||
+        lower.includes('jwt')
+      ) {
+        setError('This password reset link has expired or has already been used. Please request a new one from the sign-in screen.');
+      } else if (lower.includes('same') || lower.includes('different from')) {
+        setError('Your new password must be different from your current one.');
+      } else {
+        setError(updateError);
+      }
       return;
     }
     setInfo('Password updated. You are signed in.');

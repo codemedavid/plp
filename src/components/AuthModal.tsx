@@ -79,9 +79,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       redirectTo: window.location.origin,
     });
     if (resetError) {
-      setError(resetError.message);
+      const status = (resetError as { status?: number }).status;
+      const msg = resetError.message?.toLowerCase() ?? '';
+      if (status === 429 || msg.includes('rate limit')) {
+        setError("Too many reset requests. Please wait a few minutes before trying again — or contact support if you've been locked out.");
+      } else if (status === 422 || msg.includes('invalid') && msg.includes('email')) {
+        setError('That email address doesn\'t look valid. Please double-check and try again.');
+      } else {
+        setError(resetError.message);
+      }
     } else {
-      setInfo('Password reset email sent. Check your inbox.');
+      setInfo('Password reset email sent. Check your inbox (and spam folder).');
     }
   };
 
