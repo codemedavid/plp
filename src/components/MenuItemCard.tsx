@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Heart, Package } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
-import { KIT_UPGRADE_PRICE } from '../types';
 
 const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
 const cleanText = (s?: string | null) => (s ?? '').replace(UUID_RE, '').replace(/\s{2,}/g, ' ').trim();
@@ -14,100 +13,88 @@ interface MenuItemCardProps {
   onProductClick?: (product: Product) => void;
 }
 
-const MenuItemCard: React.FC<MenuItemCardProps> = ({
-  product,
-  onAddToCart,
-  cartQuantity = 0,
-  onProductClick,
-}) => {
+const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) => {
   const [imageError, setImageError] = useState(false);
-  const [selectedVariation, setSelectedVariation] = useState<ProductVariation | undefined>(
-    product.variations && product.variations.length > 0 ? product.variations[0] : undefined
-  );
-  const [kitType, setKitType] = useState<KitType>('vial_only');
 
-  // Calculate current price considering both product and variation discounts
-  const basePrice = (() => {
-    return selectedVariation
-      ? (selectedVariation.discount_active && selectedVariation.discount_price)
-        ? selectedVariation.discount_price
-        : selectedVariation.price
-      : (product.discount_active && product.discount_price)
-        ? product.discount_price
-        : product.base_price;
-  })();
+  const effectivePrice = (v: ProductVariation) =>
+    v.discount_active && v.discount_price != null ? v.discount_price : v.price;
 
-  // Don't add kit upgrade price if variation is already a kit
-  const isSelectedKitVariation = selectedVariation?.name?.toLowerCase().includes('kit');
-  const currentPrice = basePrice + (kitType === 'complete_kit' && !isSelectedKitVariation ? KIT_UPGRADE_PRICE : 0);
+  const productEffective =
+    product.discount_active && product.discount_price != null ? product.discount_price : product.base_price;
 
-  // Check if there's an active discount
-  const hasDiscount = selectedVariation
-    ? (selectedVariation.discount_active && selectedVariation.discount_price !== null)
-    : (product.discount_active && product.discount_price !== null);
+  const fromPrice =
+    product.variations && product.variations.length > 0
+      ? Math.min(...product.variations.map(effectivePrice))
+      : productEffective;
 
-  // Get original price for strikethrough
-  const originalPrice = (selectedVariation ? selectedVariation.price : product.base_price) + (kitType === 'complete_kit' && !isSelectedKitVariation ? KIT_UPGRADE_PRICE : 0);
+  const fromOriginalPrice =
+    product.variations && product.variations.length > 0
+      ? Math.min(...product.variations.map((v) => v.price))
+      : product.base_price;
 
-  // Check if product has any available stock
-  const hasAnyStock = product.variations && product.variations.length > 0
-    ? product.variations.some(v => v.stock_quantity > 0)
-    : product.stock_quantity > 0;
+  const hasDiscount = fromPrice < fromOriginalPrice;
+  const discountPct = hasDiscount ? Math.round((1 - fromPrice / fromOriginalPrice) * 100) : 0;
 
-  // Check if this is an individual/accessory item (no kit option)
-  const isSetProduct = product.inclusions && product.inclusions.length > 0;
+  const hasAnyStock =
+    product.variations && product.variations.length > 0
+      ? product.variations.some((v) => v.stock_quantity > 0)
+      : product.stock_quantity > 0;
 
-  // If variation is a "Kit (10 Vials)" type, it's already a kit - no toggle needed
-  const isKitVariation = selectedVariation?.name?.toLowerCase().includes('kit');
+  const isUnavailable = !product.available || !hasAnyStock;
 
-  // Show kit toggle only for set products where the selected variation is NOT already a kit
-  const showKitToggle = isSetProduct && !isKitVariation;
+  const handleClick = () => onProductClick?.(product);
 
   return (
-    <div className={`card !p-0 h-full flex flex-col group relative overflow-hidden transition-all duration-300 ${
-      product.featured
-        ? 'ring-2 ring-gold-500/60 hover:ring-gold-500 shadow-[0_4px_20px_rgba(201,168,118,0.18)] hover:shadow-[0_8px_28px_rgba(201,168,118,0.28)]'
-        : ''
-    }`}>
-      {/* Click overlay for product details */}
-      <div
-        onClick={() => onProductClick?.(product)}
-        className="absolute inset-0 z-10 cursor-pointer"
-        title="View details"
-      />
-
-      {/* Product Image */}
-      <div className="relative h-44 sm:h-64 overflow-hidden border-b border-brand-100" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
+    <div
+      onClick={handleClick}
+      className={`bg-white rounded-2xl border border-charcoal-100 overflow-hidden flex flex-col h-full cursor-pointer group transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
+        product.featured
+          ? 'ring-2 ring-gold-500/60 hover:ring-gold-500 shadow-[0_4px_20px_rgba(201,168,118,0.18)]'
+          : 'shadow-sm'
+      }`}
+    >
+      {/* Image area with navy wave bottom */}
+      <div className="relative aspect-square overflow-hidden" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
         {product.image_url && !imageError ? (
           <img
             src={product.image_url}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 relative z-10"
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-brand-200" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
+          <div className="w-full h-full flex items-center justify-center text-brand-200 relative z-10">
             <Heart className="w-16 h-16 opacity-30" fill="currentColor" />
           </div>
         )}
 
+        {/* Navy curved wave at the bottom of the image */}
+        <svg
+          viewBox="0 0 400 60"
+          preserveAspectRatio="none"
+          className="absolute bottom-0 left-0 w-full h-[18%] z-20"
+          aria-hidden="true"
+        >
+          <path d="M0,30 Q200,80 400,20 L400,60 L0,60 Z" fill="#0F2447" />
+        </svg>
+
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-20">
+        <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-30">
           {product.featured && (
-            <span className="px-2.5 py-1 bg-gradient-to-r from-gold-600 to-gold-500 text-white text-[9px] font-semibold uppercase tracking-[0.18em] shadow-md shadow-gold-500/30 border border-gold-400">
+            <span className="px-2.5 py-1 bg-gradient-to-r from-gold-600 to-gold-500 text-white text-[9px] font-semibold uppercase tracking-[0.18em] shadow-md shadow-gold-500/30 border border-gold-400 rounded-full">
               ★ Featured
             </span>
           )}
           {hasDiscount && (
-            <span className="px-2.5 py-1 bg-navy-900 text-white text-[9px] font-medium uppercase tracking-[0.18em]">
-              {Math.round((1 - basePrice / (selectedVariation ? selectedVariation.price : product.base_price)) * 100)}% Off
+            <span className="px-2.5 py-1 bg-navy-900 text-white text-[9px] font-semibold uppercase tracking-[0.18em] rounded-full">
+              {discountPct}% Off
             </span>
           )}
         </div>
 
         {/* Stock Status Overlay */}
-        {(!product.available || !hasAnyStock) && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex items-center justify-center z-20">
+        {isUnavailable && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex items-center justify-center z-30">
             <span className="bg-brand-50 text-brand-600 px-3 py-1 text-xs font-bold rounded-full border border-brand-200 uppercase tracking-wide">
               {!product.available ? 'Unavailable' : 'Out of Stock'}
             </span>
@@ -115,143 +102,44 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         )}
       </div>
 
-      {/* Product Details */}
-      <div className="p-2.5 sm:p-5 flex-1 flex flex-col">
-        <h3 className="font-heading font-semibold text-charcoal-900 text-xs sm:text-base mb-0.5 sm:mb-1 line-clamp-1 sm:line-clamp-2 tracking-tight">
-          {cleanText(product.name)}
-        </h3>
-        <p className="text-[9px] sm:text-xs text-charcoal-400 mb-1.5 sm:mb-3 line-clamp-1 sm:line-clamp-2 min-h-[1rem] sm:min-h-[2.5rem] leading-relaxed font-cute">
-          {cleanText(product.description)}
-        </p>
-
-        {/* Variations (Sizes) */}
-        <div className="mb-1.5 sm:mb-3 min-h-[1.25rem] sm:min-h-[2rem]">
-          {product.variations && product.variations.length > 0 && (
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {product.variations.slice(0, 2).map((variation) => {
-                const isOutOfStock = variation.stock_quantity === 0;
-                return (
-                  <button
-                    key={variation.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isOutOfStock) {
-                        setSelectedVariation(variation);
-                      }
-                    }}
-                    disabled={isOutOfStock}
-                    className={`
-                      px-2 sm:px-2.5 py-1 text-[10px] sm:text-xs font-medium rounded-full border transition-all duration-200 relative z-20
-                      ${selectedVariation?.id === variation.id && !isOutOfStock
-                        ? 'bg-brand-50 border-brand-400 text-brand-700'
-                        : isOutOfStock
-                          ? 'bg-charcoal-50 text-charcoal-300 border-charcoal-100 cursor-not-allowed'
-                          : 'bg-white text-charcoal-600 border-brand-200 hover:border-brand-400 hover:text-brand-600'
-                      }
-                    `}
-                  >
-                    {cleanText(variation.name)}
-                  </button>
-                );
-              })}
-              {product.variations.length > 2 && (
-                <span className="text-[9px] sm:text-[10px] text-charcoal-300 self-center">
-                  +{product.variations.length - 2}
-                </span>
-              )}
-            </div>
-          )}
+      {/* Details */}
+      <div className="p-3 sm:p-4 flex-1 flex flex-col">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="font-heading font-semibold text-charcoal-900 text-sm sm:text-base line-clamp-2 tracking-tight leading-snug flex-1">
+            {cleanText(product.name)}
+          </h3>
+          <div className="text-right shrink-0">
+            <p className="text-[9px] sm:text-[10px] text-charcoal-400 uppercase tracking-wider leading-none mb-0.5">
+              From
+            </p>
+            <p className="text-sm sm:text-base font-bold text-brand-600 leading-none">
+              ₱{fromPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+            </p>
+          </div>
         </div>
 
-        {/* Kit Type Toggle - Only for set products with single vial selected */}
-        {showKitToggle && (
-          <div className="mb-1.5 sm:mb-3 relative z-20">
-            <div className="flex rounded-full border border-brand-200 overflow-hidden text-[10px] sm:text-xs font-medium">
-              <button
-                onClick={(e) => { e.stopPropagation(); setKitType('vial_only'); }}
-                className={`flex-1 py-1.5 px-2 transition-all text-center ${
-                  kitType === 'vial_only'
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-white text-charcoal-600 hover:bg-brand-50'
-                }`}
-              >
-                Vial Only
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); setKitType('complete_kit'); }}
-                className={`flex-1 py-1.5 px-2 transition-all text-center ${
-                  kitType === 'complete_kit'
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-white text-charcoal-600 hover:bg-brand-50'
-                }`}
-              >
-                Kit +₱{KIT_UPGRADE_PRICE}
-              </button>
-            </div>
-          </div>
+        {product.category && (
+          <p className="text-[10px] sm:text-xs text-charcoal-400 line-clamp-1 mb-3 capitalize">
+            {cleanText(product.category)}
+          </p>
         )}
 
         <div className="flex-1" />
 
-        {/* Price and Cart Actions */}
-        <div className="flex flex-col gap-1.5 sm:gap-3 mt-auto">
-          {hasDiscount ? (
-            <div className="flex items-baseline gap-1 sm:gap-2">
-              <span className="text-sm sm:text-lg font-semibold text-charcoal-900">
-                ₱{currentPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-              </span>
-              <span className="text-[9px] sm:text-xs text-charcoal-300 line-through">
-                ₱{originalPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-baseline">
-              <span className="text-sm sm:text-lg font-semibold text-charcoal-900">
-                ₱{currentPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-              </span>
-            </div>
-          )}
-
-          <div className="flex w-full">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!product.available || !hasAnyStock) return;
-
-                if (product.variations && product.variations.length > 0 && !selectedVariation) {
-                  onProductClick?.(product);
-                  return;
-                }
-
-                // Kit variations are always 'vial_only' (no +₱150 since they're already a kit)
-                const effectiveKitType = selectedVariation?.name?.toLowerCase().includes('kit') ? 'vial_only' : kitType;
-                onAddToCart?.(product, selectedVariation, 1, effectiveKitType);
-              }}
-              disabled={!product.available || !hasAnyStock}
-              className={`group relative z-20 w-full py-2.5 sm:py-3.5 text-[9px] sm:text-[11px] tracking-[0.22em] sm:tracking-[0.28em] uppercase font-semibold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden border
-                ${(!product.available || !hasAnyStock)
-                  ? 'bg-charcoal-100 text-charcoal-400 border-charcoal-200 cursor-not-allowed'
-                  : 'bg-navy-900 text-white border-gold-500/40 hover:bg-gold-600 hover:border-gold-600'}
-              `}
-              style={{ borderRadius: '2px' }}
-            >
-              {(product.available && hasAnyStock) && (
-                <>
-                  <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-60" />
-                  <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-40" />
-                </>
-              )}
-              <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gold-500 group-hover:text-white transition-colors" strokeWidth={1.5} />
-              <span>Add to Cart</span>
-            </button>
-          </div>
-
-          {cartQuantity > 0 && (
-            <div className="text-center text-[10px] text-brand-600 font-medium bg-brand-50 rounded-full py-1">
-              {cartQuantity} in cart
-            </div>
-          )}
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
+          disabled={isUnavailable}
+          className={`w-full py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
+            isUnavailable
+              ? 'bg-charcoal-100 text-charcoal-400 cursor-not-allowed'
+              : 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm hover:shadow-md'
+          }`}
+        >
+          View
+        </button>
       </div>
     </div>
   );

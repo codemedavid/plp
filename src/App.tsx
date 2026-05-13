@@ -161,6 +161,7 @@ function App() {
             <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                     <Route path="/" element={<MainApp />} />
+                    <Route path="/products/:slug" element={<MainApp />} />
                     <Route path="/coa" element={<COA />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/calculator" element={<PeptideCalculator />} />

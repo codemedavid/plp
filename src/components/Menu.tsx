@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import MenuItemCard from './MenuItemCard';
 import Hero from './Hero';
 import ProductDetailModal from './ProductDetailModal';
 import type { Product, ProductVariation, CartItem, KitType } from '../types';
+import { slugify, findProductBySlug } from '../lib/slug';
 import {
   Target, Microscope, Dna, Sprout,
   ArrowRight, User as UserIcon, Dumbbell, Activity,
@@ -17,7 +19,11 @@ interface MenuProps {
 }
 
 const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems }) => {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug?: string }>();
+  const selectedProduct = slug ? findProductBySlug(menuItems, slug) ?? null : null;
+  const openProduct = (product: Product) => navigate(`/products/${slugify(product.name)}`);
+  const closeProduct = () => navigate('/');
   const productsRef = useRef<HTMLDivElement | null>(null);
 
   const sortedProducts = [...menuItems].sort((a, b) => {
@@ -53,12 +59,12 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems }) => {
       {selectedProduct && (
         <ProductDetailModal
           product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
+          onClose={closeProduct}
           onAddToCart={(product, variation, quantity, kitType) => {
             addToCart(product, variation, quantity, kitType);
           }}
           allProducts={menuItems}
-          onProductSelect={(product) => setSelectedProduct(product)}
+          onProductSelect={openProduct}
         />
       )}
 
@@ -131,7 +137,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems }) => {
                   key={product.id}
                   product={product}
                   cartQuantity={getCartQuantity(product.id)}
-                  onProductClick={setSelectedProduct}
+                  onProductClick={openProduct}
                   onAddToCart={addToCart}
                 />
               ))}
@@ -253,7 +259,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems }) => {
                     key={product.id}
                     product={product}
                     cartQuantity={getCartQuantity(product.id)}
-                    onProductClick={setSelectedProduct}
+                    onProductClick={openProduct}
                     onAddToCart={addToCart}
                   />
                 ))}
