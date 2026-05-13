@@ -62,9 +62,11 @@ export default function UserProfile() {
                 <h1 className="font-heading text-2xl sm:text-4xl md:text-5xl font-normal text-navy-900 tracking-tight break-words">
                   {profile?.nickname || profile?.full_name || user.email}
                 </h1>
-                <p className="text-xs sm:text-sm text-charcoal-500 mt-2 flex items-start gap-1.5 break-all">
-                  <Mail className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                  <span className="break-all">Signed up with {user.email}</span>
+                <p className="text-xs sm:text-sm text-charcoal-500 mt-2 flex items-center gap-1.5 min-w-0">
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="truncate" title={`Signed up with ${user.email}`}>
+                    Signed up with {user.email}
+                  </span>
                 </p>
               </div>
             </div>
