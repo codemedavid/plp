@@ -5,9 +5,6 @@ import {
   ShoppingCart,
   Plus,
   Minus,
-  Truck,
-  ShieldCheck,
-  Zap,
   FileText,
   Gift,
   Package,
@@ -44,15 +41,6 @@ const sanitizeBundleTiers = (tiers: BundleTier[] | undefined): BundleTier[] => {
       price: typeof t.price === 'number' && Number.isFinite(t.price) && t.price > 0 ? t.price : null,
     }));
   return cleaned.length > 0 ? cleaned : DEFAULT_BUNDLE_TIERS;
-};
-
-const formatShippingWindow = () => {
-  const start = new Date();
-  start.setDate(start.getDate() + 5);
-  const end = new Date();
-  end.setDate(end.getDate() + 11);
-  const fmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  return `${fmt.format(start)} - ${fmt.format(end)}`;
 };
 
 const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClose, onAddToCart, allProducts = [], onProductSelect }) => {
@@ -146,7 +134,6 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
     `₱${n.toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
 
   const variations = product.variations ?? [];
-  const shippingWindow = formatShippingWindow();
   const bundleTiers = sanitizeBundleTiers(product.bundle_tiers);
 
   return (
@@ -434,38 +421,20 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock}
-              className="flex-1 py-3 rounded-full bg-charcoal-900 text-white text-base font-bold hover:bg-charcoal-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative flex-1 py-3.5 bg-navy-900 text-white text-[11px] font-semibold tracking-[0.28em] uppercase border border-gold-500/40 hover:bg-gold-600 hover:border-gold-600 transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed overflow-hidden"
+              style={{ borderRadius: '2px' }}
             >
-              {isOutOfStock ? 'Out of Stock' : 'Add to cart'}
-              {!isOutOfStock && <ShoppingCart className="w-5 h-5" />}
+              <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-60" />
+              <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-40" />
+              {!isOutOfStock && <ShoppingCart className="w-4 h-4 text-gold-500 group-hover:text-white transition-colors" strokeWidth={1.5} />}
+              <span>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
             </button>
-          </div>
-
-          {/* Shipping info */}
-          <div className="mt-4 rounded-2xl bg-charcoal-50 border border-charcoal-100 p-3 grid grid-cols-3 gap-2 text-center">
-            <div className="flex flex-col items-center gap-1">
-              <Truck className="w-5 h-5 text-emerald-600" />
-              <p className="text-[11px] text-charcoal-700 leading-tight">{shippingWindow}</p>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              <p className="text-[11px] text-charcoal-700 leading-tight">
-                <span className="underline decoration-dotted">Free shipment protection</span>
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <Zap className="w-5 h-5 text-emerald-600" />
-              <p className="text-[11px] text-charcoal-700 leading-tight">Overnight shipping available</p>
-            </div>
           </div>
 
           {/* Payment methods */}
           <div className="mt-4 flex items-center gap-3">
             <span className="text-sm text-charcoal-500">We accept</span>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-1 rounded-md bg-charcoal-900 text-white text-[10px] font-bold tracking-tight">Pay</span>
-              <span className="px-2 py-1 rounded-md border border-charcoal-200 text-charcoal-700 text-[10px] font-extrabold italic tracking-wide">VISA</span>
-              <span className="px-2 py-1 rounded-md border border-charcoal-200 text-charcoal-700 text-[10px] font-bold">GCash</span>
               <span className="px-2 py-1 rounded-md border border-charcoal-200 text-charcoal-700 text-[10px] font-bold">Maya</span>
             </div>
           </div>

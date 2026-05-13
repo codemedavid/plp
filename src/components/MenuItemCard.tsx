@@ -3,6 +3,9 @@ import { Heart, Package } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
 import { KIT_UPGRADE_PRICE } from '../types';
 
+const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
+const cleanText = (s?: string | null) => (s ?? '').replace(UUID_RE, '').replace(/\s{2,}/g, ' ').trim();
+
 interface MenuItemCardProps {
   product: Product;
   onAddToCart?: (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => void;
@@ -61,7 +64,11 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const showKitToggle = isSetProduct && !isKitVariation;
 
   return (
-    <div className="card !p-0 h-full flex flex-col group relative overflow-hidden">
+    <div className={`card !p-0 h-full flex flex-col group relative overflow-hidden transition-all duration-300 ${
+      product.featured
+        ? 'ring-2 ring-gold-500/60 hover:ring-gold-500 shadow-[0_4px_20px_rgba(201,168,118,0.18)] hover:shadow-[0_8px_28px_rgba(201,168,118,0.28)]'
+        : ''
+    }`}>
       {/* Click overlay for product details */}
       <div
         onClick={() => onProductClick?.(product)}
@@ -87,8 +94,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-20">
           {product.featured && (
-            <span className="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-navy-900 text-[9px] font-medium uppercase tracking-[0.18em] border border-charcoal-100">
-              Featured
+            <span className="px-2.5 py-1 bg-gradient-to-r from-gold-600 to-gold-500 text-white text-[9px] font-semibold uppercase tracking-[0.18em] shadow-md shadow-gold-500/30 border border-gold-400">
+              ★ Featured
             </span>
           )}
           {hasDiscount && (
@@ -111,10 +118,10 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       {/* Product Details */}
       <div className="p-2.5 sm:p-5 flex-1 flex flex-col">
         <h3 className="font-heading font-semibold text-charcoal-900 text-xs sm:text-base mb-0.5 sm:mb-1 line-clamp-1 sm:line-clamp-2 tracking-tight">
-          {product.name}
+          {cleanText(product.name)}
         </h3>
         <p className="text-[9px] sm:text-xs text-charcoal-400 mb-1.5 sm:mb-3 line-clamp-1 sm:line-clamp-2 min-h-[1rem] sm:min-h-[2.5rem] leading-relaxed font-cute">
-          {product.description}
+          {cleanText(product.description)}
         </p>
 
         {/* Variations (Sizes) */}
@@ -143,7 +150,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                       }
                     `}
                   >
-                    {variation.name}
+                    {cleanText(variation.name)}
                   </button>
                 );
               })}
@@ -221,13 +228,20 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 onAddToCart?.(product, selectedVariation, 1, effectiveKitType);
               }}
               disabled={!product.available || !hasAnyStock}
-              className={`relative z-20 w-full py-2 sm:py-3 text-[10px] sm:text-sm flex items-center justify-center gap-1.5 sm:gap-2 font-semibold transition-all rounded-xl sm:rounded-2xl
+              className={`group relative z-20 w-full py-2.5 sm:py-3.5 text-[9px] sm:text-[11px] tracking-[0.22em] sm:tracking-[0.28em] uppercase font-semibold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden border
                 ${(!product.available || !hasAnyStock)
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'btn-primary'}
+                  ? 'bg-charcoal-100 text-charcoal-400 border-charcoal-200 cursor-not-allowed'
+                  : 'bg-navy-900 text-white border-gold-500/40 hover:bg-gold-600 hover:border-gold-600'}
               `}
+              style={{ borderRadius: '2px' }}
             >
-              <Heart className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" />
+              {(product.available && hasAnyStock) && (
+                <>
+                  <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-60" />
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-40" />
+                </>
+              )}
+              <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gold-500 group-hover:text-white transition-colors" strokeWidth={1.5} />
               <span>Add to Cart</span>
             </button>
           </div>
