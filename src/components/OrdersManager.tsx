@@ -64,7 +64,11 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
 
   // Fire a PostHog event for order status changes
   // Uses PostHog API directly to send as the customer (not the admin)
-  const trackOrderStatus = async (order: Order, newStatus: string) => {
+  const trackOrderStatus = async (
+    order: Order,
+    newStatus: string,
+    extras?: Record<string, string>
+  ) => {
     const shippingFee = order.shipping_fee || 0;
     const discount = order.discount_applied || 0;
     const total = order.total_price;
@@ -101,6 +105,7 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
             items_summary: itemsSummary,
             tracking_number: String(order.tracking_number || ''),
             shipping_provider: String(order.shipping_provider || ''),
+            ...(extras || {}),
           },
         }),
       });
@@ -310,7 +315,11 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
     }
   };
 
-  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateOrderStatus = async (
+    orderId: string,
+    newStatus: string,
+    extras?: Record<string, string>
+  ) => {
     try {
       setIsProcessing(true);
       const { error } = await supabase
@@ -326,7 +335,7 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
       // Fire PostHog event for every status change
       const order = orders.find(o => o.id === orderId);
       if (order) {
-        trackOrderStatus(order, newStatus);
+        trackOrderStatus(order, newStatus, extras);
       }
 
       await loadOrders();
@@ -724,7 +733,7 @@ interface OrderDetailsViewProps {
   order: Order;
   onBack: () => void;
   onConfirm: () => void;
-  onUpdateStatus: (orderId: string, status: string) => void;
+  onUpdateStatus: (orderId: string, status: string, extras?: Record<string, string>) => void;
   onSaveTracking: (orderId: string, trackingNumber: string, shippingProvider: string, shippingNote: string) => void;
   isProcessing: boolean;
 }
@@ -1011,7 +1020,16 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
                   const label = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
                   if (newStatus === 'cancelled') {
                     if (confirm('Are you sure you want to cancel this order?')) {
-                      onUpdateStatus(order.id, newStatus);
+                      const reason = prompt('Cancellation reason (shown to customer):', 'Customer request') || 'Not specified';
+                      const refundAmount = prompt('Refund amount (PHP):', String(order.total_price || 0)) || '0';
+                      const refundMethod = prompt('Refund method (e.g. GCash, Bank Transfer, Store Credit):', 'Original payment method') || 'N/A';
+                      const refundStatus = prompt('Refund status (Pending / Processing / Completed / Not applicable):', 'Pending') || 'Pending';
+                      onUpdateStatus(order.id, newStatus, {
+                        cancellation_reason: String(reason),
+                        refund_amount: String(refundAmount),
+                        refund_method: String(refundMethod),
+                        refund_status: String(refundStatus),
+                      });
                     }
                   } else if (confirm(`Change order status to "${label}"?`)) {
                     onUpdateStatus(order.id, newStatus);

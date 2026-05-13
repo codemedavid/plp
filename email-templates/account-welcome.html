@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to the Peptide Lifestyle Program</title>
+  <style>
+    @media only screen and (max-width: 480px) {
+      .container { width: 100% !important; }
+      .px-pad { padding-left: 24px !important; padding-right: 24px !important; }
+      .hero-title { font-size: 26px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f3ef; font-family: Georgia, 'Times New Roman', serif;">
+
+  <!-- Preheader (hidden) -->
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent;">
+    Your Peptide Lifestyle Program account is ready. Track orders, save protocols, and unlock private offers.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ef;">
+    <tr>
+      <td align="center" style="padding: 32px 12px;">
+        <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+
+          <!-- Top gold hairline -->
+          <tr>
+            <td style="height: 3px; background-color: #c9a558; line-height: 3px; font-size: 0;">&nbsp;</td>
+          </tr>
+
+          <!-- Brand -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 32px 40px 8px;">
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #c9a558;">
+                Peptide
+              </p>
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: #c9a558;">
+                Lifestyle Program
+              </p>
+            </td>
+          </tr>
+
+          <!-- Eyebrow -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 24px 40px 0;">
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; color: #c9a558;">
+                &mdash;&nbsp;&nbsp;Account Created&nbsp;&nbsp;&mdash;
+              </p>
+            </td>
+          </tr>
+
+          <!-- Hero -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 18px 40px 8px;">
+              <h1 class="hero-title" style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 34px; font-weight: 400; color: #0b1a33; letter-spacing: -0.5px; line-height: 1.2;">
+                Welcome, {{ person.properties.name }}.
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Gold accent line -->
+          <tr>
+            <td align="center" style="padding: 14px 0 6px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="width: 40px; height: 1px; background-color: #c9a558; line-height: 1px; font-size: 0;">&nbsp;</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Intro -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 14px 48px 8px;">
+              <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; font-weight: 300; color: #4a4a4a; line-height: 1.75;">
+                Thank you for joining the Peptide Lifestyle Program. Your account is ready &mdash; a quieter way to shop, track your protocols, and discover what's new.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Account details card -->
+          <tr>
+            <td class="px-pad" style="padding: 28px 48px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf8f3; border: 1px solid #ece4d2;">
+                <tr>
+                  <td style="padding: 20px 24px;">
+                    <p style="margin: 0 0 8px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c9a558;">
+                      Your Account
+                    </p>
+                    <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a; line-height: 1.7;">
+                      <strong style="color: #0b1a33;">Email:</strong> {{ person.properties.email }}<br>
+                      <strong style="color: #0b1a33;">Member since:</strong> {{ event.properties.signup_date }}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- What you can do -->
+          <tr>
+            <td class="px-pad" style="padding: 28px 48px 0;">
+              <p style="margin: 0 0 14px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c9a558;">
+                What You Can Do
+              </p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a; line-height: 1.6;">
+                      <span style="color: #c9a558;">&#10070;</span>&nbsp;&nbsp;Track every order in one place
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a; line-height: 1.6;">
+                      <span style="color: #c9a558;">&#10070;</span>&nbsp;&nbsp;Save addresses for faster checkout
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a; line-height: 1.6;">
+                      <span style="color: #c9a558;">&#10070;</span>&nbsp;&nbsp;Earn rewards through our Invite &amp; Earn program
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0;">
+                    <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a; line-height: 1.6;">
+                      <span style="color: #c9a558;">&#10070;</span>&nbsp;&nbsp;Access member-only releases &amp; restocks
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 28px 48px 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background-color: #c9a558;">
+                    <a href="https://peptidelifestyleprogram.com" style="display: inline-block; padding: 14px 38px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; text-decoration: none;">
+                      Explore the Collection
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Security note -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 32px 48px 0;">
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #888; line-height: 1.7;">
+                Didn't create this account? Please
+                <a href="https://wa.me/639058429200" style="color: #c9a558; text-decoration: none;">message us</a>
+                so we can secure it for you.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Closing -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 24px 48px 8px;">
+              <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #6a6a6a; line-height: 1.7;">
+                Delivered with care,<br>
+                The Peptide Lifestyle Program Team
+              </p>
+            </td>
+          </tr>
+
+          <!-- Bottom hairline -->
+          <tr>
+            <td style="padding: 28px 48px 0;">
+              <div style="height: 1px; background-color: #eee;"></div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td class="px-pad" align="center" style="padding: 18px 48px 28px;">
+              <p style="margin: 0 0 6px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #999; line-height: 1.7;">
+                Questions? Message us on
+                <a href="https://wa.me/639058429200" style="color: #c9a558; text-decoration: none;">WhatsApp</a>.
+              </p>
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 10px; letter-spacing: 1.5px; color: #b5b5b5;">
+                Peptide Lifestyle Program &middot; <a href="https://peptidelifestyleprogram.com" style="color: #b5b5b5; text-decoration: none;">peptidelifestyleprogram.com</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock } from 'lucide-react';
+import posthog from 'posthog-js';
 import { useAuth } from '../hooks/useAuth';
 
 interface AuthModalProps {
@@ -55,6 +56,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
 
     if (mode === 'signup') {
+      const trimmedEmail = email.trim().toLowerCase();
+      posthog.capture(
+        'vrjonina_user_signed_up',
+        {
+          email: trimmedEmail,
+          name: trimmedEmail.split('@')[0],
+          signup_date: new Date().toISOString(),
+          $set: { email: trimmedEmail },
+        },
+        { send_instantly: true }
+      );
       setInfo('Account created. Check your email to confirm your address.');
     } else {
       onClose();

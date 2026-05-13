@@ -87,13 +87,13 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-20">
           {product.featured && (
-            <span className="px-2 py-1 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm" style={{ background: 'linear-gradient(135deg, #D4A554, #5FA8C8)' }}>
+            <span className="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-navy-900 text-[9px] font-medium uppercase tracking-[0.18em] border border-charcoal-100">
               Featured
             </span>
           )}
           {hasDiscount && (
-            <span className="px-2 py-1 text-white text-[10px] font-bold rounded-full shadow-sm" style={{ background: 'linear-gradient(135deg, #5FA8C8, #4A93B5)' }}>
-              {Math.round((1 - basePrice / (selectedVariation ? selectedVariation.price : product.base_price)) * 100)}% OFF
+            <span className="px-2.5 py-1 bg-navy-900 text-white text-[9px] font-medium uppercase tracking-[0.18em]">
+              {Math.round((1 - basePrice / (selectedVariation ? selectedVariation.price : product.base_price)) * 100)}% Off
             </span>
           )}
         </div>

@@ -26,15 +26,27 @@ const UserProfile = lazy(() => import('./components/UserProfile'));
 
 import { useMenu } from './hooks/useMenu';
 import { useReferralCapture } from './hooks/useReferralCapture';
+import { useAuth } from './hooks/useAuth';
+import type { Product, ProductVariation, KitType } from './types';
 // import { useCOAPageSetting } from './hooks/useCOAPageSetting';
 
 function MainApp() {
     const cart = useCart();
     const { menuItems, refreshProducts } = useMenu();
+    const { user } = useAuth();
     const [currentView, setCurrentView] = useState<'menu' | 'checkout'>('menu');
     const [cartOpen, setCartOpen] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+    // Sign-in required before adding to cart
+    const gatedAddToCart = (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => {
+        if (!user) {
+            setAuthOpen(true);
+            return;
+        }
+        cart.addToCart(product, variation, quantity, kitType);
+    };
 
     const handleViewChange = (view: 'menu' | 'checkout') => {
         setCurrentView(view);
@@ -79,7 +91,7 @@ function MainApp() {
                     {currentView === 'menu' && (
                         <Menu
                             menuItems={filteredProducts}
-                            addToCart={cart.addToCart}
+                            addToCart={gatedAddToCart}
                             cartItems={cart.cartItems}
                             updateQuantity={cart.updateQuantity}
                         />
@@ -94,7 +106,7 @@ function MainApp() {
                                 setCartOpen(true);
                             }}
                             allProducts={menuItems}
-                            addToCart={cart.addToCart}
+                            addToCart={gatedAddToCart}
                         />
                     )}
                 </Suspense>
@@ -115,7 +127,7 @@ function MainApp() {
                         handleViewChange('checkout');
                     }}
                     allProducts={menuItems}
-                    addToCart={cart.addToCart}
+                    addToCart={gatedAddToCart}
                 />
             </Suspense>
 

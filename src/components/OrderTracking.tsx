@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, ArrowRight, ExternalLink, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
 import Footer from './Footer';
 import { useCart } from '../hooks/useCart';
+import { useAuth } from '../hooks/useAuth';
 
 interface TrackingOrder {
     id: string;
@@ -28,11 +29,68 @@ const STEPS = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
 
 const OrderTracking: React.FC = () => {
     const { cartItems } = useCart();
+    const { user } = useAuth();
     const [orderId, setOrderId] = useState('');
     const [order, setOrder] = useState<TrackingOrder | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [myOrders, setMyOrders] = useState<TrackingOrder[]>([]);
+    const [myOrdersLoading, setMyOrdersLoading] = useState(false);
+
+    useEffect(() => {
+        if (!user) {
+            setMyOrders([]);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            setMyOrdersLoading(true);
+            const { data, error } = await supabase
+                .from('orders')
+                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+            if (cancelled) return;
+            if (error) {
+                console.error('Error fetching user orders:', error);
+                setMyOrders([]);
+            } else {
+                setMyOrders((data ?? []) as TrackingOrder[]);
+            }
+            setMyOrdersLoading(false);
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [user]);
+
+    const selectMyOrder = (o: TrackingOrder) => {
+        setOrder(o);
+        setHasSearched(true);
+        setError(null);
+        setOrderId(o.order_number || o.id.slice(0, 8).toUpperCase());
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const formatDate = (iso: string) => {
+        try {
+            return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch {
+            return iso;
+        }
+    };
+
+    const statusBadgeClass = (status: string) => {
+        switch (status) {
+            case 'delivered': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            case 'cancelled': return 'bg-rose-50 text-rose-700 border-rose-200';
+            case 'shipped': return 'bg-navy-900 text-white border-navy-900';
+            case 'processing': return 'bg-gold-500 text-white border-gold-500';
+            case 'confirmed': return 'bg-gold-100 text-gold-700 border-gold-300';
+            default: return 'bg-cream-light text-charcoal-600 border-gold-200';
+        }
+    };
 
     const handleTrack = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -156,6 +214,60 @@ const OrderTracking: React.FC = () => {
                         </button>
                     </div>
                 </form>
+
+                {/* Your Orders (logged-in users) */}
+                {user && (
+                    <section className="bg-white border border-gold-200 p-6 md:p-8 mb-8">
+                        <div className="flex items-center justify-between mb-5">
+                            <div>
+                                <p className="text-[10px] uppercase tracking-[0.32em] text-gold-600 mb-1">Your Account</p>
+                                <h2 className="font-heading text-2xl text-navy-900">Your Orders</h2>
+                            </div>
+                            {myOrdersLoading && (
+                                <div className="w-4 h-4 border border-gold-500 border-t-transparent rounded-full animate-spin" />
+                            )}
+                        </div>
+
+                        {!myOrdersLoading && myOrders.length === 0 && (
+                            <p className="text-sm text-charcoal-500 font-light">You haven't placed any orders yet.</p>
+                        )}
+
+                        {myOrders.length > 0 && (
+                            <ul className="divide-y divide-gold-100">
+                                {myOrders.map((o) => {
+                                    const isActive = order?.id === o.id;
+                                    return (
+                                        <li key={o.id}>
+                                            <button
+                                                type="button"
+                                                onClick={() => selectMyOrder(o)}
+                                                className={`w-full text-left py-4 px-2 flex flex-col md:flex-row md:items-center md:justify-between gap-3 hover:bg-cream-light/60 transition-colors ${isActive ? 'bg-cream-light/80' : ''}`}
+                                            >
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="font-mono text-sm tracking-wider text-navy-900">
+                                                        {o.order_number || o.id.slice(0, 8).toUpperCase()}
+                                                    </span>
+                                                    <span className="text-[11px] uppercase tracking-[0.22em] text-charcoal-400">
+                                                        {formatDate(o.created_at)} · {o.order_items?.length ?? 0} item{(o.order_items?.length ?? 0) === 1 ? '' : 's'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="font-mono text-sm text-navy-900">
+                                                        ₱{(o.total_price + (o.shipping_fee || 0)).toLocaleString()}
+                                                    </span>
+                                                    <span className={`text-[10px] uppercase tracking-[0.22em] px-2.5 py-1 border capitalize ${statusBadgeClass(o.order_status)}`}>
+                                                        {o.order_status}
+                                                    </span>
+                                                    <ArrowRight className="w-4 h-4 text-charcoal-400" strokeWidth={1.8} />
+                                                </div>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </section>
+                )}
 
                 {/* Error */}
                 {error && (

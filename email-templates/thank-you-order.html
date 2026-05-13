@@ -6,110 +6,114 @@
   <title>Order Received</title>
   <style>
     @media only screen and (max-width: 480px) {
-      .container { width: 100% !important; padding: 12px !important; }
+      .container { width: 100% !important; }
+      .px-pad { padding-left: 24px !important; padding-right: 24px !important; }
+      .hero-title { font-size: 24px !important; }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: Arial, Helvetica, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #f5f3ef; font-family: Georgia, 'Times New Roman', serif;">
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent;">
+    Order {{ event.properties.order_number }} received. We're preparing your protocol.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ef;">
     <tr>
-      <td align="center" style="padding: 20px 12px;">
-        <table role="presentation" class="container" width="520" cellpadding="0" cellspacing="0">
+      <td align="center" style="padding: 32px 12px;">
+        <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+
+          <tr><td style="height: 3px; background-color: #c9a558; line-height: 3px; font-size: 0;">&nbsp;</td></tr>
 
           <tr>
-            <td style="padding: 0 0 20px;">
-              <p style="margin: 0; font-size: 18px; font-weight: 700; color: #333;">VR <span style="color: #E8739B;">Jonina</span></p>
+            <td class="px-pad" align="center" style="padding: 32px 40px 8px;">
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 5px; text-transform: uppercase; color: #c9a558; line-height: 1.4;">Peptide</p>
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: #c9a558;">Lifestyle Program</p>
             </td>
           </tr>
 
           <tr>
-            <td style="padding: 0 0 14px;">
-              <p style="margin: 0; font-size: 15px; color: #333; line-height: 1.7;">Hi {{ event.properties.customer_name }},</p>
-              <p style="margin: 14px 0 0; font-size: 15px; color: #333; line-height: 1.7;">Thank you for your order! We've received it and it's now being processed.</p>
+            <td class="px-pad" align="center" style="padding: 24px 40px 0;">
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 5px; text-transform: uppercase; color: #c9a558;">&mdash;&nbsp;&nbsp;Order Received&nbsp;&nbsp;&mdash;</p>
             </td>
           </tr>
 
           <tr>
-            <td style="padding: 14px 0;">
-              <p style="margin: 0; font-size: 15px; color: #333; line-height: 1.7;"><strong>Order Number:</strong> {{ event.properties.order_number }}</p>
+            <td class="px-pad" align="center" style="padding: 18px 40px 8px;">
+              <h1 class="hero-title" style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 400; color: #0b1a33; letter-spacing: -0.5px; line-height: 1.2;">Thank you, {{ event.properties.customer_name }}.</h1>
             </td>
           </tr>
 
-          <tr><td style="padding: 4px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
+          <tr><td align="center" style="padding: 14px 0 6px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="width: 40px; height: 1px; background-color: #c9a558; line-height: 1px; font-size: 0;">&nbsp;</td></tr></table></td></tr>
 
           <tr>
-            <td style="padding: 14px 0;">
-              <p style="margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #333;">Items Ordered</p>
-              <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8; white-space: pre-line;">{{ event.properties.items_summary }}</p>
-            </td>
-          </tr>
-
-          <tr><td style="padding: 4px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
-
-          <tr>
-            <td style="padding: 14px 0;">
-              <p style="margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #333;">Payment Summary</p>
-              <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8;">
-                Subtotal: P{{ event.properties.subtotal }}<br>
-                Shipping Fee: P{{ event.properties.shipping_fee }}<br>
-                Discount: -P{{ event.properties.discount }}<br>
-                Promo Code: {{ event.properties.promo_code }}<br>
-                <strong style="color: #333;">Total: P{{ event.properties.total_price }}</strong>
-              </p>
-            </td>
-          </tr>
-
-          <tr><td style="padding: 4px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
-
-          <tr>
-            <td style="padding: 14px 0;">
-              <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8;">
-                Payment Method: {{ event.properties.payment_method }}<br>
-                Contact Method: {{ event.properties.contact_method }}
-              </p>
-            </td>
-          </tr>
-
-          <tr><td style="padding: 4px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
-
-          <tr>
-            <td style="padding: 14px 0;">
-              <p style="margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #333;">What happens next?</p>
-              <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.8;">
-                1. We'll verify your payment.<br>
-                2. Your order will be packed.<br>
-                3. We'll send your tracking number once shipped.<br>
-                4. Your order will be on its way!
-              </p>
+            <td class="px-pad" align="center" style="padding: 14px 48px 8px;">
+              <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; font-weight: 300; color: #4a4a4a; line-height: 1.75;">Your order has been received and our team is preparing your protocol with care.</p>
             </td>
           </tr>
 
           <tr>
-            <td style="padding: 14px 0;">
-              <p style="margin: 0; font-size: 14px; color: #555; line-height: 1.7;">
-                You can track your order here: <a href="https://vrjonina.com/track-order" style="color: #E8739B; text-decoration: none;">vrjonina.com/track-order</a>
-              </p>
-              <p style="margin: 14px 0 0; font-size: 14px; color: #555; line-height: 1.7;">
-                Questions? Message us on <a href="https://wa.me/639058429200" style="color: #E8739B; text-decoration: none;">WhatsApp</a>.
+            <td class="px-pad" style="padding: 28px 48px 0;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #faf8f3; border: 1px solid #ece4d2;">
+                <tr><td style="padding: 18px 24px;">
+                  <p style="margin: 0 0 6px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c9a558;">Order Number</p>
+                  <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 18px; color: #0b1a33; letter-spacing: 1px;">{{ event.properties.order_number }}</p>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="px-pad" style="padding: 28px 48px 0;">
+              <p style="margin: 0 0 12px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c9a558;">Your Protocol</p>
+              <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a; line-height: 1.9; white-space: pre-line;">{{ event.properties.items_summary }}</p>
+            </td>
+          </tr>
+
+          <tr><td class="px-pad" style="padding: 22px 48px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
+
+          <tr>
+            <td class="px-pad" style="padding: 22px 48px 0;">
+              <p style="margin: 0 0 12px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c9a558;">Payment Summary</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="padding: 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #4a4a4a;">Subtotal</td><td align="right" style="padding: 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a;">&#8369;{{ event.properties.subtotal }}</td></tr>
+                <tr><td style="padding: 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #4a4a4a;">Shipping</td><td align="right" style="padding: 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a;">&#8369;{{ event.properties.shipping_fee }}</td></tr>
+                <tr><td style="padding: 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #4a4a4a;">Discount ({{ event.properties.promo_code }})</td><td align="right" style="padding: 4px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a1a1a;">&minus;&#8369;{{ event.properties.discount }}</td></tr>
+                <tr><td colspan="2" style="padding: 8px 0 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
+                <tr><td style="padding: 10px 0 0; font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #0b1a33;">Total</td><td align="right" style="padding: 10px 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: 20px; color: #0b1a33;">&#8369;{{ event.properties.total_price }}</td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="px-pad" style="padding: 22px 48px 0;">
+              <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #6a6a6a; line-height: 1.7;">
+                <strong style="color: #0b1a33;">Payment:</strong> {{ event.properties.payment_method }}<br>
+                <strong style="color: #0b1a33;">Contact:</strong> {{ event.properties.contact_method }}
               </p>
             </td>
           </tr>
 
           <tr>
-            <td style="padding: 14px 0 0;">
-              <p style="margin: 0; font-size: 15px; color: #333; line-height: 1.7;">
-                Thank you,<br>
-                VR Jonina Team
-              </p>
+            <td class="px-pad" align="center" style="padding: 28px 48px 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background-color: #c9a558;">
+                <a href="https://peptidelifestyleprogram.com/track-order" style="display: inline-block; padding: 14px 38px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #ffffff; text-decoration: none;">Track Order</a>
+              </td></tr></table>
             </td>
           </tr>
 
-          <tr><td style="padding: 12px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
+          <tr>
+            <td class="px-pad" align="center" style="padding: 24px 48px 8px;">
+              <p style="margin: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #6a6a6a; line-height: 1.7;">Delivered with care,<br>The Peptide Lifestyle Program Team</p>
+            </td>
+          </tr>
+
+          <tr><td class="px-pad" style="padding: 28px 48px 0;"><div style="height: 1px; background-color: #eee;"></div></td></tr>
 
           <tr>
-            <td style="padding: 0 0 8px;">
-              <p style="margin: 0; font-size: 12px; color: #aaa;">VR Jonina - vrjonina.com</p>
+            <td class="px-pad" align="center" style="padding: 18px 48px 28px;">
+              <p style="margin: 0 0 6px; font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #999; line-height: 1.7;">Questions? Message us on <a href="https://wa.me/639058429200" style="color: #c9a558; text-decoration: none;">WhatsApp</a>.</p>
+              <p style="margin: 0; font-family: Arial, Helvetica, sans-serif; font-size: 10px; letter-spacing: 1.5px; color: #b5b5b5;">Peptide Lifestyle Program &middot; <a href="https://peptidelifestyleprogram.com" style="color: #b5b5b5; text-decoration: none;">peptidelifestyleprogram.com</a></p>
             </td>
           </tr>
 
