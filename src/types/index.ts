@@ -19,6 +19,12 @@ export interface Product {
   storage_conditions: string;
   inclusions: string[] | null;
 
+  // Admin-editable typography for description / inclusions on the PDP
+  description_font_family: string | null;
+  description_font_size: string | null;
+  inclusions_font_family: string | null;
+  inclusions_font_size: string | null;
+
   // Stock and availability
   stock_quantity: number;
   available: boolean;

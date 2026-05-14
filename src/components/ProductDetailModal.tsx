@@ -214,9 +214,32 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
               </div>
             )}
 
-            <p className="text-sm sm:text-base text-charcoal-500 leading-relaxed">
+            <p
+              className="text-sm sm:text-base text-charcoal-500 leading-relaxed"
+              style={{
+                fontFamily: product.description_font_family || undefined,
+                fontSize: product.description_font_size || undefined,
+              }}
+            >
               {cleanText(product.description)}
             </p>
+
+            {isSetProduct && (
+              <div className="mt-4">
+                <p className="text-xs font-bold tracking-widest text-charcoal-500 mb-2">KIT INCLUSIONS</p>
+                <ul
+                  className="list-disc list-inside text-sm text-charcoal-700 space-y-1"
+                  style={{
+                    fontFamily: product.inclusions_font_family || undefined,
+                    fontSize: product.inclusions_font_size || undefined,
+                  }}
+                >
+                  {product.inclusions!.map((item, idx) => (
+                    <li key={idx}>{cleanText(item)}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Dosage */}

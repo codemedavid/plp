@@ -52,6 +52,20 @@ function MainApp() {
         return () => window.removeEventListener('open-auth', handler);
     }, []);
 
+    // When the user clicks the Supabase email-confirmation link, they land here
+    // with `?auth=signin&confirmed=1`. Open the sign-in modal so they can log in.
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('auth') === 'signin') {
+            setAuthOpen(true);
+            params.delete('auth');
+            params.delete('confirmed');
+            const cleanQuery = params.toString();
+            const newUrl = window.location.pathname + (cleanQuery ? `?${cleanQuery}` : '') + window.location.hash;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, []);
+
     // Sign-in required before adding to cart
     const gatedAddToCart = (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => {
         if (!user) {

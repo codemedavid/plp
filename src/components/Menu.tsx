@@ -6,7 +6,6 @@ import ProductDetailModal from './ProductDetailModal';
 import type { Product, ProductVariation, CartItem, KitType } from '../types';
 import { slugify, findProductBySlug } from '../lib/slug';
 import {
-  Target, Microscope, Dna, Sprout,
   ArrowRight, User as UserIcon, Dumbbell, Activity,
   MessageCircle
 } from 'lucide-react';
@@ -44,13 +43,6 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, loading, e
       .filter(item => item.product.id === productId && !item.variation)
       .reduce((sum, item) => sum + item.quantity, 0);
 
-  const features = [
-    { icon: Target, title: 'Targeted Support', desc: 'Designed to support specific functions and body systems.' },
-    { icon: Microscope, title: 'Clinically Backed', desc: 'Researched for safety, effectiveness, and results.' },
-    { icon: Dna, title: 'Cellular Communication', desc: 'Work at the cellular level to promote natural processes.' },
-    { icon: Sprout, title: 'Whole Body Wellness', desc: 'Support recovery, performance, longevity, and vitality.' },
-  ];
-
   const protocols = [
     { icon: UserIcon, title: 'Weight Management', desc: 'Support metabolism, reduce fat, and optimize energy.' },
     { icon: Dumbbell, title: 'Muscle & Recovery', desc: 'Enhance strength, speed recovery, and performance.' },
@@ -77,39 +69,6 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, loading, e
             productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}
         />
-
-        {/* ── Why Peptides? ── */}
-        <section className="bg-white py-20 md:py-24">
-          <div className="container mx-auto px-4 md:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-14">
-              <p className="text-[11px] font-semibold tracking-[0.32em] uppercase text-gold-600 mb-4">
-                Why Peptides?
-              </p>
-              <h2 className="font-heading text-4xl md:text-5xl font-normal text-navy-900 mb-5 tracking-tight">
-                The power of precision
-              </h2>
-              <p className="text-charcoal-500 leading-relaxed">
-                Peptides are short chains of amino acids that signal your body to perform at its best—naturally and effectively.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
-              {features.map((f, i) => (
-                <div key={i} className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-5 flex items-center justify-center text-gold-600">
-                    <f.icon className="w-10 h-10" strokeWidth={1.2} />
-                  </div>
-                  <h3 className="font-heading text-base md:text-lg text-navy-900 mb-2 tracking-tight">
-                    {f.title}
-                  </h3>
-                  <p className="text-sm text-charcoal-500 leading-relaxed font-light">
-                    {f.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ── Premium Peptide Solutions ── */}
         <section ref={productsRef} className="bg-cream-light py-20 md:py-24">

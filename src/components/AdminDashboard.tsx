@@ -292,6 +292,10 @@ const AdminDashboard: React.FC = () => {
           'safety_sheet_url',
           'coa_url',
           'inclusions',
+          'description_font_family',
+          'description_font_size',
+          'inclusions_font_family',
+          'inclusions_font_size',
           'paired_product_ids',
           'bundle_tiers',
         ];
@@ -598,7 +602,44 @@ const AdminDashboard: React.FC = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent transition-all bg-white text-black placeholder-gray-400"
                       placeholder="Detailed product description..."
                       rows={3}
+                      style={{
+                        fontFamily: formData.description_font_family || undefined,
+                        fontSize: formData.description_font_size || undefined,
+                      }}
                     />
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">Font Style</label>
+                        <select
+                          value={formData.description_font_family || ''}
+                          onChange={(e) => setFormData({ ...formData, description_font_family: e.target.value || null })}
+                          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-black"
+                        >
+                          <option value="">Default</option>
+                          <option value="system-ui, sans-serif">Sans Serif</option>
+                          <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                          <option value="'Courier New', monospace">Monospace</option>
+                          <option value="'Playfair Display', Georgia, serif">Display (Playfair)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">Font Size</label>
+                        <select
+                          value={formData.description_font_size || ''}
+                          onChange={(e) => setFormData({ ...formData, description_font_size: e.target.value || null })}
+                          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-black"
+                        >
+                          <option value="">Default</option>
+                          <option value="12px">12px (XS)</option>
+                          <option value="13px">13px (S)</option>
+                          <option value="14px">14px (Base)</option>
+                          <option value="16px">16px (M)</option>
+                          <option value="18px">18px (L)</option>
+                          <option value="20px">20px (XL)</option>
+                          <option value="24px">24px (2XL)</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
 
                   <div>
@@ -714,7 +755,44 @@ const AdminDashboard: React.FC = () => {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent transition-all bg-white text-black placeholder-gray-400 min-h-[80px]"
                       placeholder="Xpeptide Kit Inclusion:&#10;1 Peptide Vial&#10;1 Bacteriostatic Water&#10;6 Insulin Syringes&#10;1 3ml Syringe&#10;Alcohol Pads&#10;Xpeptide Manual Guide"
                       rows={6}
+                      style={{
+                        fontFamily: formData.inclusions_font_family || undefined,
+                        fontSize: formData.inclusions_font_size || undefined,
+                      }}
                     />
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">Font Style</label>
+                        <select
+                          value={formData.inclusions_font_family || ''}
+                          onChange={(e) => setFormData({ ...formData, inclusions_font_family: e.target.value || null })}
+                          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-black"
+                        >
+                          <option value="">Default</option>
+                          <option value="system-ui, sans-serif">Sans Serif</option>
+                          <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                          <option value="'Courier New', monospace">Monospace</option>
+                          <option value="'Playfair Display', Georgia, serif">Display (Playfair)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">Font Size</label>
+                        <select
+                          value={formData.inclusions_font_size || ''}
+                          onChange={(e) => setFormData({ ...formData, inclusions_font_size: e.target.value || null })}
+                          className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md bg-white text-black"
+                        >
+                          <option value="">Default</option>
+                          <option value="12px">12px (XS)</option>
+                          <option value="13px">13px (S)</option>
+                          <option value="14px">14px (Base)</option>
+                          <option value="16px">16px (M)</option>
+                          <option value="18px">18px (L)</option>
+                          <option value="20px">20px (XL)</option>
+                          <option value="24px">24px (2XL)</option>
+                        </select>
+                      </div>
+                    </div>
                     <p className="text-xs text-gray-500 mt-2 flex items-start gap-1.5">
                       <span className="text-brand-400 font-bold">💡</span>
                       <span>Enter each item on a new line. These will be displayed as a checklist on the product detail page. Check "This is a SET product" above to enable this feature.</span>

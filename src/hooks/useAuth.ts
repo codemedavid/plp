@@ -100,7 +100,7 @@ export function useAuth(): AuthState {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}/?auth=signin&confirmed=1`,
         data: {
           full_name: extras?.fullName ?? null,
           phone: extras?.phone ?? null,

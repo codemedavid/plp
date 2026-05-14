@@ -122,6 +122,10 @@ export type Database = {
           sequence: string | null;
           storage_conditions: string;
           inclusions: string[] | null;
+          description_font_family: string | null;
+          description_font_size: string | null;
+          inclusions_font_family: string | null;
+          inclusions_font_size: string | null;
           stock_quantity: number;
           available: boolean;
           featured: boolean;
@@ -146,6 +150,10 @@ export type Database = {
           sequence?: string | null;
           storage_conditions?: string;
           inclusions?: string[] | null;
+          description_font_family?: string | null;
+          description_font_size?: string | null;
+          inclusions_font_family?: string | null;
+          inclusions_font_size?: string | null;
           stock_quantity?: number;
           available?: boolean;
           featured?: boolean;
@@ -170,6 +178,10 @@ export type Database = {
           sequence?: string | null;
           storage_conditions?: string;
           inclusions?: string[] | null;
+          description_font_family?: string | null;
+          description_font_size?: string | null;
+          inclusions_font_family?: string | null;
+          inclusions_font_size?: string | null;
           stock_quantity?: number;
           available?: boolean;
           featured?: boolean;
