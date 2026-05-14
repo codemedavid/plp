@@ -7,6 +7,7 @@ import { consumePendingReferralCode } from './useReferralCapture';
 export interface SignUpExtras {
   fullName?: string;
   phone?: string;
+  referralCode?: string;
 }
 
 export interface AuthState {
@@ -95,7 +96,8 @@ export function useAuth(): AuthState {
   };
 
   const signUp = async (email: string, password: string, extras?: SignUpExtras) => {
-    const referralCode = consumePendingReferralCode();
+    const manualCode = extras?.referralCode?.trim() || null;
+    const referralCode = manualCode || consumePendingReferralCode();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

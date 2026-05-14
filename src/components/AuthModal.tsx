@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Mail, Lock } from 'lucide-react';
+import { X, Mail, Lock, Gift } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -16,6 +16,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -115,11 +117,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       setError('Password must be at least 6 characters.');
       return;
     }
+    if (mode === 'signup' && password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
 
     setSubmitting(true);
     const result = mode === 'signin'
       ? await signIn(email, password)
-      : await signUp(email, password);
+      : await signUp(email, password, { referralCode: referralCode.trim() || undefined });
     setSubmitting(false);
 
     if (result.error) {
@@ -144,6 +150,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       onClose();
       setEmail('');
       setPassword('');
+      setConfirmPassword('');
     }
   };
 
@@ -208,6 +215,43 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 />
               </div>
             </label>
+
+            {mode === 'signup' && (
+              <label className="block">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-navy-900">Confirm Password</span>
+                <div className="mt-1 relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400" strokeWidth={1.5} />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                    className="w-full pl-10 pr-3 py-2.5 border border-charcoal-200 rounded text-sm text-navy-900 focus:outline-none focus:border-gold-600"
+                    placeholder="Re-enter your password"
+                  />
+                </div>
+              </label>
+            )}
+
+            {mode === 'signup' && (
+              <label className="block">
+                <span className="text-[11px] tracking-[0.18em] uppercase text-navy-900">
+                  Referral Code <span className="text-charcoal-400 normal-case tracking-normal">(optional)</span>
+                </span>
+                <div className="mt-1 relative">
+                  <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400" strokeWidth={1.5} />
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                    autoComplete="off"
+                    className="w-full pl-10 pr-3 py-2.5 border border-charcoal-200 rounded text-sm text-navy-900 uppercase tracking-wider focus:outline-none focus:border-gold-600"
+                    placeholder="Enter referral code"
+                  />
+                </div>
+              </label>
+            )}
 
             {error && (
               <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
