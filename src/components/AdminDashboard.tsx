@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown, BarChart3 } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown, BarChart3, MessageSquare } from 'lucide-react';
 import type { Product, BundleTier } from '../types';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
@@ -18,6 +18,7 @@ import CourierManager from './CourierManager';
 import ProtocolManager from './ProtocolManager';
 import ReferralManager from './ReferralManager';
 import UserLookupManager from './UserLookupManager';
+import ReviewManager from './ReviewManager';
 import AnalyticsDashboard from './analytics/AnalyticsDashboard';
 import PostHogEventTester from './PostHogEventTester';
 // GuideManager removed (Peptalk functionality disabled)
@@ -79,7 +80,7 @@ const AdminDashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const { products, loading, addProduct, updateProduct, deleteProduct, refreshProducts } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals' | 'users' | 'analytics'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals' | 'users' | 'analytics' | 'reviews'>('dashboard');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [managingVariationsProductId, setManagingVariationsProductId] = useState<string | null>(null);
@@ -1627,6 +1628,15 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
+  // Reviews View
+  if (currentView === 'reviews') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <ReviewManager onBack={() => setCurrentView('dashboard')} />
+      </div>
+    );
+  }
+
   // FAQ View
   if (currentView === 'faq') {
     return (
@@ -1936,6 +1946,18 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <span className="block text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">FAQ</span>
                     <span className="text-xs text-gray-500">Manage content</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setCurrentView('reviews')}
+                  className="group flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-amber-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">Reviews</span>
+                    <span className="text-xs text-gray-500">Post & moderate</span>
                   </div>
                 </button>
                 <button

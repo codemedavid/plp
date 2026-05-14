@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, ArrowRight, ExternalLink, ArrowLeft } from 'lucide-react';
+import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, ArrowRight, ExternalLink, ArrowLeft, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
 import Footer from './Footer';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
+import WriteReviewModal from './WriteReviewModal';
+import { getReviewsForOrder } from '../hooks/useReviews';
 
 interface TrackingOrder {
     id: string;
@@ -17,9 +19,11 @@ interface TrackingOrder {
     total_price: number;
     shipping_fee: number;
     order_items: {
+        product_id?: string;
         product_name: string;
         quantity: number;
     }[];
+    customer_name?: string;
     created_at: string;
     promo_code: string | null;
     discount_applied: number | null;
@@ -37,6 +41,8 @@ const OrderTracking: React.FC = () => {
     const [hasSearched, setHasSearched] = useState(false);
     const [myOrders, setMyOrders] = useState<TrackingOrder[]>([]);
     const [myOrdersLoading, setMyOrdersLoading] = useState(false);
+    const [reviewedProductIds, setReviewedProductIds] = useState<Set<string>>(new Set());
+    const [reviewModal, setReviewModal] = useState<{ productId: string; productName: string } | null>(null);
 
     useEffect(() => {
         if (!user) {
@@ -48,7 +54,7 @@ const OrderTracking: React.FC = () => {
             setMyOrdersLoading(true);
             const { data, error } = await supabase
                 .from('orders')
-                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied')
+                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied, customer_name')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
             if (cancelled) return;
@@ -64,6 +70,34 @@ const OrderTracking: React.FC = () => {
             cancelled = true;
         };
     }, [user]);
+
+    useEffect(() => {
+        if (!order) {
+            setReviewedProductIds(new Set());
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            try {
+                const reviews = await getReviewsForOrder(order.id);
+                if (cancelled) return;
+                setReviewedProductIds(new Set(reviews.map(r => r.product_id).filter((id): id is string => !!id)));
+            } catch (e) {
+                console.warn('Failed to load reviews for order:', e);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [order]);
+
+    const refreshReviewed = async () => {
+        if (!order) return;
+        try {
+            const reviews = await getReviewsForOrder(order.id);
+            setReviewedProductIds(new Set(reviews.map(r => r.product_id).filter((id): id is string => !!id)));
+        } catch (e) {
+            console.warn(e);
+        }
+    };
 
     const selectMyOrder = (o: TrackingOrder) => {
         setOrder(o);
@@ -406,12 +440,37 @@ const OrderTracking: React.FC = () => {
                                 </div>
 
                                 <ul className="space-y-3 mb-6 divide-y divide-gold-100">
-                                    {order.order_items.map((item, idx) => (
-                                        <li key={idx} className="flex justify-between pt-3 first:pt-0 text-sm">
-                                            <span className="text-charcoal-700 font-light">{item.product_name}</span>
-                                            <span className="text-navy-900 font-mono">× {item.quantity}</span>
-                                        </li>
-                                    ))}
+                                    {order.order_items.map((item, idx) => {
+                                        const canReview = order.order_status === 'delivered' && !!item.product_id;
+                                        const alreadyReviewed = item.product_id ? reviewedProductIds.has(item.product_id) : false;
+                                        return (
+                                            <li key={idx} className="pt-3 first:pt-0 text-sm">
+                                                <div className="flex justify-between gap-3">
+                                                    <span className="text-charcoal-700 font-light">{item.product_name}</span>
+                                                    <span className="text-navy-900 font-mono">× {item.quantity}</span>
+                                                </div>
+                                                {canReview && (
+                                                    <div className="mt-2">
+                                                        {alreadyReviewed ? (
+                                                            <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-emerald-700">
+                                                                <CheckCircle className="w-3 h-3" strokeWidth={2} />
+                                                                Reviewed
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setReviewModal({ productId: item.product_id!, productName: item.product_name })}
+                                                                className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-gold-700 hover:text-navy-900 transition-colors font-semibold border-b border-gold-400 hover:border-navy-900 pb-0.5"
+                                                            >
+                                                                <Star className="w-3 h-3" strokeWidth={2} />
+                                                                Write a review
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
 
                                 {order.discount_applied && order.discount_applied > 0 && (
@@ -443,6 +502,19 @@ const OrderTracking: React.FC = () => {
             </main>
 
             <Footer />
+
+            {reviewModal && order && (
+                <WriteReviewModal
+                    isOpen
+                    onClose={() => setReviewModal(null)}
+                    productId={reviewModal.productId}
+                    productName={reviewModal.productName}
+                    orderId={order.id}
+                    userId={user?.id || null}
+                    defaultName={order.customer_name || user?.email || ''}
+                    onSubmitted={refreshReviewed}
+                />
+            )}
         </div>
     );
 };

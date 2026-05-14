@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Shield } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
+import { useCOAProductNames } from '../hooks/useCOAProductNames';
+import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
 
-const UUID_RE = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi;
-const cleanText = (s?: string | null) => (s ?? '').replace(UUID_RE, '').replace(/\s{2,}/g, ' ').trim();
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+const cleanText = (s?: string | null) =>
+  (s ?? '').replace(UUID_RE, '').replace(/\s{2,}/g, ' ').trim();
 
 interface MenuItemCardProps {
   product: Product;
@@ -15,6 +18,9 @@ interface MenuItemCardProps {
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) => {
   const [imageError, setImageError] = useState(false);
+  const { hasCOA } = useCOAProductNames();
+  const { coaPageEnabled } = useCOAPageSetting();
+  const productHasCOA = coaPageEnabled && hasCOA(cleanText(product.name));
 
   const effectivePrice = (v: ProductVariation) =>
     v.discount_active && v.discount_price != null ? v.discount_price : v.price;
@@ -129,20 +135,33 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
 
         <div className="flex-1" />
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleClick();
-          }}
-          disabled={isUnavailable}
-          className={`w-full py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
-            isUnavailable
-              ? 'bg-charcoal-100 text-charcoal-400 cursor-not-allowed'
-              : 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm hover:shadow-md'
-          }`}
-        >
-          View
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClick();
+            }}
+            disabled={isUnavailable}
+            className={`flex-1 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
+              isUnavailable
+                ? 'bg-charcoal-100 text-charcoal-400 cursor-not-allowed'
+                : 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm hover:shadow-md'
+            }`}
+          >
+            View
+          </button>
+          {productHasCOA && (
+            <a
+              href="/coa"
+              onClick={(e) => e.stopPropagation()}
+              title="View Certificate of Analysis"
+              className="shrink-0 inline-flex items-center gap-1 px-3 py-2.5 sm:py-3 rounded-full border border-gold-500 text-gold-700 text-[10px] sm:text-xs font-semibold tracking-wide uppercase hover:bg-gold-500 hover:text-white transition-colors"
+            >
+              <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={1.8} />
+              COA
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

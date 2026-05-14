@@ -14,6 +14,7 @@ import type { Product, ProductVariation, KitType, BundleTier } from '../types';
 import { KIT_UPGRADE_PRICE } from '../types';
 import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
+import ProductReviews from './ProductReviews';
 import { getMatchingBundleTier } from '../lib/bundlePricing';
 
 interface ProductDetailModalProps {
@@ -438,6 +439,9 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
               <span className="px-2 py-1 rounded-md border border-charcoal-200 text-charcoal-700 text-[10px] font-bold">Maya</span>
             </div>
           </div>
+
+          {/* Customer Reviews */}
+          <ProductReviews productId={product.id} />
 
           {/* Pairs Well With */}
           {recommendations.length > 0 && (
