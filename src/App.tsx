@@ -20,7 +20,6 @@ const ResetPasswordModal = lazy(() => import('./components/ResetPasswordModal'))
 
 // Lazy load route components
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const COA = lazy(() => import('./components/COA'));
 const FAQ = lazy(() => import('./components/FAQ'));
 const PeptideCalculator = lazy(() => import('./components/PeptideCalculator'));
 const OrderTracking = lazy(() => import('./components/OrderTracking'));
@@ -35,7 +34,6 @@ import { useReferralCapture } from './hooks/useReferralCapture';
 import { useAuth } from './hooks/useAuth';
 import { useCartAbandonment } from './hooks/useCartAbandonment';
 import type { Product, ProductVariation, KitType } from './types';
-// import { useCOAPageSetting } from './hooks/useCOAPageSetting';
 
 function MainApp() {
     const cart = useCart();
@@ -182,7 +180,6 @@ function App() {
                 <Routes>
                     <Route path="/" element={<MainApp />} />
                     <Route path="/products/:slug" element={<MainApp />} />
-                    <Route path="/coa" element={<COA />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/calculator" element={<PeptideCalculator />} />
                     <Route path="/track-order" element={<OrderTracking />} />

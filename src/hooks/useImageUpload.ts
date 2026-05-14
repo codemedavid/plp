@@ -1,197 +1,107 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+
+const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY as string | undefined;
+const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload';
+const AUTH_ENDPOINT = '/api/imagekit-auth';
 
 export const useImageUpload = (folder: string = 'menu-images') => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const uploadImage = async (file: File): Promise<string> => {
-    let progressInterval: NodeJS.Timeout | null = null;
-    let uploadTimeout: NodeJS.Timeout | null = null;
-
     try {
       setUploading(true);
       setUploadProgress(0);
 
-      console.log('🚀 Starting upload process...', { fileName: file.name, fileSize: file.size, fileType: file.type });
+      if (!IMAGEKIT_PUBLIC_KEY) {
+        throw new Error('VITE_IMAGEKIT_PUBLIC_KEY is not set. Add it to your environment variables.');
+      }
 
-      // Validate file type - accept ALL image formats
-      // Gallery files on mobile often have empty MIME types, so we rely more on file extension
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
-
-      // Accept all common image extensions
       const validExtensions = [
         'jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'tif',
         'svg', 'heic', 'heif', 'ico', 'avif', 'jfif'
       ];
-
-      // Check if file extension is valid (primary check for gallery files)
       const hasValidExtension = fileExtension && validExtensions.includes(fileExtension);
-
-      // Check MIME type - accept any image/* type or empty (for mobile gallery files)
       const hasValidMimeType = !file.type || file.type.startsWith('image/');
 
-      // Allow if either extension OR MIME type is valid (gallery files often have empty MIME type)
       if (!hasValidExtension && !hasValidMimeType) {
-        console.error('❌ Invalid file type in upload hook:', {
-          type: file.type,
-          extension: fileExtension,
-          name: file.name
-        });
-        throw new Error(`Please upload a valid image file. Supported formats: JPG, PNG, WebP, GIF, BMP, TIFF, SVG, HEIC, and more. File type: ${file.type || 'unknown'}, Extension: ${fileExtension || 'none'}`);
+        throw new Error(`Please upload a valid image file. File type: ${file.type || 'unknown'}, Extension: ${fileExtension || 'none'}`);
       }
 
-      // If MIME type is empty but extension is valid, set a default content type for upload
-      let contentType = file.type;
-      if (!contentType && hasValidExtension) {
-        // Map extension to MIME type
-        const mimeTypeMap: Record<string, string> = {
-          'jpg': 'image/jpeg',
-          'jpeg': 'image/jpeg',
-          'jfif': 'image/jpeg',
-          'png': 'image/png',
-          'webp': 'image/webp',
-          'gif': 'image/gif',
-          'bmp': 'image/bmp',
-          'tiff': 'image/tiff',
-          'tif': 'image/tiff',
-          'svg': 'image/svg+xml',
-          'heic': 'image/heic',
-          'heif': 'image/heif',
-          'ico': 'image/x-icon',
-          'avif': 'image/avif'
-        };
-        contentType = mimeTypeMap[fileExtension] || 'image/jpeg';
-        console.log(`📝 Setting content type for gallery file: ${contentType} (was empty)`);
-      }
-
-      // Additional validation: ensure file is not a placeholder
       if (file.size < 100) {
-        throw new Error('The selected file appears to be invalid or empty. Please select a valid image.');
+        throw new Error('The selected file appears to be invalid or empty.');
       }
 
-      // Validate file size (10MB limit - increased for larger images)
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 25 * 1024 * 1024; // ImageKit free plan image limit
       if (file.size > maxSize) {
-        throw new Error(`Image size must be less than 10MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+        throw new Error(`Image size must be less than 25MB. Current size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
       }
 
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      // 1. Get auth params from our serverless endpoint
+      const authRes = await fetch(AUTH_ENDPOINT, { method: 'GET' });
+      if (!authRes.ok) {
+        throw new Error(`Failed to get upload auth: ${authRes.status} ${authRes.statusText}`);
+      }
+      const { token, expire, signature } = await authRes.json();
 
-      // Simulate upload progress
-      progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            if (progressInterval) clearInterval(progressInterval);
-            return 90;
+      // 2. Build the upload form
+      const safeBase = (file.name.split('.').slice(0, -1).join('.') || 'image')
+        .replace(/[^a-zA-Z0-9._-]/g, '_');
+      const ext = fileExtension || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}-${safeBase}.${ext}`;
+
+      const form = new FormData();
+      form.append('file', file);
+      form.append('fileName', fileName);
+      form.append('publicKey', IMAGEKIT_PUBLIC_KEY);
+      form.append('signature', signature);
+      form.append('expire', String(expire));
+      form.append('token', token);
+      form.append('folder', `/${folder}`);
+      form.append('useUniqueFileName', 'true');
+
+      // 3. Upload with XHR for progress
+      const url: string = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', IMAGEKIT_UPLOAD_URL);
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setUploadProgress(Math.round((e.loaded / e.total) * 100));
           }
-          return prev + 10;
-        });
-      }, 100);
+        };
 
-      // Create timeout promise
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        uploadTimeout = setTimeout(() => {
-          reject(new Error('Upload timeout - The storage bucket might not exist. Please run CREATE_STORAGE_BUCKET.sql in Supabase SQL Editor.'));
-        }, 30000); // 30 second timeout
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (data?.url) resolve(data.url);
+              else reject(new Error('Upload succeeded but no URL returned.'));
+            } catch (e) {
+              reject(new Error('Could not parse ImageKit response.'));
+            }
+          } else {
+            let msg = `Upload failed: ${xhr.status} ${xhr.statusText}`;
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (data?.message) msg = `ImageKit: ${data.message}`;
+            } catch {}
+            reject(new Error(msg));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during upload.'));
+        xhr.ontimeout = () => reject(new Error('Upload timed out.'));
+        xhr.timeout = 60000;
+
+        xhr.send(form);
       });
 
-      // Upload to Supabase Storage (using dynamic folder/bucket)
-      console.log('📤 Uploading image to Supabase Storage:', { folder, fileName, fileSize: file.size });
-
-      // First, check if bucket exists by trying to list it
-      const bucketCheckPromise = supabase.storage
-        .from(folder)
-        .list('', { limit: 1 });
-
-      const bucketCheckResult = await Promise.race([
-        bucketCheckPromise,
-        timeoutPromise
-      ]);
-
-      // Clear timeout if bucket check succeeded
-      if (uploadTimeout) {
-        clearTimeout(uploadTimeout);
-        uploadTimeout = null;
-      }
-
-      if (bucketCheckResult.error) {
-        if (progressInterval) clearInterval(progressInterval);
-        console.error('❌ Bucket check failed:', bucketCheckResult.error);
-
-        if (bucketCheckResult.error.message?.includes('not found') || bucketCheckResult.error.message?.includes('Bucket not found')) {
-          throw new Error(`Storage bucket "${folder}" not found!\n\nPlease run the appropriate migration file in Supabase SQL Editor to create it.`);
-        }
-        throw new Error(`Bucket error: ${bucketCheckResult.error.message}`);
-      }
-
-      console.log('✅ Bucket exists, proceeding with upload...');
-
-      // Create new timeout for upload
-      const uploadTimeoutPromise = new Promise<never>((_, reject) => {
-        uploadTimeout = setTimeout(() => {
-          reject(new Error('Upload timeout - The upload is taking too long. Please check your connection and try again.'));
-        }, 30000); // 30 second timeout
-      });
-
-      // Now upload the file
-      // Use the determined content type (may have been set from extension if MIME type was empty)
-      const uploadPromise = supabase.storage
-        .from(folder)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: contentType || 'image/jpeg' // Fallback to jpeg if still empty
-        });
-
-      const uploadResult = await Promise.race([
-        uploadPromise,
-        uploadTimeoutPromise
-      ]);
-
-      // Clear timeout if upload succeeded
-      if (uploadTimeout) {
-        clearTimeout(uploadTimeout);
-        uploadTimeout = null;
-      }
-      if (progressInterval) clearInterval(progressInterval);
       setUploadProgress(100);
-
-      if (uploadResult.error) {
-        console.error('❌ Supabase Storage upload error:', uploadResult.error);
-        console.error('❌ Error details:', {
-          message: uploadResult.error.message,
-          statusCode: uploadResult.error.statusCode,
-          error: uploadResult.error
-        });
-
-        // Provide helpful error message
-        if (uploadResult.error.message?.includes('Bucket not found') || uploadResult.error.message?.includes('not found')) {
-          throw new Error(`Storage bucket "${folder}" not found!\n\nPlease run the appropriate migration file in Supabase SQL Editor.`);
-        } else if (uploadResult.error.message?.includes('new row violates row-level security') || uploadResult.error.message?.includes('row-level security')) {
-          throw new Error('Storage policy error!\n\nPlease run CREATE_STORAGE_BUCKET.sql to set up policies.');
-        } else {
-          throw new Error(`Upload failed: ${uploadResult.error.message || 'Unknown error'}`);
-        }
-      }
-
-      if (!uploadResult.data) {
-        throw new Error('Upload failed: No data returned');
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from(folder)
-        .getPublicUrl(uploadResult.data.path);
-
-      console.log('✅ Image uploaded successfully:', { fileName, publicUrl });
-      return publicUrl;
+      return url;
     } catch (error) {
-      console.error('❌ Error uploading image:', error);
-      if (uploadTimeout) clearTimeout(uploadTimeout);
-      if (progressInterval) clearInterval(progressInterval);
+      console.error('Error uploading image:', error);
       throw error;
     } finally {
       setUploading(false);
@@ -199,23 +109,10 @@ export const useImageUpload = (folder: string = 'menu-images') => {
     }
   };
 
-  const deleteImage = async (imageUrl: string): Promise<void> => {
-    try {
-      // Extract file path from URL
-      const urlParts = imageUrl.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-
-      const { error } = await supabase.storage
-        .from(folder)
-        .remove([fileName]);
-
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      console.error('Error deleting image:', error);
-      throw error;
-    }
+  // ImageKit deletion requires the fileId + private key, so it must run server-side.
+  // Left as a no-op here; add a /api/imagekit-delete endpoint if you need it.
+  const deleteImage = async (_imageUrl: string): Promise<void> => {
+    console.warn('deleteImage: ImageKit deletion must be done server-side via fileId. No-op for now.');
   };
 
   return {

@@ -27,6 +27,7 @@ export interface Product {
   // Images and metadata
   image_url: string | null;
   safety_sheet_url: string | null;
+  coa_url: string | null;
 
   // Manual upsell picks; takes priority over auto recommendations
   paired_product_ids: string[];

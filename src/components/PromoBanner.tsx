@@ -1,33 +1,14 @@
-import { useState, useEffect } from 'react';
-import { X, Check, Sparkles, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { X, ArrowRight } from 'lucide-react';
 import posthog from 'posthog-js';
 
 const BANNER_DISMISSED_KEY = 'plp_banner_dismissed';
 
 export default function PromoBanner() {
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(BANNER_DISMISSED_KEY) === 'true');
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
-  useEffect(() => {
-    if (showConfirmPopup) {
-      const timer = setTimeout(() => setShowConfirmPopup(false), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showConfirmPopup]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setStatus('error');
-      return;
-    }
-
-    setStatus('success');
-    setShowConfirmPopup(true);
-    posthog.capture('plp_promo_banner', { email: trimmed });
+  const handleShareClick = () => {
+    posthog.capture('plp_promo_banner_referral_click');
   };
 
   const close = () => {
@@ -52,40 +33,22 @@ export default function PromoBanner() {
             <div className="flex items-center gap-3">
               <span className="hidden sm:inline-flex items-center text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-500">
                 <span className="w-6 h-px bg-gold-500 mr-3" />
-                Exclusive
+                Earn Monthly
               </span>
               <span className="text-[12px] sm:text-sm font-light tracking-wide whitespace-nowrap">
-                Join the Inner Circle for <span className="text-gold-400 font-medium">early access & private offers</span>
+                Share your <span className="text-gold-400 font-medium">referral code</span> to earn monthly
               </span>
             </div>
 
-            {/* Form */}
-            {status === 'success' ? (
-              <span className="inline-flex items-center gap-2 text-[12px] sm:text-sm font-medium text-gold-400">
-                <Check className="w-4 h-4" strokeWidth={2} />
-                You're on the list.
-              </span>
-            ) : (
-              <form onSubmit={handleSubmit} className="flex items-stretch gap-0">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => { setEmail(e.target.value); if (status === 'error') setStatus('idle'); }}
-                  placeholder="your@email.com"
-                  className={`px-3.5 py-2 text-[12px] sm:text-[13px] bg-transparent text-white placeholder-white/40 border-b focus:outline-none transition-colors w-44 sm:w-60 ${
-                    status === 'error' ? 'border-red-400' : 'border-white/30 focus:border-gold-500'
-                  }`}
-                />
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="group inline-flex items-center gap-2 pl-4 pr-1 py-2 text-[10px] sm:text-[11px] font-semibold tracking-[0.22em] uppercase text-gold-500 hover:text-gold-300 transition-colors disabled:opacity-60 whitespace-nowrap"
-                >
-                  {status === 'loading' ? '...' : 'Subscribe'}
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.8} />
-                </button>
-              </form>
-            )}
+            {/* CTA */}
+            <a
+              href="/user/profile"
+              onClick={handleShareClick}
+              className="group inline-flex items-center gap-2 pl-4 pr-1 py-2 text-[10px] sm:text-[11px] font-semibold tracking-[0.22em] uppercase text-gold-500 hover:text-gold-300 transition-colors whitespace-nowrap"
+            >
+              Share Your Code
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.8} />
+            </a>
           </div>
         </div>
 
@@ -99,42 +62,6 @@ export default function PromoBanner() {
         </button>
       </div>
 
-      {/* Confirmation Popup */}
-      {showConfirmPopup && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={() => setShowConfirmPopup(false)}>
-          <div className="absolute inset-0 bg-navy-900/50 backdrop-blur-sm" />
-          <div
-            className="relative w-full max-w-sm bg-white shadow-luxury overflow-hidden animate-fade-in-up border border-gold-300"
-            style={{ borderRadius: '2px' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="h-1 w-full bg-gold-500" />
-            <div className="px-8 pt-8 pb-8 text-center">
-              <div className="flex justify-center mb-5">
-                <div className="w-14 h-14 rounded-full border border-gold-500 flex items-center justify-center text-gold-600">
-                  <Sparkles size={24} strokeWidth={1.4} />
-                </div>
-              </div>
-              <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-gold-600 mb-3">
-                Welcome
-              </p>
-              <h2 className="font-heading text-2xl font-normal text-navy-900 mb-3 tracking-tight">
-                You're In.
-              </h2>
-              <p className="text-charcoal-500 text-sm font-light leading-relaxed mb-7">
-                Look out for early access to new products and private offers — delivered with care.
-              </p>
-              <button
-                onClick={() => setShowConfirmPopup(false)}
-                className="w-full py-3.5 text-[11px] font-semibold tracking-[0.22em] uppercase bg-navy-900 text-white hover:bg-navy-700 transition-colors"
-                style={{ borderRadius: '2px' }}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

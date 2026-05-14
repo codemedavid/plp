@@ -7,7 +7,6 @@ import ImageUpload from './ImageUpload';
 import CategoryManager from './CategoryManager';
 import PaymentMethodManager from './PaymentMethodManager';
 import VariationManager from './VariationManager';
-import COAManager from './COAManager';
 import PeptideInventoryManager from './PeptideInventoryManager';
 import OrdersManager from './OrdersManager';
 import FAQManager from './FAQManager';
@@ -80,7 +79,7 @@ const AdminDashboard: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const { products, loading, addProduct, updateProduct, deleteProduct, refreshProducts } = useMenu();
   const { categories } = useCategories();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'coa' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals' | 'users' | 'analytics' | 'reviews'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals' | 'users' | 'analytics' | 'reviews'>('dashboard');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [managingVariationsProductId, setManagingVariationsProductId] = useState<string | null>(null);
@@ -262,6 +261,7 @@ const AdminDashboard: React.FC = () => {
         // Convert undefined to null for nullable fields
         if (prepared.image_url === undefined) prepared.image_url = null;
         if (prepared.safety_sheet_url === undefined) prepared.safety_sheet_url = null;
+        if (prepared.coa_url === undefined) prepared.coa_url = null;
         if (prepared.discount_price === undefined) prepared.discount_price = null;
         if (prepared.molecular_weight === undefined) prepared.molecular_weight = null;
         if (prepared.cas_number === undefined) prepared.cas_number = null;
@@ -290,6 +290,7 @@ const AdminDashboard: React.FC = () => {
           'featured',
           'image_url',
           'safety_sheet_url',
+          'coa_url',
           'inclusions',
           'paired_product_ids',
           'bundle_tiers',
@@ -1184,6 +1185,28 @@ const AdminDashboard: React.FC = () => {
                     });
                   }}
                 />
+
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Certificate of Analysis (COA) link
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Paste the URL to this product's COA (PDF or image). Leave blank to hide the COA badge on the product card.
+                  </p>
+                  <input
+                    type="url"
+                    value={formData.coa_url || ''}
+                    onChange={(e) => {
+                      const trimmed = e.target.value.trim();
+                      setFormData((prev) => ({
+                        ...prev,
+                        coa_url: trimmed === '' ? null : trimmed,
+                      }));
+                    }}
+                    placeholder="https://…"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-transparent text-gray-900"
+                  />
+                </div>
                 </CollapsibleSection>
               </div>
 
@@ -1619,15 +1642,6 @@ const AdminDashboard: React.FC = () => {
     );
   }
 
-  // COA View
-  if (currentView === 'coa') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <COAManager onBack={() => setCurrentView('dashboard')} />
-      </div>
-    );
-  }
-
   // Reviews View
   if (currentView === 'reviews') {
     return (
@@ -1898,18 +1912,6 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <span className="block text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">Couriers</span>
                     <span className="text-xs text-gray-500">Manage couriers</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setCurrentView('coa')}
-                  className="group flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
-                >
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Shield className="h-4 w-4 md:h-5 md:w-5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <span className="block text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Lab Results</span>
-                    <span className="text-xs text-gray-500">Manage COAs</span>
                   </div>
                 </button>
                 <button

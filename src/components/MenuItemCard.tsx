@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, Shield } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
-import { useCOAProductNames } from '../hooks/useCOAProductNames';
-import { useCOAPageSetting } from '../hooks/useCOAPageSetting';
 
 const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 const cleanText = (s?: string | null) =>
@@ -18,9 +16,7 @@ interface MenuItemCardProps {
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) => {
   const [imageError, setImageError] = useState(false);
-  const { hasCOA } = useCOAProductNames();
-  const { coaPageEnabled } = useCOAPageSetting();
-  const productHasCOA = coaPageEnabled && hasCOA(cleanText(product.name));
+  const productHasCOA = !!product.coa_url;
 
   const effectivePrice = (v: ProductVariation) =>
     v.discount_active && v.discount_price != null ? v.discount_price : v.price;
@@ -152,7 +148,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
           </button>
           {productHasCOA && (
             <a
-              href="/coa"
+              href={product.coa_url!}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               title="View Certificate of Analysis"
               className="shrink-0 inline-flex items-center gap-1 px-3 py-2.5 sm:py-3 rounded-full border border-gold-500 text-gold-700 text-[10px] sm:text-xs font-semibold tracking-wide uppercase hover:bg-gold-500 hover:text-white transition-colors"
