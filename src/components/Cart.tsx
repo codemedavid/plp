@@ -5,6 +5,7 @@ import { KIT_UPGRADE_PRICE } from '../types';
 import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
 import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
+import { cleanText } from '../lib/cleanText';
 import Toast from './Toast';
 
 interface CartProps {
@@ -145,7 +146,7 @@ const Cart: React.FC<CartProps> = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h3 className="font-bold text-charcoal-900 text-sm truncate">{item.product.name}</h3>
+                          <h3 className="font-bold text-charcoal-900 text-sm truncate">{cleanText(item.product.name)}</h3>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {item.variation && (
                               <span className="text-[10px] text-charcoal-500 bg-brand-50 px-1.5 py-0.5 rounded-full border border-brand-100 font-cute">

@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { Heart, Shield } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
-
-const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-const cleanText = (s?: string | null) =>
-  (s ?? '').replace(UUID_RE, '').replace(/\s{2,}/g, ' ').trim();
+import { cleanText } from '../lib/cleanText';
 
 interface MenuItemCardProps {
   product: Product;
@@ -58,8 +55,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
           : 'shadow-sm'
       }`}
     >
-      {/* Image area with navy wave bottom */}
-      <div className="relative aspect-square overflow-hidden" style={{ background: 'linear-gradient(135deg, #EAF4FA, #D6EAF5)' }}>
+      {/* Image area */}
+      <div className="relative aspect-square overflow-hidden bg-white">
         {product.image_url && !imageError ? (
           <img
             src={product.image_url}
@@ -72,16 +69,6 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
             <Heart className="w-16 h-16 opacity-30" fill="currentColor" />
           </div>
         )}
-
-        {/* Navy curved wave at the bottom of the image */}
-        <svg
-          viewBox="0 0 400 60"
-          preserveAspectRatio="none"
-          className="absolute bottom-0 left-0 w-full h-[18%] z-20"
-          aria-hidden="true"
-        >
-          <path d="M0,30 Q200,80 400,20 L400,60 L0,60 Z" fill="#0F2447" />
-        </svg>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-30">

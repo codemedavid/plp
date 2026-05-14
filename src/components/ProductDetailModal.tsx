@@ -16,6 +16,7 @@ import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
 import ProductReviews from './ProductReviews';
 import { getMatchingBundleTier } from '../lib/bundlePricing';
+import { cleanText } from '../lib/cleanText';
 
 interface ProductDetailModalProps {
   product: Product;
@@ -180,12 +181,12 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
           <div className="mt-4 rounded-2xl bg-white border border-charcoal-100 p-4 sm:p-5">
             {product.category && (
               <p className="font-serif italic text-charcoal-500 text-sm mb-1">
-                {product.category}
+                {cleanText(product.category)}
               </p>
             )}
             <div className="flex items-baseline justify-between gap-3 mb-3">
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-charcoal-900 tracking-tight">
-                {product.name}
+                {cleanText(product.name)}
               </h2>
               <div className="flex items-baseline gap-2 flex-shrink-0">
                 {hasDiscount && (
@@ -214,7 +215,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
             )}
 
             <p className="text-sm sm:text-base text-charcoal-500 leading-relaxed">
-              {product.description}
+              {cleanText(product.description)}
             </p>
           </div>
 
@@ -461,7 +462,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
         {/* Sticky compact action bar */}
         <div className="border-t border-charcoal-100 bg-white px-4 sm:px-5 py-3 flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-charcoal-700 truncate pr-2">{product.name}</span>
+            <span className="text-sm font-medium text-charcoal-700 truncate pr-2">{cleanText(product.name)}</span>
             <span className="text-base font-bold text-charcoal-900 flex-shrink-0">
               {formatPrice(unitPrice)}
             </span>

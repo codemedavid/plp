@@ -13,6 +13,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useReferral } from '../hooks/useReferral';
 import { useAddresses, type UserAddress } from '../hooks/useAddresses';
 import RecommendationRail from './RecommendationRail';
+import { cleanText } from '../lib/cleanText';
 import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
 import Toast from './Toast';
 
@@ -928,7 +929,7 @@ Please confirm this order. Thank you!
 
                                         return (
                                             <div key={idx} className="flex justify-between text-sm">
-                                                <span className="text-gray-600">{item.quantity}x {item.product.name}</span>
+                                                <span className="text-gray-600">{item.quantity}x {cleanText(item.product.name)}</span>
                                                 <span className="font-medium">₱{(currentPrice * item.quantity).toLocaleString()}</span>
                                             </div>
                                         );
@@ -1317,7 +1318,7 @@ Please confirm this order. Thank you!
                                     <div key={`${item.product.id}-${item.variation?.id ?? 'novar'}-${item.kitType ?? 'vial'}-${index}`} className="pb-4 border-b border-gray-100">
                                         <div className="flex justify-between items-start mb-1">
                                             <div className="flex-1">
-                                                <h4 className="font-bold text-charcoal-900 text-sm">{item.product.name}</h4>
+                                                <h4 className="font-bold text-charcoal-900 text-sm">{cleanText(item.product.name)}</h4>
                                                 {item.variation && (
                                                     <p className="text-xs text-gray-600 mt-0.5">{item.variation.name}</p>
                                                 )}

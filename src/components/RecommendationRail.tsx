@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Sparkles, Plus, Heart } from 'lucide-react';
 import posthog from 'posthog-js';
 import type { Product, ProductVariation, KitType } from '../types';
+import { cleanText } from '../lib/cleanText';
 
 interface RecommendationRailProps {
   products: Product[];
@@ -133,7 +134,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-charcoal-900 text-xs truncate">
-                      {product.name}
+                      {cleanText(product.name)}
                     </p>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-brand-700">
@@ -204,7 +205,7 @@ const RecommendationRail: React.FC<RecommendationRailProps> = ({
                 </div>
                 <div className="p-2 md:p-3">
                   <p className="font-bold text-charcoal-900 text-xs md:text-sm line-clamp-2 mb-1 min-h-[2.5em]">
-                    {product.name}
+                    {cleanText(product.name)}
                   </p>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-sm md:text-base font-bold text-brand-700">

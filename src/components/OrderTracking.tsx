@@ -7,6 +7,7 @@ import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import WriteReviewModal from './WriteReviewModal';
 import { getReviewsForOrder } from '../hooks/useReviews';
+import { cleanText } from '../lib/cleanText';
 
 interface TrackingOrder {
     id: string;
@@ -446,7 +447,7 @@ const OrderTracking: React.FC = () => {
                                         return (
                                             <li key={idx} className="pt-3 first:pt-0 text-sm">
                                                 <div className="flex justify-between gap-3">
-                                                    <span className="text-charcoal-700 font-light">{item.product_name}</span>
+                                                    <span className="text-charcoal-700 font-light">{cleanText(item.product_name)}</span>
                                                     <span className="text-navy-900 font-mono">× {item.quantity}</span>
                                                 </div>
                                                 {canReview && (
