@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ShieldCheck, Package, CreditCard, Heart, Copy, Check, MessageCircle, Tag, Upload, Database, Lock, Truck, AlertTriangle, X } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Package, CreditCard, Heart, Check, Tag, Upload, Database, Lock, Truck, AlertTriangle, X } from 'lucide-react';
 import posthog from 'posthog-js';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
 import { KIT_UPGRADE_PRICE } from '../types';
@@ -56,8 +56,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     const [contactMethod, setContactMethod] = useState<'whatsapp'>('whatsapp');
     const [notes, setNotes] = useState('');
 
-    const [orderMessage, setOrderMessage] = useState<string>('');
-    const [copied, setCopied] = useState(false);
     const [contactOpened] = useState(false);
 
     const [orderNumber, setOrderNumber] = useState<string>('');
@@ -483,103 +481,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
             setOrderNumber(customOrderNumber);
 
-            // Get current date and time
-            const now = new Date();
-            const dateTimeStamp = now.toLocaleString('en-PH', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            });
-
-            const orderDetails = `
-✨ Peptide Lifestyle Program - NEW ORDER
-
-📅 ORDER DATE & TIME
-${dateTimeStamp}
-
-👤 CUSTOMER INFORMATION
-Name: ${fullName}
-Email: ${email}
-Phone: ${phone}
-
-📦 SHIPPING ADDRESS
-${address}
-${barangay}
-${city}, ${state} ${zipCode}
-Courier: ${couriers.find(c => c.id === selectedCourierId)?.name || 'N/A'}
-
-🛒 ORDER DETAILS
-${savedItems.map(item => {
-                const name = item.variation_name
-                    ? `• ${item.product_name} (${item.variation_name})`
-                    : `• ${item.product_name}`;
-                return `${name} x${item.quantity} - ₱${item.total.toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
-            }).join('\n\n')}
-
-💰 PRICING
-Product Total: ₱${savedSubtotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-Shipping Fee: ₱${shippingFee.toLocaleString('en-PH', { minimumFractionDigits: 0 })} (${shippingLocation.replace('_', ' & ')})
-${discountAmount > 0 ? `Discount (${appliedPromo?.code}): -₱${discountAmount.toLocaleString('en-PH', { minimumFractionDigits: 0 })}\n` : ''}Grand Total: ₱${finalTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-
-💳 PAYMENT METHOD
-${paymentMethod?.name || 'N/A'}
-      ${paymentMethod ? `Account: ${paymentMethod.account_number}` : ''}
-
-📸 PROOF OF PAYMENT
-${paymentProofUrl ? 'Screenshot attached to order.' : 'Pending'}
-
-📱 CONTACT METHOD
-WhatsApp (+63 905 842 9200)
-
-📋 ORDER NUMBER: ${customOrderNumber}
-
-Please confirm this order. Thank you!
-      `.trim();
-
-            setOrderMessage(orderDetails);
-
-            // Auto-copy to clipboard
-            try {
-                await navigator.clipboard.writeText(orderDetails);
-                setCopied(true);
-            } catch (err) {
-                console.error('Failed to auto-copy:', err);
-            }
-
-            // Show confirmation
+            // Order is already saved to the database — no manual send step needed.
             setStep('confirmation');
-
-            // Auto-open WhatsApp with pre-filled order details
-            setTimeout(() => {
-                const whatsappUrl = `https://wa.me/639058429200?text=${encodeURIComponent(orderDetails)}`;
-                window.open(whatsappUrl, '_blank');
-            }, 1500);
         } catch (error) {
             console.error('❌ Error placing order:', error);
             notify(`Failed to place order: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`, 'error');
         }
-    };
-
-    const handleCopyMessage = async () => {
-        try {
-            await navigator.clipboard.writeText(orderMessage);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 3000);
-        } catch (error) {
-            console.error('Failed to copy:', error);
-            // Fallback
-            notify('Failed to copy. Please manually select and copy the message.', 'warning');
-        }
-    };
-
-    const handleOpenContact = () => {
-        const contactUrl = `https://wa.me/639058429200?text=${encodeURIComponent(orderMessage)}`;
-        window.open(contactUrl, '_blank');
     };
 
     if (step === 'confirmation') {
@@ -591,15 +498,15 @@ Please confirm this order. Thank you!
                             <ShieldCheck className="w-12 h-12 text-brand-600" />
                         </div>
                         <h1 className="font-heading text-3xl md:text-4xl font-bold text-charcoal-900 mb-4 tracking-tight">
-                            Order Confirmed
+                            Thank you for ordering!
                         </h1>
-                        <p className="text-gray-600 mb-4 text-base md:text-lg leading-relaxed">
-                            Your order details have been pre-filled on WhatsApp. Just hit send to finalize your order!
+                        <p className="text-gray-600 mb-6 text-base md:text-lg leading-relaxed">
+                            We're now sending your order to the admin. Please wait for the confirmation email in your Gmail inbox (check Spam / Promotions if you don't see it).
                         </p>
 
                         {/* Order ID Display */}
                         {orderNumber && (
-                            <div className="bg-brand-50/20 border border-brand-100 rounded-lg p-4 mb-6">
+                            <div className="bg-brand-50/20 border border-brand-100 rounded-lg p-4 mb-8">
                                 <p className="text-sm text-brand-700 mb-1 font-bold uppercase tracking-wider">Order Reference</p>
                                 <p className="text-2xl font-bold text-charcoal-900 font-mono">
                                     {orderNumber}
@@ -607,58 +514,6 @@ Please confirm this order. Thank you!
                                 <p className="text-xs text-gray-500 mt-2">Use this reference for tracking and support</p>
                             </div>
                         )}
-
-                        {/* Order Message Display */}
-                        <div className="bg-brand-50 rounded-lg p-6 mb-6 text-left border border-brand-200">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="font-bold text-charcoal-900 flex items-center gap-2">
-                                    <MessageCircle className="w-5 h-5 text-brand-600" />
-                                    Order Details
-                                </h3>
-                                <button
-                                    onClick={handleCopyMessage}
-                                    className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded font-medium transition-all text-sm shadow-sm"
-                                >
-                                    {copied ? (
-                                        <>
-                                            <Check className="w-4 h-4" />
-                                            Copied!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Copy className="w-4 h-4" />
-                                            Copy
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                            <div className="bg-white rounded p-4 border border-gray-300 max-h-64 overflow-y-auto">
-                                <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
-                                    {orderMessage}
-                                </pre>
-                            </div>
-                            {copied && (
-                                <p className="text-brand-600 text-sm mt-2 flex items-center gap-1 font-medium">
-                                    <Check className="w-4 h-4" />
-                                    Copied to clipboard! Ready to send.
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="space-y-3 mb-8">
-                            <button
-                                onClick={handleOpenContact}
-                                className="w-full btn-primary py-4 text-base flex items-center justify-center gap-2 shadow-lg"
-                            >
-                                <MessageCircle className="w-5 h-5" />
-                                Open WhatsApp & Send
-                            </button>
-
-                            <p className="text-sm text-gray-500">
-                                If WhatsApp doesn't open automatically, please send the copied message to <span className="font-bold">+63 905 842 9200 on WhatsApp</span>
-                            </p>
-                        </div>
 
                         <div className="bg-brand-50/20 rounded-lg p-6 mb-8 text-left border border-brand-100">
                             <h3 className="font-bold text-charcoal-900 mb-4 flex items-center gap-2">

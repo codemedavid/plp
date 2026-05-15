@@ -263,9 +263,13 @@ export default function UserLookupManager({ onBack }: UserLookupManagerProps) {
       {selected && (
         <UserDetailDrawer
           overview={selected}
+          allProfiles={profiles}
           onClose={() => setSelectedId(null)}
           onRoleChanged={(id, role) =>
             setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, role } : p)))
+          }
+          onReferralChanged={(id, patch) =>
+            setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)))
           }
         />
       )}
@@ -275,16 +279,91 @@ export default function UserLookupManager({ onBack }: UserLookupManagerProps) {
 
 function UserDetailDrawer({
   overview,
+  allProfiles,
   onClose,
   onRoleChanged,
+  onReferralChanged,
 }: {
   overview: UserOverview;
+  allProfiles: ProfileRow[];
   onClose: () => void;
   onRoleChanged: (id: string, role: 'user' | 'admin') => void;
+  onReferralChanged: (id: string, patch: Partial<ProfileRow>) => void;
 }) {
   const { profile, email, balance, orderCount, totalSpent, referralCount, orders, referredBy, referrals } = overview;
   const [roleSaving, setRoleSaving] = useState(false);
   const [roleError, setRoleError] = useState<string | null>(null);
+
+  // ── Referral editing ──────────────────────────────────────
+  const [editingReferral, setEditingReferral] = useState(false);
+  const [refCodeInput, setRefCodeInput] = useState(profile.referral_code || '');
+  const [inviterCodeInput, setInviterCodeInput] = useState(referredBy?.referral_code || '');
+  const [refSaving, setRefSaving] = useState(false);
+  const [refError, setRefError] = useState<string | null>(null);
+  const [refSuccess, setRefSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRefCodeInput(profile.referral_code || '');
+    setInviterCodeInput(referredBy?.referral_code || '');
+    setRefError(null);
+    setRefSuccess(null);
+    setEditingReferral(false);
+  }, [profile.id, profile.referral_code, referredBy?.referral_code]);
+
+  const saveReferralChanges = async () => {
+    setRefError(null);
+    setRefSuccess(null);
+    const newCode = refCodeInput.trim().toUpperCase();
+    const newInviterCode = inviterCodeInput.trim().toUpperCase();
+
+    if (!newCode) {
+      setRefError('Referral code cannot be empty.');
+      return;
+    }
+
+    let inviterId: string | null = null;
+    if (newInviterCode) {
+      if (newInviterCode === newCode) {
+        setRefError("A user can't be their own inviter.");
+        return;
+      }
+      const inviter = allProfiles.find(p => (p.referral_code || '').toUpperCase() === newInviterCode);
+      if (!inviter) {
+        setRefError(`No user found with referral code "${newInviterCode}".`);
+        return;
+      }
+      if (inviter.id === profile.id) {
+        setRefError("A user can't be their own inviter.");
+        return;
+      }
+      inviterId = inviter.id;
+    }
+
+    if (newCode !== (profile.referral_code || '').toUpperCase()) {
+      const clash = allProfiles.find(
+        p => p.id !== profile.id && (p.referral_code || '').toUpperCase() === newCode
+      );
+      if (clash) {
+        setRefError(`Referral code "${newCode}" is already used by another user.`);
+        return;
+      }
+    }
+
+    setRefSaving(true);
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ referral_code: newCode, referred_by: inviterId })
+      .eq('id', profile.id);
+    setRefSaving(false);
+
+    if (error) {
+      setRefError(error.message);
+      return;
+    }
+    onReferralChanged(profile.id, { referral_code: newCode, referred_by: inviterId });
+    setRefSuccess('Referral details updated.');
+    setEditingReferral(false);
+  };
 
   const toggleRole = async () => {
     setRoleSaving(true);
@@ -417,16 +496,95 @@ function UserDetailDrawer({
           </Section>
 
           <Section title="Referrals">
-            <Field label="Referred by">
-              {referredBy ? (
-                <span>
-                  {referredBy.nickname || referredBy.full_name || '—'}{' '}
-                  <span className="text-gray-400 font-mono">({referredBy.referral_code})</span>
-                </span>
+            <div className="flex items-center justify-between -mt-1 mb-1">
+              <span className="text-[11px] text-gray-500">Code &amp; inviter</span>
+              {!editingReferral ? (
+                <button
+                  onClick={() => {
+                    setRefError(null);
+                    setRefSuccess(null);
+                    setRefCodeInput(profile.referral_code || '');
+                    setInviterCodeInput(referredBy?.referral_code || '');
+                    setEditingReferral(true);
+                  }}
+                  className="text-xs px-2.5 py-1 rounded border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                >
+                  Edit
+                </button>
               ) : (
-                '—'
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingReferral(false);
+                      setRefCodeInput(profile.referral_code || '');
+                      setInviterCodeInput(referredBy?.referral_code || '');
+                      setRefError(null);
+                    }}
+                    disabled={refSaving}
+                    className="text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveReferralChanges}
+                    disabled={refSaving}
+                    className="text-xs px-2.5 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {refSaving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
               )}
-            </Field>
+            </div>
+
+            {!editingReferral ? (
+              <>
+                <Field label="Referral code">
+                  <span className="font-mono">{profile.referral_code}</span>
+                </Field>
+                <Field label="Referred by">
+                  {referredBy ? (
+                    <span>
+                      {referredBy.nickname || referredBy.full_name || '—'}{' '}
+                      <span className="text-gray-400 font-mono">({referredBy.referral_code})</span>
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </Field>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-sm">
+                  <label className="text-[11px] uppercase tracking-wider text-gray-500">
+                    Referral code (this user&rsquo;s own)
+                  </label>
+                  <input
+                    value={refCodeInput}
+                    onChange={(e) => setRefCodeInput(e.target.value.toUpperCase())}
+                    placeholder="e.g. JANE7K3"
+                    className="mt-1 w-full font-mono text-sm border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"
+                  />
+                </div>
+                <div className="text-sm">
+                  <label className="text-[11px] uppercase tracking-wider text-gray-500">
+                    Inviter&rsquo;s referral code (set this user as their invitee)
+                  </label>
+                  <input
+                    value={inviterCodeInput}
+                    onChange={(e) => setInviterCodeInput(e.target.value.toUpperCase())}
+                    placeholder="Leave blank to clear inviter"
+                    className="mt-1 w-full font-mono text-sm border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Enter the referral code of the user who invited them. Leave empty to remove the link.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {refError && <p className="text-xs text-red-600">{refError}</p>}
+            {refSuccess && <p className="text-xs text-emerald-600">{refSuccess}</p>}
+
             <Field label={`Invited (${referrals.length})`}>
               {referrals.length === 0 ? (
                 '—'
