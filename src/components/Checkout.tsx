@@ -461,6 +461,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
             // Build all event properties first
             const eventProps = {
+                email: email,
+                customer_email: email,
                 customer_name: fullName,
                 order_number: String(orderData.order_number),
                 total_price: String(orderData.total_price),
@@ -472,6 +474,13 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                 promo_code: String(orderData.promo_code || 'None'),
                 item_count: savedItems.length,
                 items_summary: itemsSummary,
+                // Persist on the person record so PostHog email destinations
+                // can resolve {{ person.properties.email }}.
+                $set: {
+                    email: email,
+                    $email: email,
+                    name: fullName,
+                },
             };
 
             console.log('📧 PostHog event properties:', JSON.stringify(eventProps, null, 2));

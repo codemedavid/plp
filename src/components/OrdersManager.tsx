@@ -81,6 +81,11 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
       return `${name} x${item.quantity} - P${(item.total || item.price * item.quantity).toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
     }).join('\n');
 
+    if (!order.customer_email) {
+      console.warn('Skipping PostHog event – order has no customer_email:', order.id);
+      return;
+    }
+
     // Send directly via PostHog API so the event is attributed to the customer
     // (not the admin's browser identity)
     try {
@@ -92,6 +97,8 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
           event: `plp_order_${newStatus}`,
           distinct_id: order.customer_email,
           properties: {
+            email: order.customer_email,
+            customer_email: order.customer_email,
             customer_name: String(order.customer_name),
             order_number: String(order.order_number || order.id),
             total_price: String(total),
@@ -105,6 +112,13 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
             items_summary: itemsSummary,
             tracking_number: String(order.tracking_number || ''),
             shipping_provider: String(order.shipping_provider || ''),
+            // Persist the recipient on the person record so PostHog email
+            // destinations can resolve {{ person.properties.email }}.
+            $set: {
+              email: order.customer_email,
+              $email: order.customer_email,
+              name: order.customer_name,
+            },
             ...(extras || {}),
           },
         }),
@@ -326,7 +340,10 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
       // points settle / reverse correctly.
       let error: { message: string } | null = null;
       if (newStatus === 'completed' || newStatus === 'delivered') {
-        const { error: rpcErr } = await supabase.rpc('complete_order', { p_order_id: orderId });
+        const { error: rpcErr } = await supabase.rpc('complete_order', {
+          p_order_id: orderId,
+          p_status: newStatus,
+        });
         error = rpcErr;
       } else if (newStatus === 'cancelled' || newStatus === 'refunded') {
         const { error: rpcErr } = await supabase.rpc('refund_order', {
