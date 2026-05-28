@@ -44,6 +44,7 @@ interface Order {
   shipping_note: string | null;
   promo_code: string | null;
   discount_applied: number | null;
+  points_redeemed: number | null;
   order_number: string | null;
 }
 
@@ -1009,12 +1010,18 @@ const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
             <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span className="font-semibold">₱{(order.total_price + (order.discount_applied || 0)).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                <span className="font-semibold">₱{(order.total_price + (order.discount_applied || 0) + (order.points_redeemed || 0)).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
               </div>
               {order.discount_applied && order.discount_applied > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Discount ({order.promo_code || 'PROMO'}):</span>
                   <span className="font-semibold">-₱{order.discount_applied.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                </div>
+              )}
+              {order.points_redeemed && order.points_redeemed > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Points Used:</span>
+                  <span className="font-semibold">-₱{order.points_redeemed.toLocaleString('en-PH', { minimumFractionDigits: 2 })} ({order.points_redeemed.toLocaleString('en-PH')} pts)</span>
                 </div>
               )}
               {order.shipping_fee && order.shipping_fee > 0 && (
