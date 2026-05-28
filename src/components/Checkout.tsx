@@ -400,32 +400,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                 }
             }
 
-            // Write points-redemption ledger debit (authoritative — fail order on error)
-            // Redemption debits are immediately 'available' (spent now); referral credits
-            // are recorded server-side as 'pending' and settle later.
-            if (user && effectivePointsRedeemed > 0 && orderData?.id) {
-                const { error: ledgerError } = await supabase.from('points_ledger').insert({
-                    user_id: user.id,
-                    delta: -effectivePointsRedeemed,
-                    reason: 'redemption',
-                    source_order_id: orderData.id,
-                    notes: `Order ${orderData.order_number}`,
-                    status: 'available',
-                });
-                if (ledgerError) {
-                    console.error('Failed to write points ledger:', ledgerError);
-                    // Roll back the order we just created so points balance is not silently desynced.
-                    // We also roll back the promo usage increment (best-effort).
-                    await supabase.from('orders').delete().eq('id', orderData.id);
-                    if (appliedPromo) {
-                        await supabase.rpc('decrement_promo_usage', { promo_id: appliedPromo.id });
-                    }
-                    notify(
-                        `Failed to redeem points: ${ledgerError.message}. Your order was not placed. Please try again.`,
-                        'error'
-                    );
-                    return;
-                }
+            // Points redemption debit is written server-side by the
+            // trg_debit_points_for_order trigger on orders, atomic with the insert.
+            if (user && effectivePointsRedeemed > 0) {
                 refreshReferral();
             }
 

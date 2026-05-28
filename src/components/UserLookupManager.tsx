@@ -42,6 +42,16 @@ interface OrderRow {
   created_at: string;
 }
 
+interface LedgerRow {
+  id: string;
+  delta: number;
+  reason: string;
+  source_order_id: string | null;
+  status: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
 interface UserOverview {
   profile: ProfileRow;
   email: string | null;
@@ -293,6 +303,29 @@ function UserDetailDrawer({
   const { profile, email, balance, orderCount, totalSpent, referralCount, orders, referredBy, referrals } = overview;
   const [roleSaving, setRoleSaving] = useState(false);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const [historyView, setHistoryView] = useState<'orders' | 'points' | null>(null);
+  const [ledger, setLedger] = useState<LedgerRow[] | null>(null);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
+  const [ledgerError, setLedgerError] = useState<string | null>(null);
+
+  const openPointsHistory = async () => {
+    setHistoryView('points');
+    if (ledger !== null) return;
+    setLedgerLoading(true);
+    setLedgerError(null);
+    const { data, error } = await supabase
+      .from('points_ledger')
+      .select('id, delta, reason, source_order_id, status, notes, created_at')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    setLedgerLoading(false);
+    if (error) {
+      setLedgerError(error.message);
+      return;
+    }
+    setLedger((data as LedgerRow[]) ?? []);
+  };
 
   // ── Referral editing ──────────────────────────────────────
   const [editingReferral, setEditingReferral] = useState(false);
@@ -415,9 +448,24 @@ function UserDetailDrawer({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Stat icon={<ShoppingBag className="w-4 h-4" />} label="Orders" value={String(orderCount)} />
-            <Stat icon={<Wallet className="w-4 h-4" />} label="Spent" value={`₱${totalSpent.toLocaleString()}`} />
-            <Stat icon={<Wallet className="w-4 h-4" />} label="Points" value={balance.toLocaleString()} />
+            <Stat
+              icon={<ShoppingBag className="w-4 h-4" />}
+              label="Orders"
+              value={String(orderCount)}
+              onClick={() => setHistoryView('orders')}
+            />
+            <Stat
+              icon={<Wallet className="w-4 h-4" />}
+              label="Spent"
+              value={`₱${totalSpent.toLocaleString()}`}
+              onClick={() => setHistoryView('orders')}
+            />
+            <Stat
+              icon={<Wallet className="w-4 h-4" />}
+              label="Points"
+              value={balance.toLocaleString()}
+              onClick={openPointsHistory}
+            />
             <Stat icon={<UsersIcon className="w-4 h-4" />} label="Referrals" value={String(referralCount)} />
           </div>
 
@@ -604,24 +652,56 @@ function UserDetailDrawer({
           <Section title="Earnings">
             <Field label="Current balance">{balance.toLocaleString()} pts (≈ ₱{balance.toLocaleString()})</Field>
             <p className="text-xs text-gray-500">
-              Detailed ledger and withdrawal history are private to each user and not exposed to the admin panel.
+              Click the <strong>Points</strong> stat above to view this user&rsquo;s full points history.
               Manage withdrawals in the Referrals section.
             </p>
           </Section>
         </div>
+
+        {historyView === 'orders' && (
+          <OrdersHistoryModal orders={orders} onClose={() => setHistoryView(null)} />
+        )}
+        {historyView === 'points' && (
+          <PointsHistoryModal
+            balance={balance}
+            ledger={ledger}
+            loading={ledgerLoading}
+            error={ledgerError}
+            orders={orders}
+            onClose={() => setHistoryView(null)}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({
+  icon,
+  label,
+  value,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  onClick?: () => void;
+}) {
+  const baseCls = 'border border-gray-200 rounded-lg p-3 text-left w-full';
+  const interactiveCls = onClick
+    ? 'hover:border-indigo-300 hover:bg-indigo-50 transition-colors cursor-pointer'
+    : '';
+  const Tag = onClick ? 'button' : 'div';
   return (
-    <div className="border border-gray-200 rounded-lg p-3">
+    <Tag
+      {...(onClick ? { type: 'button', onClick } : {})}
+      className={`${baseCls} ${interactiveCls}`.trim()}
+    >
       <div className="flex items-center gap-1.5 text-gray-500 text-[10px] uppercase tracking-wider">
         {icon} {label}
       </div>
       <div className="text-lg font-bold text-gray-900 mt-1">{value}</div>
-    </div>
+    </Tag>
   );
 }
 
@@ -649,6 +729,180 @@ function Field({
         {icon} {label}
       </div>
       <div className="text-gray-900 break-words">{children}</div>
+    </div>
+  );
+}
+
+function OrdersHistoryModal({
+  orders,
+  onClose,
+}: {
+  orders: OrderRow[];
+  onClose: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60]">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between z-10">
+          <h3 className="font-bold text-gray-900">Order history ({orders.length})</h3>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded">
+            <X className="w-4 h-4 text-gray-700" />
+          </button>
+        </div>
+        <div className="overflow-y-auto p-5 space-y-3 flex-1">
+          {orders.length === 0 ? (
+            <p className="text-sm text-gray-500">No orders yet.</p>
+          ) : (
+            orders.map((o) => {
+              const subtotal =
+                Number(o.total_price) +
+                Number(o.discount_applied || 0) +
+                Number(o.points_redeemed || 0) -
+                Number(o.shipping_fee || 0);
+              return (
+                <div key={o.id} className="border border-gray-200 rounded-lg p-4 text-sm space-y-2">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="font-semibold text-gray-900">
+                      {o.order_number || o.id.slice(0, 8)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(o.created_at).toLocaleString()}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                    <span>Order: <StatusBadge value={o.order_status} /></span>
+                    <span>Payment: <StatusBadge value={o.payment_status} /></span>
+                  </div>
+                  <div className="border-t border-gray-100 pt-2 space-y-1 text-xs text-gray-700">
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>₱{subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    {o.discount_applied && Number(o.discount_applied) > 0 && (
+                      <div className="flex justify-between text-emerald-700">
+                        <span>Discount</span>
+                        <span>-₱{Number(o.discount_applied).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    {o.points_redeemed && Number(o.points_redeemed) > 0 && (
+                      <div className="flex justify-between text-emerald-700">
+                        <span>Points used</span>
+                        <span>
+                          -₱{Number(o.points_redeemed).toLocaleString('en-PH', { minimumFractionDigits: 2 })} ({Number(o.points_redeemed).toLocaleString('en-PH')} pts)
+                        </span>
+                      </div>
+                    )}
+                    {o.shipping_fee && Number(o.shipping_fee) > 0 && (
+                      <div className="flex justify-between">
+                        <span>Shipping</span>
+                        <span>₱{Number(o.shipping_fee).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-semibold text-gray-900 border-t border-gray-100 pt-1">
+                      <span>Total</span>
+                      <span>₱{Number(o.total_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const POINTS_REASON_LABEL: Record<string, string> = {
+  referral_l1: 'Referral (Tier 1)',
+  referral_l2: 'Referral (Tier 2)',
+  referral_l3: 'Referral (Tier 3)',
+  redemption: 'Used at checkout',
+  withdrawal: 'Withdrawal',
+  refund_reversal: 'Refund reversal',
+  admin_adjust: 'Admin adjustment',
+  admin_adjustment: 'Admin adjustment',
+};
+
+function PointsHistoryModal({
+  balance,
+  ledger,
+  loading,
+  error,
+  orders,
+  onClose,
+}: {
+  balance: number;
+  ledger: LedgerRow[] | null;
+  loading: boolean;
+  error: string | null;
+  orders: OrderRow[];
+  onClose: () => void;
+}) {
+  const orderNumberById = new Map(orders.map((o) => [o.id, o.order_number || o.id.slice(0, 8)]));
+  return (
+    <div className="fixed inset-0 z-[60]">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl flex flex-col">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between z-10">
+          <div>
+            <h3 className="font-bold text-gray-900">Points history</h3>
+            <p className="text-xs text-gray-500">Current balance: {balance.toLocaleString()} pts</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded">
+            <X className="w-4 h-4 text-gray-700" />
+          </button>
+        </div>
+        <div className="overflow-y-auto p-5 flex-1">
+          {loading && <p className="text-sm text-gray-500">Loading…</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {!loading && !error && ledger && ledger.length === 0 && (
+            <p className="text-sm text-gray-500">No points activity yet.</p>
+          )}
+          {!loading && !error && ledger && ledger.length > 0 && (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[11px] uppercase tracking-wider text-gray-500 border-b border-gray-200">
+                  <th className="py-2 pr-3">Date</th>
+                  <th className="py-2 pr-3">Reason</th>
+                  <th className="py-2 pr-3">Order</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2 text-right">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ledger.map((row) => {
+                  const isCredit = row.delta > 0;
+                  const orderRef = row.source_order_id
+                    ? orderNumberById.get(row.source_order_id) || row.source_order_id.slice(0, 8)
+                    : null;
+                  return (
+                    <tr key={row.id} className="border-b border-gray-100 last:border-0">
+                      <td className="py-2 pr-3 text-xs text-gray-600 align-top whitespace-nowrap">
+                        {new Date(row.created_at).toLocaleString()}
+                      </td>
+                      <td className="py-2 pr-3 text-gray-900 align-top">
+                        <div>{POINTS_REASON_LABEL[row.reason] || row.reason}</div>
+                        {row.notes && <div className="text-[11px] text-gray-500">{row.notes}</div>}
+                      </td>
+                      <td className="py-2 pr-3 text-xs text-gray-700 align-top">
+                        {orderRef || '—'}
+                      </td>
+                      <td className="py-2 pr-3 align-top">
+                        {row.status ? <StatusBadge value={row.status} /> : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className={`py-2 text-right font-semibold align-top ${isCredit ? 'text-emerald-700' : 'text-red-700'}`}>
+                        {isCredit ? '+' : ''}{row.delta.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
