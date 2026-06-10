@@ -113,6 +113,7 @@ export default {
         'float': 'float 6s ease-in-out infinite',
         'ribbon-sway': 'ribbonSway 3s ease-in-out infinite',
         'sparkle': 'sparkle 2s ease-in-out infinite',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -138,6 +139,10 @@ export default {
         sparkle: {
           '0%, 100%': { opacity: '0.4', transform: 'scale(0.8)' },
           '50%': { opacity: '1', transform: 'scale(1.2)' },
+        },
+        pulseGlow: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(220, 38, 38, 0.45)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(220, 38, 38, 0)' },
         },
       },
     },

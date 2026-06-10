@@ -117,6 +117,8 @@ const AdminDashboard: React.FC = () => {
     cost: 0,
     category: 'research',
     featured: false,
+    is_new: false,
+    highlighted: false,
     available: true,
     purity_percentage: 99.0,
     molecular_weight: '',
@@ -146,6 +148,8 @@ const AdminDashboard: React.FC = () => {
       base_price: 0,
       category: defaultCategory,
       featured: false,
+      is_new: false,
+      highlighted: false,
       available: true,
       purity_percentage: 99.0,
       molecular_weight: '',
@@ -288,6 +292,8 @@ const AdminDashboard: React.FC = () => {
           'stock_quantity',
           'available',
           'featured',
+          'is_new',
+          'highlighted',
           'image_url',
           'safety_sheet_url',
           'coa_url',
@@ -517,6 +523,8 @@ const AdminDashboard: React.FC = () => {
     const currentCategoryName = categories.find((c) => c.id === formData.category)?.name || formData.category || '';
     const inventoryParts: string[] = [`${formData.stock_quantity || 0} in stock`];
     if (formData.featured) inventoryParts.push('Featured');
+    if (formData.is_new) inventoryParts.push('New');
+    if (formData.highlighted) inventoryParts.push('Highlighted');
     if (formData.available === false) inventoryParts.push('Hidden');
     const sectionSummaries = {
       basics: formData.name
@@ -864,7 +872,7 @@ const AdminDashboard: React.FC = () => {
                     />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 pt-0 sm:pt-6">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-0 sm:pt-6">
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
                         type="checkbox"
@@ -873,6 +881,26 @@ const AdminDashboard: React.FC = () => {
                         className="w-4 h-4 text-brand-400 rounded focus:ring-brand-400"
                       />
                       <span className="text-xs font-semibold text-gray-700">⭐ Featured</span>
+                    </label>
+
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.is_new || false}
+                        onChange={(e) => setFormData({ ...formData, is_new: e.target.checked })}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">🆕 New Product</span>
+                    </label>
+
+                    <label className="flex items-center gap-1.5 cursor-pointer" title="Adds a pulsing glow and Buy Now button to the product card">
+                      <input
+                        type="checkbox"
+                        checked={formData.highlighted || false}
+                        onChange={(e) => setFormData({ ...formData, highlighted: e.target.checked })}
+                        className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">🔥 Highlight (Buy Now)</span>
                     </label>
 
                     <label className="flex items-center gap-1.5 cursor-pointer">
@@ -1323,6 +1351,12 @@ const AdminDashboard: React.FC = () => {
                         {formData.featured && (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-gold-100 text-gold-800 rounded">⭐ Featured</span>
                         )}
+                        {formData.is_new && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded">🆕 New</span>
+                        )}
+                        {formData.highlighted && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-red-100 text-red-700 rounded animate-pulse">🔥 Buy Now</span>
+                        )}
                         {formData.available !== false ? (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 bg-green-100 text-green-800 rounded">Available</span>
                         ) : (
@@ -1502,6 +1536,12 @@ const AdminDashboard: React.FC = () => {
                       {product.featured && (
                         <span className="text-xs">⭐</span>
                       )}
+                      {product.is_new && (
+                        <span className="text-xs">🆕</span>
+                      )}
+                      {product.highlighted && (
+                        <span className="text-xs">🔥</span>
+                      )}
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${product.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                         }`}>
                         {product.available ? '✅' : '❌'}
@@ -1590,6 +1630,21 @@ const AdminDashboard: React.FC = () => {
                             {product.featured && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-600 text-white">
                                 ⭐ Featured
+                              </span>
+                            )}
+                            {product.is_new && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">
+                                🆕 New
+                              </span>
+                            )}
+                            {product.highlighted && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">
+                                🔥 Buy Now
+                              </span>
+                            )}
+                            {product.discount_active && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-navy-900 text-white">
+                                🏷️ Discount
                               </span>
                             )}
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${product.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'

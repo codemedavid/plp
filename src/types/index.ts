@@ -29,6 +29,9 @@ export interface Product {
   stock_quantity: number;
   available: boolean;
   featured: boolean;
+  is_new: boolean;
+  // Pulsing "Buy Now" treatment on the product card
+  highlighted: boolean;
 
   // Images and metadata
   image_url: string | null;

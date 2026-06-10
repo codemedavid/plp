@@ -41,6 +41,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
 
   const isUnavailable = !product.available || !hasAnyStock;
 
+  // Pulsing "Buy Now" treatment only while the product can actually be bought
+  const isHighlighted = product.highlighted && !isUnavailable;
+
   const handleClick = () => onProductClick?.(product);
 
   // The inner "View" button is the single focusable / role="button" interactive control.
@@ -50,7 +53,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
     <div
       onClick={handleClick}
       className={`bg-white rounded-2xl border border-charcoal-100 overflow-hidden flex flex-col h-full cursor-pointer group transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
-        product.featured
+        isHighlighted
+          ? 'ring-2 ring-red-500/70 hover:ring-red-500 animate-pulse-glow'
+          : product.featured
           ? 'ring-2 ring-gold-500/60 hover:ring-gold-500 shadow-[0_4px_20px_rgba(201,168,118,0.18)]'
           : 'shadow-sm'
       }`}
@@ -72,6 +77,16 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2 pointer-events-none z-30">
+          {isHighlighted && (
+            <span className="px-2.5 py-1 bg-gradient-to-r from-red-600 to-red-500 text-white text-[9px] font-semibold uppercase tracking-[0.18em] shadow-md shadow-red-500/30 border border-red-400 rounded-full animate-pulse">
+              🔥 Buy Now
+            </span>
+          )}
+          {product.is_new && (
+            <span className="px-2.5 py-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-[9px] font-semibold uppercase tracking-[0.18em] shadow-md shadow-blue-500/30 border border-blue-400 rounded-full">
+              New
+            </span>
+          )}
           {product.featured && (
             <span className="px-2.5 py-1 bg-gradient-to-r from-gold-600 to-gold-500 text-white text-[9px] font-semibold uppercase tracking-[0.18em] shadow-md shadow-gold-500/30 border border-gold-400 rounded-full">
               ★ Featured
@@ -128,10 +143,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
             className={`flex-1 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-300 ${
               isUnavailable
                 ? 'bg-charcoal-100 text-charcoal-400 cursor-not-allowed'
+                : isHighlighted
+                ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white shadow-md hover:shadow-lg animate-pulse-glow'
                 : 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm hover:shadow-md'
             }`}
           >
-            View
+            {isHighlighted ? 'Buy Now' : 'View'}
           </button>
           {productHasCOA && (
             <a
