@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Home, Layout } from 'lucide-react';
+import { Home, Layout, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
 
 const SiteSettingsManager: React.FC = () => {
   const { siteSettings, loading, updateSiteSettings } = useSiteSettings();
   const { uploadImage, uploading } = useImageUpload();
+  const { uploadImage: uploadHeroImage, uploading: uploadingHero } = useImageUpload('hero-images');
 
   const [formData, setFormData] = useState({
     site_name: '',
@@ -25,6 +26,7 @@ const SiteSettingsManager: React.FC = () => {
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [heroImages, setHeroImages] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
@@ -44,6 +46,9 @@ const SiteSettingsManager: React.FC = () => {
         hero_accent_color: siteSettings.hero_accent_color || 'gold-500'
       });
       setLogoPreview(siteSettings.site_logo);
+      setHeroImages(siteSettings.hero_images && siteSettings.hero_images.length > 0
+        ? siteSettings.hero_images
+        : [siteSettings.hero_image_url || '/hero-plp-slim.png']);
     }
   }, [siteSettings]);
 
@@ -67,6 +72,35 @@ const SiteSettingsManager: React.FC = () => {
     }
   };
 
+  const handleAddHeroImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const uploadedUrl = await uploadHeroImage(file);
+      setHeroImages(prev => [...prev, uploadedUrl]);
+    } catch (error) {
+      console.error('Error uploading hero image:', error);
+      alert('Failed to upload image.');
+    } finally {
+      // Allow re-selecting the same file later.
+      e.target.value = '';
+    }
+  };
+
+  const handleRemoveHeroImage = (index: number) => {
+    setHeroImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMoveHeroImage = (index: number, direction: -1 | 1) => {
+    setHeroImages(prev => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -78,9 +112,14 @@ const SiteSettingsManager: React.FC = () => {
         logoUrl = uploadedUrl;
       }
 
+      const carouselImages = heroImages.filter(Boolean);
+
       await updateSiteSettings({
         ...formData,
-        site_logo: logoUrl
+        site_logo: logoUrl,
+        hero_images: carouselImages,
+        // Keep the legacy single field in sync for backward compatibility.
+        hero_image_url: carouselImages[0] || '/hero-plp-slim.png'
       });
 
       setLogoFile(null);
@@ -191,7 +230,7 @@ const SiteSettingsManager: React.FC = () => {
           </div>
           <button
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || uploadingHero}
             className="bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
@@ -199,6 +238,73 @@ const SiteSettingsManager: React.FC = () => {
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Hero Carousel Images */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Hero Carousel Images</label>
+            <p className="text-xs text-gray-500 mb-3">
+              The banner images at the top of the homepage. Add multiple images to create an auto-rotating carousel. Use the arrows to reorder — the first image shows first.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {heroImages.map((url, index) => (
+                <div key={`${url}-${index}`} className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 relative group">
+                  <div className="absolute top-2 left-2 z-10 bg-black/60 text-white text-xs font-medium px-2 py-0.5 rounded">
+                    {index === 0 ? 'First' : `#${index + 1}`}
+                  </div>
+                  <img src={url} alt={`Hero slide ${index + 1}`} className="w-full h-36 object-contain bg-white" />
+                  <div className="flex items-center justify-between gap-1 p-2 bg-white border-t border-gray-100">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleMoveHeroImage(index, -1)}
+                        disabled={index === 0}
+                        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:hover:bg-transparent"
+                        aria-label="Move left"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveHeroImage(index, 1)}
+                        disabled={index === heroImages.length - 1}
+                        className="p-1.5 rounded-md hover:bg-gray-100 text-gray-600 disabled:opacity-30 disabled:hover:bg-transparent"
+                        aria-label="Move right"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveHeroImage(index)}
+                      className="flex items-center gap-1 text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded-md hover:bg-red-50"
+                      aria-label="Remove image"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add new image tile */}
+              <label className="cursor-pointer border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors min-h-[180px]">
+                {uploadingHero ? (
+                  <span className="text-sm font-medium">Uploading...</span>
+                ) : (
+                  <>
+                    <Plus className="w-7 h-7" />
+                    <span className="text-sm font-medium">Add Image</span>
+                  </>
+                )}
+                <input type="file" accept="image/*" onChange={handleAddHeroImage} className="hidden" disabled={uploadingHero} />
+              </label>
+            </div>
+
+            {heroImages.length === 0 && (
+              <p className="text-xs text-amber-600 mt-3">No images added — the homepage will use the default hero image.</p>
+            )}
+            <p className="text-xs text-gray-400 mt-3">Remember to click “Save Changes” to apply.</p>
+          </div>
+
           {/* Badge Text */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Badge Text</label>

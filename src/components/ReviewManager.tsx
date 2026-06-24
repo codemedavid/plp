@@ -13,7 +13,7 @@ interface ProductOption {
 }
 
 const emptyForm = {
-    product_id: '',
+    product_ids: [] as string[],
     customer_name: '',
     rating: 5,
     title: '',
@@ -43,6 +43,19 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
         })();
     }, []);
 
+    const toggleProduct = (id: string) => {
+        setFormData(prev => {
+            if (editingId) {
+                // A review row maps to a single product, so editing is single-select.
+                return { ...prev, product_ids: [id] };
+            }
+            const selected = prev.product_ids.includes(id)
+                ? prev.product_ids.filter(p => p !== id)
+                : [...prev.product_ids, id];
+            return { ...prev, product_ids: selected };
+        });
+    };
+
     const resetForm = () => {
         setFormData({ ...emptyForm });
         setEditingId(null);
@@ -54,8 +67,8 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
         e.preventDefault();
         setError(null);
 
-        if (!formData.product_id) {
-            setError('Please select a product.');
+        if (formData.product_ids.length === 0) {
+            setError('Please select at least one product.');
             return;
         }
         if (!formData.customer_name.trim()) {
@@ -68,8 +81,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
         }
 
         try {
-            const payload = {
-                product_id: formData.product_id,
+            const basePayload = {
                 customer_name: formData.customer_name.trim(),
                 rating: formData.rating,
                 title: formData.title.trim() || null,
@@ -80,9 +92,13 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
             };
 
             if (editingId) {
-                await updateReview(editingId, payload);
+                // Editing maps to a single review row.
+                await updateReview(editingId, { ...basePayload, product_id: formData.product_ids[0] });
             } else {
-                await addReview(payload);
+                // Post the same review for each selected product.
+                for (const productId of formData.product_ids) {
+                    await addReview({ ...basePayload, product_id: productId });
+                }
             }
             resetForm();
         } catch (err) {
@@ -92,7 +108,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
 
     const handleEdit = (r: Review) => {
         setFormData({
-            product_id: r.product_id || '',
+            product_ids: r.product_id ? [r.product_id] : [],
             customer_name: r.customer_name,
             rating: r.rating,
             title: r.title || '',
@@ -222,18 +238,40 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
                     <form onSubmit={handleSave} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                                <select
-                                    value={formData.product_id}
-                                    onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
-                                    required
-                                >
-                                    <option value="">Select a product</option>
-                                    {products.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {editingId ? 'Product *' : 'Products *'}
+                                </label>
+                                {!editingId && (
+                                    <p className="text-xs text-gray-500 mb-2">
+                                        Select one or more products. A separate review will be posted for each.
+                                    </p>
+                                )}
+                                <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
+                                    {products.length === 0 ? (
+                                        <p className="text-sm text-gray-400 px-1 py-2">No products available.</p>
+                                    ) : (
+                                        products.map(p => (
+                                            <label
+                                                key={p.id}
+                                                className="flex items-center gap-2 text-sm text-gray-700 px-2 py-1.5 rounded-md hover:bg-gray-50 cursor-pointer"
+                                            >
+                                                <input
+                                                    type={editingId ? 'radio' : 'checkbox'}
+                                                    name="review-product"
+                                                    checked={formData.product_ids.includes(p.id)}
+                                                    onChange={() => toggleProduct(p.id)}
+                                                    className="w-4 h-4"
+                                                />
+                                                {p.name}
+                                            </label>
+                                        ))
+                                    )}
+                                </div>
+                                {formData.product_ids.length > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {formData.product_ids.length} selected
+                                    </p>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Customer name *</label>

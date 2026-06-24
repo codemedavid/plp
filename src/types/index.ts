@@ -120,6 +120,8 @@ export interface SiteSettings {
   hero_tagline?: string;
   hero_description?: string;
   hero_accent_color?: string;
+  hero_image_url?: string;
+  hero_images?: string[];
 }
 
 // Pen Type Options (for injectable products)

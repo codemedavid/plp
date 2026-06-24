@@ -21,6 +21,25 @@ export const useSiteSettings = () => {
 
       const settingsData = data || [];
 
+      // Hero carousel images are stored as a JSON array under `hero_images`.
+      // Fall back to the legacy single `hero_image_url`, then the static default.
+      const singleHeroImage = settingsData.find(s => s.id === 'hero_image_url')?.value || '/hero-plp-slim.png';
+      let heroImages: string[] = [];
+      const rawHeroImages = settingsData.find(s => s.id === 'hero_images')?.value;
+      if (rawHeroImages) {
+        try {
+          const parsed = JSON.parse(rawHeroImages);
+          if (Array.isArray(parsed)) {
+            heroImages = parsed.filter((url): url is string => typeof url === 'string' && url.length > 0);
+          }
+        } catch {
+          heroImages = [];
+        }
+      }
+      if (heroImages.length === 0) {
+        heroImages = [singleHeroImage];
+      }
+
       // Transform the data into a more usable format
       const settings: SiteSettings = {
         site_name: settingsData.find(s => s.id === 'site_name')?.value || 'Peptide Lifestyle Program',
@@ -35,7 +54,9 @@ export const useSiteSettings = () => {
         hero_subtext: settingsData.find(s => s.id === 'hero_subtext')?.value || 'From the Lab to You — Simplifying Science, One Dose at a Time.',
         hero_tagline: settingsData.find(s => s.id === 'hero_tagline')?.value || 'Quality-tested products. Reliable performance. Trusted by our community.',
         hero_description: settingsData.find(s => s.id === 'hero_description')?.value || 'RSPEPTIDE provides research-grade peptides engineered for precision, purity, and consistency.',
-        hero_accent_color: settingsData.find(s => s.id === 'hero_accent_color')?.value || 'gold-500'
+        hero_accent_color: settingsData.find(s => s.id === 'hero_accent_color')?.value || 'gold-500',
+        hero_image_url: singleHeroImage,
+        hero_images: heroImages
       };
 
       setSiteSettings(settings);
@@ -73,7 +94,8 @@ export const useSiteSettings = () => {
 
       const upsertData = Object.entries(updates).map(([key, value]) => ({
         id: key,
-        value: String(value),
+        // Arrays/objects (e.g. hero_images) are stored as JSON strings.
+        value: typeof value === 'string' ? value : JSON.stringify(value),
         type: 'string', // Default type
         updated_at: new Date().toISOString()
       }));

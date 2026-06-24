@@ -62,6 +62,16 @@ const ensureInit = () => {
       setStore({ session: newSession, loading: false, passwordRecovery: true });
       return;
     }
+    // A background token refresh (fired on tab refocus) returns a fresh session
+    // for the same logged-in user. Replacing the store here would hand every
+    // consumer a brand-new user object, re-running auth-dependent effects and
+    // remounting screens like the admin dashboard — wiping in-progress forms.
+    // Skip it: the Supabase client already tracks the refreshed token itself.
+    const prevUserId = store.session?.user?.id ?? null;
+    const nextUserId = newSession?.user?.id ?? null;
+    if (event === 'TOKEN_REFRESHED' && !store.loading && prevUserId === nextUserId) {
+      return;
+    }
     setStore({ session: newSession, loading: false });
   });
 };
