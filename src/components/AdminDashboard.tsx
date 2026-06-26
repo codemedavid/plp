@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown, BarChart3, MessageSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown, BarChart3, MessageSquare, Image as ImageIcon } from 'lucide-react';
 import type { Product, BundleTier } from '../types';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
@@ -2141,6 +2141,18 @@ const AdminDashboard: React.FC = () => {
                   <div>
                     <span className="block text-sm font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">User Lookup</span>
                     <span className="text-xs text-gray-500">Profiles, orders, referrals</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setCurrentView('settings')}
+                  className="group flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-xl transition-all border border-transparent hover:border-gray-200"
+                >
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <ImageIcon className="h-4 w-4 md:h-5 md:w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">Hero & Site Settings</span>
+                    <span className="text-xs text-gray-500">Carousel images & homepage</span>
                   </div>
                 </button>
               </div>
