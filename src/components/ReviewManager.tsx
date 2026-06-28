@@ -45,10 +45,6 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
 
     const toggleProduct = (id: string) => {
         setFormData(prev => {
-            if (editingId) {
-                // A review row maps to a single product, so editing is single-select.
-                return { ...prev, product_ids: [id] };
-            }
             const selected = prev.product_ids.includes(id)
                 ? prev.product_ids.filter(p => p !== id)
                 : [...prev.product_ids, id];
@@ -92,13 +88,9 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
             };
 
             if (editingId) {
-                // Editing maps to a single review row.
-                await updateReview(editingId, { ...basePayload, product_id: formData.product_ids[0] });
+                await updateReview(editingId, basePayload, formData.product_ids);
             } else {
-                // Post the same review for each selected product.
-                for (const productId of formData.product_ids) {
-                    await addReview({ ...basePayload, product_id: productId });
-                }
+                await addReview(basePayload, formData.product_ids);
             }
             resetForm();
         } catch (err) {
@@ -108,7 +100,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
 
     const handleEdit = (r: Review) => {
         setFormData({
-            product_ids: r.product_id ? [r.product_id] : [],
+            product_ids: r.product_ids.length ? r.product_ids : (r.product_id ? [r.product_id] : []),
             customer_name: r.customer_name,
             rating: r.rating,
             title: r.title || '',
@@ -142,7 +134,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
         products.find(p => p.id === id)?.name || 'Unknown product';
 
     const filtered = reviews.filter(r => {
-        if (filterProduct !== 'all' && r.product_id !== filterProduct) return false;
+        if (filterProduct !== 'all' && !r.product_ids.includes(filterProduct)) return false;
         if (filterApproval === 'approved' && !r.is_approved) return false;
         if (filterApproval === 'hidden' && r.is_approved) return false;
         return true;
@@ -239,13 +231,11 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {editingId ? 'Product *' : 'Products *'}
+                                    Products *
                                 </label>
-                                {!editingId && (
-                                    <p className="text-xs text-gray-500 mb-2">
-                                        Select one or more products. A separate review will be posted for each.
-                                    </p>
-                                )}
+                                <p className="text-xs text-gray-500 mb-2">
+                                    Select one or more products. This review will be linked to every product you choose.
+                                </p>
                                 <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-2 space-y-1">
                                     {products.length === 0 ? (
                                         <p className="text-sm text-gray-400 px-1 py-2">No products available.</p>
@@ -256,7 +246,7 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
                                                 className="flex items-center gap-2 text-sm text-gray-700 px-2 py-1.5 rounded-md hover:bg-gray-50 cursor-pointer"
                                             >
                                                 <input
-                                                    type={editingId ? 'radio' : 'checkbox'}
+                                                    type="checkbox"
                                                     name="review-product"
                                                     checked={formData.product_ids.includes(p.id)}
                                                     onChange={() => toggleProduct(p.id)}
@@ -393,7 +383,11 @@ const ReviewManager: React.FC<ReviewManagerProps> = ({ onBack }) => {
                             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                                        <span className="text-xs uppercase tracking-wide text-gray-500">{productName(r.product_id)}</span>
+                                        <span className="text-xs uppercase tracking-wide text-gray-500">
+                                            {(r.product_ids.length ? r.product_ids : (r.product_id ? [r.product_id] : []))
+                                                .map(productName)
+                                                .join(', ') || 'Unknown product'}
+                                        </span>
                                         {r.is_verified_purchase && (
                                             <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
                                                 <ShieldCheck className="w-3 h-3" /> Verified

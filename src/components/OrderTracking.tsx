@@ -82,7 +82,7 @@ const OrderTracking: React.FC = () => {
             try {
                 const reviews = await getReviewsForOrder(order.id);
                 if (cancelled) return;
-                setReviewedProductIds(new Set(reviews.map(r => r.product_id).filter((id): id is string => !!id)));
+                setReviewedProductIds(new Set(reviews.flatMap(r => r.product_ids)));
             } catch (e) {
                 console.warn('Failed to load reviews for order:', e);
             }
@@ -94,7 +94,7 @@ const OrderTracking: React.FC = () => {
         if (!order) return;
         try {
             const reviews = await getReviewsForOrder(order.id);
-            setReviewedProductIds(new Set(reviews.map(r => r.product_id).filter((id): id is string => !!id)));
+            setReviewedProductIds(new Set(reviews.flatMap(r => r.product_ids)));
         } catch (e) {
             console.warn(e);
         }
