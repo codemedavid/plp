@@ -12,6 +12,7 @@ import {
     ArrowLeft
 } from 'lucide-react';
 import ImageUpload from './ImageUpload';
+import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 
 interface Article {
     id: string;
@@ -374,7 +375,7 @@ export default function GuideManager() {
                                 <ImageUpload
                                     currentImage={modalData.cover_image || undefined}
                                     onImageChange={(imageUrl) => setModalData({ ...modalData, cover_image: imageUrl || null })}
-                                    folder="article-covers"
+                                    folder={IMAGEKIT_FOLDERS.guides}
                                 />
                             </div>
 

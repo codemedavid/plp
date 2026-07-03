@@ -4,7 +4,8 @@ import { ArrowLeft, Copy, Check, Share2, Wallet, Gift, TrendingUp, AlertCircle, 
 import { useAuth } from '../hooks/useAuth';
 import { useReferral, type WithdrawalRow, type UserProfile as UserProfileRow, type UpdateProfileInput } from '../hooks/useReferral';
 import { useAddresses, type UserAddress, type AddressInput } from '../hooks/useAddresses';
-import { supabase } from '../lib/supabase';
+import { useImageUpload } from '../hooks/useImageUpload';
+import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 
 const REASON_LABEL: Record<string, string> = {
   referral_l1: 'Level 1 referral',
@@ -53,7 +54,6 @@ export default function UserProfile() {
           <div className="flex items-start sm:items-end justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4 sm:gap-5 min-w-0 flex-1">
               <AvatarUploader
-                userId={user.id}
                 avatarUrl={profile?.avatar_url ?? null}
                 fallback={(profile?.nickname || profile?.full_name || user.email || '?').charAt(0).toUpperCase()}
                 onUploaded={url => updateProfile({ avatar_url: url })}
@@ -390,12 +390,10 @@ function lifetimeEarned(ledger: { delta: number }[]): number {
 }
 
 function AvatarUploader({
-  userId,
   avatarUrl,
   fallback,
   onUploaded,
 }: {
-  userId: string;
   avatarUrl: string | null;
   fallback: string;
   onUploaded: (url: string) => Promise<{ error: string | null }>;
@@ -403,19 +401,14 @@ function AvatarUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const { uploadImage } = useImageUpload(IMAGEKIT_FOLDERS.avatars);
 
   const handleFile = async (file: File) => {
     setErr(null);
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const path = `${userId}/avatar-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-      const { error: saveErr } = await onUploaded(data.publicUrl);
+      const url = await uploadImage(file);
+      const { error: saveErr } = await onUploaded(url);
       if (saveErr) throw new Error(saveErr);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Upload failed');

@@ -29,8 +29,9 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
   ) => {
     const shippingFee = order.shipping_fee || 0;
     const discount = order.discount_applied || 0;
+    const points = order.points_redeemed || 0;
     const total = order.total_price;
-    const subtotal = total - shippingFee + discount;
+    const subtotal = total - shippingFee + discount + points;
 
     const itemsSummary = order.order_items.map(item => {
       const name = item.variation_name
@@ -639,7 +640,7 @@ interface OrderCardProps {
 
 const OrderCard: React.FC<OrderCardProps> = ({ order, onView, getStatusColor, getStatusIcon, isSelected, onToggleSelect }) => {
   const totalItems = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
-  const finalTotal = order.total_price + (order.shipping_fee || 0);
+  const finalTotal = order.total_price;
 
   return (
     <div
@@ -689,7 +690,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onView, getStatusColor, ge
               <span className="text-gray-500 text-[10px] md:text-xs">Total</span>
               <p className="font-semibold text-gold-600">₱{finalTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
               {order.shipping_fee && order.shipping_fee > 0 && (
-                <p className="text-[10px] md:text-xs text-gray-500">+ ₱{order.shipping_fee} shipping</p>
+                <p className="text-[10px] md:text-xs text-gray-500">incl. ₱{order.shipping_fee} shipping</p>
               )}
             </div>
             <div>

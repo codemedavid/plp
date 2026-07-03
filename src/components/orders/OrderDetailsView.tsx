@@ -157,8 +157,10 @@ export default function OrderDetailsView({
   const shippingFee = order.shipping_fee || 0;
   const discount = order.discount_applied || 0;
   const points = order.points_redeemed || 0;
-  const subtotal = order.total_price + discount + points;
-  const finalTotal = order.total_price + shippingFee;
+  // total_price is stored as the final charged amount (items − discount − points + shipping),
+  // so derive the items subtotal by removing shipping and adding back discount/points.
+  const subtotal = order.total_price - shippingFee + discount + points;
+  const finalTotal = order.total_price;
   const isPaid = order.payment_status === 'paid';
 
   const handleStatusChange = (newStatus: string) => {

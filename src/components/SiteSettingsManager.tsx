@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Home, Layout, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
+import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 
 const SiteSettingsManager: React.FC = () => {
   const { siteSettings, loading, updateSiteSettings } = useSiteSettings();
-  const { uploadImage, uploading } = useImageUpload();
-  const { uploadImage: uploadHeroImage, uploading: uploadingHero } = useImageUpload('hero-images');
+  const { uploadImage, uploading } = useImageUpload(IMAGEKIT_FOLDERS.logo);
+  const { uploadImage: uploadHeroImage, uploading: uploadingHero } = useImageUpload(IMAGEKIT_FOLDERS.hero);
 
   const [formData, setFormData] = useState({
     site_name: '',

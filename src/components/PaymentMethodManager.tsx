@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard, Upload } from 'lucide-react';
 import { usePaymentMethods, PaymentMethod } from '../hooks/usePaymentMethods';
 import ImageUpload from './ImageUpload';
+import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 
 interface PaymentMethodManagerProps {
   onBack: () => void;
@@ -219,7 +220,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
                       saved: newQrCodeUrl,
                     });
                   }}
-                  folder="menu-images"
+                  folder={IMAGEKIT_FOLDERS.paymentQr}
                 />
               </div>
 

@@ -147,6 +147,23 @@ describe('OrderDetailsView', () => {
     expect(totals.length).toBeGreaterThan(0);
   });
 
+  it('does not double-count shipping in the total', () => {
+    // total_price is the final charged amount (items 1200 + shipping 200 = 1400).
+    setup({
+      shipping_fee: 200,
+      total_price: 1400,
+      order_items: [
+        { product_id: 'p1', product_name: 'Peptide Nimo', variation_id: null, variation_name: null, quantity: 1, price: 1200, total: 1200 },
+      ],
+    });
+    // Subtotal shows items only, shipping shows separately, total is the stored final price.
+    expect(screen.getAllByText(/₱1,200\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/₱200\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/₱1,400\.00/).length).toBeGreaterThan(0);
+    // The buggy behaviour added shipping twice (1400 + 200); that must never appear.
+    expect(screen.queryByText(/₱1,600\.00/)).not.toBeInTheDocument();
+  });
+
   it('renders discount and points rows when present', () => {
     setup({ discount_applied: 100, points_redeemed: 50, promo_code: 'SAVE10' });
     expect(screen.getByText(/SAVE10/)).toBeInTheDocument();

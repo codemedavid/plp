@@ -4,6 +4,7 @@ import type { Product, BundleTier } from '../types';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';
 import ImageUpload from './ImageUpload';
+import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 import CategoryManager from './CategoryManager';
 import PaymentMethodManager from './PaymentMethodManager';
 import VariationManager from './VariationManager';
@@ -1271,6 +1272,7 @@ const AdminDashboard: React.FC = () => {
                   Upload a product image (optional). This will appear on the customer-facing site.
                 </p>
                 <ImageUpload
+                  folder={IMAGEKIT_FOLDERS.products}
                   currentImage={formData.image_url || undefined}
                   onImageChange={(imageUrl) => {
                     // Normalize value: undefined/null → null, non-empty string → trimmed URL

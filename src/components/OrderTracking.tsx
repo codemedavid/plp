@@ -28,6 +28,7 @@ interface TrackingOrder {
     created_at: string;
     promo_code: string | null;
     discount_applied: number | null;
+    points_redeemed: number | null;
 }
 
 const STEPS = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
@@ -55,7 +56,7 @@ const OrderTracking: React.FC = () => {
             setMyOrdersLoading(true);
             const { data, error } = await supabase
                 .from('orders')
-                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied, customer_name')
+                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied, points_redeemed, customer_name')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
             if (cancelled) return;
@@ -288,7 +289,7 @@ const OrderTracking: React.FC = () => {
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <span className="font-mono text-sm text-navy-900">
-                                                        ₱{(o.total_price + (o.shipping_fee || 0)).toLocaleString()}
+                                                        ₱{o.total_price.toLocaleString()}
                                                     </span>
                                                     <span className={`text-[10px] uppercase tracking-[0.22em] px-2.5 py-1 border capitalize ${statusBadgeClass(o.order_status)}`}>
                                                         {o.order_status}
@@ -474,16 +475,32 @@ const OrderTracking: React.FC = () => {
                                     })}
                                 </ul>
 
+                                <div className="flex justify-between items-center pt-3 border-t border-gold-200 text-sm font-light">
+                                    <span className="text-charcoal-500">Subtotal</span>
+                                    <span className="text-navy-900 font-mono">
+                                        ₱{(order.total_price - (order.shipping_fee || 0) + (order.discount_applied || 0) + (order.points_redeemed || 0)).toLocaleString()}
+                                    </span>
+                                </div>
                                 {order.discount_applied && order.discount_applied > 0 && (
-                                    <div className="flex justify-between items-center pt-3 border-t border-gold-200 text-sm font-light">
+                                    <div className="flex justify-between items-center text-sm font-light">
                                         <span className="text-charcoal-500">Discount {order.promo_code ? `(${order.promo_code})` : ''}</span>
                                         <span className="text-emerald-700 font-mono">−₱{order.discount_applied.toLocaleString()}</span>
                                     </div>
                                 )}
+                                {order.points_redeemed && order.points_redeemed > 0 && (
+                                    <div className="flex justify-between items-center text-sm font-light">
+                                        <span className="text-charcoal-500">Points redeemed</span>
+                                        <span className="text-emerald-700 font-mono">−₱{order.points_redeemed.toLocaleString()}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center text-sm font-light">
+                                    <span className="text-charcoal-500">Shipping</span>
+                                    <span className="text-navy-900 font-mono">₱{(order.shipping_fee || 0).toLocaleString()}</span>
+                                </div>
                                 <div className="flex justify-between items-baseline pt-4 border-t border-gold-300 mt-3">
                                     <span className="text-[11px] uppercase tracking-[0.32em] text-gold-600">Total</span>
                                     <span className="font-heading text-2xl text-navy-900">
-                                        ₱{(order.total_price + (order.shipping_fee || 0)).toLocaleString()}
+                                        ₱{order.total_price.toLocaleString()}
                                     </span>
                                 </div>
                             </div>
