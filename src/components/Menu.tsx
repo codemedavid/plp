@@ -7,7 +7,7 @@ import type { Product, ProductVariation, CartItem, KitType } from '../types';
 import { slugify, findProductBySlug } from '../lib/slug';
 import {
   ArrowRight, User as UserIcon, Dumbbell, Activity,
-  MessageCircle
+  Send
 } from 'lucide-react';
 
 interface MenuProps {
@@ -165,14 +165,14 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, loading, e
 
         {/* ── Trust Badges Row ── */}
 
-        {/* ── Join the Inner Circle (Messenger Group) ── */}
+        {/* ── Join the Inner Circle (Telegram Community) ── */}
         <section className="bg-white py-12">
           <div className="container mx-auto px-4 md:px-8">
             <div className="border border-gold-300 bg-cream-light p-6 md:p-8" style={{ borderRadius: '2px' }}>
               <div className="grid md:grid-cols-2 gap-6 items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full border border-gold-500 flex items-center justify-center text-gold-600 shrink-0">
-                    <MessageCircle className="w-6 h-6" strokeWidth={1.4} />
+                    <Send className="w-6 h-6" strokeWidth={1.4} />
                   </div>
                   <div>
                     <h3 className="font-heading text-2xl text-navy-900 mb-1 tracking-tight">Join the Inner Circle</h3>
@@ -183,13 +183,13 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, loading, e
                 </div>
                 <div className="flex md:justify-end">
                   <a
-                    href="https://m.me/j/AbajrxmIUNpzttP_/?send_source=gc:copy_invite_link_c"
+                    href="https://t.me/+BONrPhxaWOEzNGJl"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group inline-flex items-center justify-between gap-6 px-7 py-3.5 bg-navy-900 hover:bg-navy-700 text-white text-[11px] font-semibold tracking-[0.22em] uppercase transition-colors"
                     style={{ borderRadius: '2px' }}
                   >
-                    Join Messenger Group
+                    Join Telegram Community
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.8} />
                   </a>
                 </div>
