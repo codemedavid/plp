@@ -4,6 +4,8 @@ import { AUTHOR } from '../../data/researchArticles';
 import type { Article } from '../../data/researchArticles';
 import { getArticleBySlug, getRelatedArticles, buildBody } from './researchHelpers';
 import { ResearchHeader, ResearchFooter } from './ResearchShell';
+import ProductSpotlight from './ProductSpotlight';
+import { useMenu } from '../../hooks/useMenu';
 
 const BASE_URL = 'https://peptidelifestyleprogram.com';
 
@@ -87,6 +89,8 @@ export default function ResearchArticle() {
 
   const [openFaq, setOpenFaq] = useState<Record<number, boolean>>({});
   const progress = useReadingProgress();
+  const { products } = useMenu();
+  const spotlightProducts = products.filter((p) => p.available);
 
   // Hooks must run unconditionally; pass a safe fallback when the slug is bad.
   useArticleSeo(
@@ -256,40 +260,48 @@ export default function ResearchArticle() {
                 </a>
               ))}
             </nav>
-            <div style={{ marginTop: 32, padding: 22, background: '#17233E', borderRadius: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: '#C8A56A', marginBottom: 10 }}>
-                FEATURED PRODUCT
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  fontSize: 22,
-                  color: '#FBF8F1',
-                  fontWeight: 600,
-                  marginBottom: 4,
-                }}
-              >
-                {article.productTie.name}
-              </div>
-              <div style={{ fontSize: 12.5, color: '#A9B2C6', marginBottom: 16 }}>{article.productTie.detail}</div>
-              <Link
-                to="/#all-products"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  letterSpacing: '0.1em',
-                  color: '#C8A56A',
-                  textDecoration: 'none',
-                }}
-              >
-                VIEW PRODUCT
-                <svg width="16" height="10" viewBox="0 0 24 14" fill="none" stroke="#C8A56A" strokeWidth="2">
-                  <path d="M0 7h18M13 1l6 6-6 6" />
-                </svg>
-              </Link>
+            <div style={{ marginTop: 32 }}>
+              {spotlightProducts.length > 0 ? (
+                <ProductSpotlight products={spotlightProducts} />
+              ) : (
+                <div style={{ padding: 22, background: '#17233E', borderRadius: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', color: '#C8A56A', marginBottom: 10 }}>
+                    FEATURED PRODUCT
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Playfair Display', serif",
+                      fontSize: 22,
+                      color: '#FBF8F1',
+                      fontWeight: 600,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {article.productTie.name}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: '#A9B2C6', marginBottom: 16 }}>
+                    {article.productTie.detail}
+                  </div>
+                  <Link
+                    to="/#all-products"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 12,
+                      fontWeight: 800,
+                      letterSpacing: '0.1em',
+                      color: '#C8A56A',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    VIEW PRODUCT
+                    <svg width="16" height="10" viewBox="0 0 24 14" fill="none" stroke="#C8A56A" strokeWidth="2">
+                      <path d="M0 7h18M13 1l6 6-6 6" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
             </div>
           </aside>
 

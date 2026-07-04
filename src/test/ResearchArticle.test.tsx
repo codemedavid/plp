@@ -1,8 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ResearchArticle from '../components/research/ResearchArticle';
 import { ARTICLES } from '../data/researchArticles';
+
+// Keep the article tests hermetic — no Supabase. One product means the
+// spotlight renders statically (no rotation timer) yet still links out.
+vi.mock('../hooks/useMenu', () => ({
+  useMenu: () => ({
+    products: [
+      { id: 'p1', name: 'PLP Slim 2.0', base_price: 4500, image_url: null, available: true, featured: true },
+    ],
+  }),
+}));
 
 function renderArticle(slug: string) {
   return render(
@@ -55,6 +65,14 @@ describe('ResearchArticle view', () => {
     expect(
       screen.getByText(/educational purposes only and is not medical advice/i),
     ).toBeInTheDocument();
+  });
+
+  it('renders the live product spotlight with a working VIEW PRODUCT link', () => {
+    renderArticle(sample.slug);
+    expect(screen.getByRole('link', { name: /view product/i })).toHaveAttribute(
+      'href',
+      '/products/plp-slim-2-0',
+    );
   });
 
   it('redirects unknown slugs to the research index', () => {
