@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { HelmetProvider } from 'react-helmet-async';
 import posthog from 'posthog-js';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
@@ -13,8 +14,10 @@ posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </HelmetProvider>
   </StrictMode>
 );
