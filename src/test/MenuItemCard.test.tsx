@@ -203,4 +203,50 @@ describe('MenuItemCard Component', () => {
       expect(onProductClick).toHaveBeenCalledWith(baseProduct);
     });
   });
+
+  describe('COA links', () => {
+    it('renders no COA control when the product has no COA', () => {
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.queryByRole('link', { name: /coa/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /coa/i })).not.toBeInTheDocument();
+    });
+
+    it('renders a direct COA link for a single legacy coa_url', () => {
+      const product = {
+        ...baseProduct,
+        coa_url: 'https://verify.janoshik.com/tests/113255',
+      } as Product;
+
+      render(<MenuItemCard product={product} />);
+
+      expect(screen.getByRole('link', { name: /coa/i })).toHaveAttribute(
+        'href',
+        'https://verify.janoshik.com/tests/113255',
+      );
+    });
+
+    it('renders a COA menu listing each labeled document', () => {
+      const product = {
+        ...baseProduct,
+        coa_links: [
+          { label: 'Purity Test', url: 'https://verify.janoshik.com/tests/113255' },
+          { label: 'Heavy Metal Testing', url: 'https://verify.janoshik.com/tests/113135' },
+        ],
+      } as Product;
+
+      render(<MenuItemCard product={product} />);
+
+      fireEvent.click(screen.getByRole('button', { name: /coa/i }));
+
+      expect(screen.getByRole('menuitem', { name: /purity test/i })).toHaveAttribute(
+        'href',
+        'https://verify.janoshik.com/tests/113255',
+      );
+      expect(screen.getByRole('menuitem', { name: /heavy metal testing/i })).toHaveAttribute(
+        'href',
+        'https://verify.janoshik.com/tests/113135',
+      );
+    });
+  });
 });

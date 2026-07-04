@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Heart, Shield } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
 import { cleanText } from '../lib/cleanText';
+import { getCoaLinks } from '../lib/coa';
+import { CoaButton } from './ui/CoaButton';
 
 interface MenuItemCardProps {
   product: Product;
@@ -13,7 +15,7 @@ interface MenuItemCardProps {
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) => {
   const [imageError, setImageError] = useState(false);
-  const productHasCOA = !!product.coa_url;
+  const coaLinks = getCoaLinks(product);
 
   const effectivePrice = (v: ProductVariation) =>
     v.discount_active && v.discount_price != null ? v.discount_price : v.price;
@@ -150,19 +152,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
           >
             {isHighlighted ? 'Buy Now' : 'View'}
           </button>
-          {productHasCOA && (
-            <a
-              href={product.coa_url!}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              title="View Certificate of Analysis"
-              className="shrink-0 inline-flex items-center gap-1 px-3 py-2.5 sm:py-3 rounded-full border border-gold-500 text-gold-700 text-[10px] sm:text-xs font-semibold tracking-wide uppercase hover:bg-gold-500 hover:text-white transition-colors"
-            >
-              <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={1.8} />
-              COA
-            </a>
-          )}
+          {coaLinks.length > 0 && <CoaButton links={coaLinks} variant="card" />}
         </div>
       </div>
     </div>

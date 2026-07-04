@@ -131,6 +131,8 @@ export type Database = {
           featured: boolean;
           image_url: string | null;
           safety_sheet_url: string | null;
+          coa_url: string | null;
+          coa_links: { label: string; url: string }[];
           created_at: string;
           updated_at: string;
         };
@@ -159,6 +161,8 @@ export type Database = {
           featured?: boolean;
           image_url?: string | null;
           safety_sheet_url?: string | null;
+          coa_url?: string | null;
+          coa_links?: { label: string; url: string }[];
           created_at?: string;
           updated_at?: string;
         };
@@ -187,6 +191,8 @@ export type Database = {
           featured?: boolean;
           image_url?: string | null;
           safety_sheet_url?: string | null;
+          coa_url?: string | null;
+          coa_links?: { label: string; url: string }[];
           created_at?: string;
           updated_at?: string;
         };

@@ -5,7 +5,6 @@ import {
   ShoppingCart,
   Plus,
   Minus,
-  FileText,
   Gift,
   Package,
   Sparkles,
@@ -15,8 +14,10 @@ import { KIT_UPGRADE_PRICE } from '../types';
 import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
 import ProductReviews from './ProductReviews';
-import { getMatchingBundleTier } from '../lib/bundlePricing';
+import { getBundleSavings, FREE_SHIPPING_MIN_QTY } from '../lib/bundlePricing';
 import { cleanText } from '../lib/cleanText';
+import { getCoaLinks } from '../lib/coa';
+import { CoaButton } from './ui/CoaButton';
 
 interface ProductDetailModalProps {
   product: Product;
@@ -98,17 +99,13 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
   };
 
   const unitPrice = calculateUnitPrice();
-  const matchedTier = getMatchingBundleTier(product, quantity);
-  const kitUpgradeForQty =
-    kitType === 'complete_kit' && !isKitVariation ? KIT_UPGRADE_PRICE * quantity : 0;
-  const totalPrice = matchedTier
-    ? matchedTier.price! + kitUpgradeForQty
-    : unitPrice * quantity;
-  const totalOriginal = unitPrice * quantity;
-  const showBundleSavings = Boolean(matchedTier) && totalPrice < totalOriginal;
-  const bundleSavingsPct = showBundleSavings
-    ? Math.round((1 - totalPrice / totalOriginal) * 100)
-    : 0;
+  // Bundle pricing uses the effective kit type (kit variations are always priced vial-only).
+  const effectiveKitType: KitType = isKitVariation ? 'vial_only' : kitType;
+  const selectedSavings = getBundleSavings(product, selectedVariation, effectiveKitType, quantity);
+  const totalPrice = selectedSavings.discountedTotal;
+  const totalOriginal = selectedSavings.originalTotal;
+  const showBundleSavings = selectedSavings.hasSavings;
+  const bundleSavingsPct = selectedSavings.pct;
 
   const hasAnyStock = product.variations && product.variations.length > 0
     ? product.variations.some(v => v.stock_quantity > 0)
@@ -352,13 +349,12 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
             <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-4 sm:-mx-5 px-4 sm:px-5 pt-3 pb-2 snap-x snap-mandatory">
               {bundleTiers.map((tier) => {
                 const isSelected = quantity === tier.qty;
-                const fullTotal = unitPrice * tier.qty;
-                const hasTierPrice =
-                  typeof tier.price === 'number' && tier.price > 0 && tier.price < fullTotal;
-                const tierTotal = hasTierPrice ? tier.price! : fullTotal;
-                const tierSavingsPct = hasTierPrice
-                  ? Math.round((1 - tier.price! / fullTotal) * 100)
-                  : 0;
+                const tierSavings = getBundleSavings(product, selectedVariation, effectiveKitType, tier.qty);
+                const tierTotal = tierSavings.discountedTotal;
+                const fullTotal = tierSavings.originalTotal;
+                const hasSavings = tierSavings.hasSavings;
+                const tierSavingsPct = tierSavings.pct;
+                const tierFreeShipping = tier.qty >= FREE_SHIPPING_MIN_QTY;
                 return (
                   <button
                     key={tier.qty}
@@ -380,7 +376,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
                         Most Popular
                       </span>
                     )}
-                    {hasTierPrice && (
+                    {hasSavings && (
                       <span className="absolute top-2 right-2 text-[10px] font-extrabold text-white px-1.5 py-0.5 rounded-full bg-emerald-500">
                         SAVE {tierSavingsPct}%
                       </span>
@@ -408,12 +404,15 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
                         <p className="font-bold text-charcoal-900 text-sm">{tier.label}</p>
                         <div className="flex items-baseline gap-1.5 flex-wrap">
                           <p className="text-xs font-bold text-charcoal-900">{formatPrice(tierTotal)}</p>
-                          {hasTierPrice && (
+                          {hasSavings && (
                             <p className="text-[10px] text-charcoal-300 line-through">
                               {formatPrice(fullTotal)}
                             </p>
                           )}
                         </div>
+                        {tierFreeShipping && (
+                          <p className="text-[10px] font-bold text-emerald-600 mt-0.5">+ FREE SHIPPING</p>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -424,25 +423,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
 
           {/* CoA + Add to cart */}
           <div className="mt-5 flex items-center gap-3">
-            {product.safety_sheet_url ? (
-              <a
-                href={product.safety_sheet_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-3 rounded-full border border-charcoal-200 text-charcoal-900 text-sm font-bold hover:bg-charcoal-50 transition-colors inline-flex items-center gap-1.5 flex-shrink-0"
-              >
-                <FileText className="w-4 h-4" />
-                CoA
-              </a>
-            ) : (
-              <button
-                disabled
-                className="px-5 py-3 rounded-full border border-charcoal-200 text-charcoal-400 text-sm font-bold cursor-not-allowed inline-flex items-center gap-1.5 flex-shrink-0"
-              >
-                <FileText className="w-4 h-4" />
-                CoA
-              </button>
-            )}
+            <CoaButton links={getCoaLinks(product)} variant="pdp" />
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock}

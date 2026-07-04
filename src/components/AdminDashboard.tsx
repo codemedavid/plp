@@ -131,7 +131,8 @@ const AdminDashboard: React.FC = () => {
     discount_active: false,
     inclusions: null,
     paired_product_ids: [],
-    bundle_tiers: []
+    bundle_tiers: [],
+    coa_links: []
   });
   const [inclusionsText, setInclusionsText] = useState('');
   const [pairedSearchTerm, setPairedSearchTerm] = useState('');
@@ -162,7 +163,8 @@ const AdminDashboard: React.FC = () => {
       discount_active: false,
       inclusions: null,
       paired_product_ids: [],
-      bundle_tiers: []
+      bundle_tiers: [],
+      coa_links: []
     });
     setInclusionsText('');
   };
@@ -267,6 +269,12 @@ const AdminDashboard: React.FC = () => {
         if (prepared.image_url === undefined) prepared.image_url = null;
         if (prepared.safety_sheet_url === undefined) prepared.safety_sheet_url = null;
         if (prepared.coa_url === undefined) prepared.coa_url = null;
+        // Persist only complete COA rows; trim and drop any blank label/url pairs.
+        prepared.coa_links = Array.isArray(prepared.coa_links)
+          ? prepared.coa_links
+              .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
+              .filter((link) => link.label !== '' && link.url !== '')
+          : [];
         if (prepared.discount_price === undefined) prepared.discount_price = null;
         if (prepared.molecular_weight === undefined) prepared.molecular_weight = null;
         if (prepared.cas_number === undefined) prepared.cas_number = null;
@@ -298,6 +306,7 @@ const AdminDashboard: React.FC = () => {
           'image_url',
           'safety_sheet_url',
           'coa_url',
+          'coa_links',
           'inclusions',
           'description_font_family',
           'description_font_size',
@@ -1186,9 +1195,10 @@ const AdminDashboard: React.FC = () => {
                                       price: v === '' ? null : Math.max(0, Number(v) || 0),
                                     });
                                   }}
-                                  placeholder="bundle price"
+                                  placeholder="auto (10%/15%)"
+                                  title="Leave blank for the automatic bundle promo: 2 = 10% off, 3+ = 15% off + free shipping. Enter a price only to override."
                                   className="w-24 px-2 py-1 border border-gray-300 rounded-md text-xs bg-white text-black"
-                                  aria-label="Bundle price"
+                                  aria-label="Bundle price (leave blank for automatic discount)"
                                 />
                               </div>
                               {(() => {
@@ -1296,24 +1306,74 @@ const AdminDashboard: React.FC = () => {
 
                 <div className="mt-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Certificate of Analysis (COA) link
+                    Certificate of Analysis (COA) links
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">
-                    Paste the URL to this product's COA (PDF or image). Leave blank to hide the COA badge on the product card.
+                  <p className="text-xs text-gray-500 mb-3">
+                    Add one row per lab document (e.g. "Purity Test", "Heavy Metal Testing").
+                    These sit behind the COA button on the product card and detail page.
+                    Add none to hide the COA button.
                   </p>
-                  <input
-                    type="url"
-                    value={formData.coa_url || ''}
-                    onChange={(e) => {
-                      const trimmed = e.target.value.trim();
+
+                  <div className="space-y-2">
+                    {(formData.coa_links ?? []).map((link, index) => (
+                      <div key={index} className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={link.label}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => {
+                              const next = [...(prev.coa_links ?? [])];
+                              next[index] = { ...next[index], label: value };
+                              return { ...prev, coa_links: next };
+                            });
+                          }}
+                          placeholder="Label (e.g. Purity Test)"
+                          className="sm:w-1/3 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-transparent text-gray-900"
+                        />
+                        <input
+                          type="url"
+                          value={link.url}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => {
+                              const next = [...(prev.coa_links ?? [])];
+                              next[index] = { ...next[index], url: value };
+                              return { ...prev, coa_links: next };
+                            });
+                          }}
+                          placeholder="https://…"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-transparent text-gray-900"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              coa_links: (prev.coa_links ?? []).filter((_, i) => i !== index),
+                            }))
+                          }
+                          aria-label={`Remove COA link ${index + 1}`}
+                          className="px-3 py-2 rounded-lg border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
                       setFormData((prev) => ({
                         ...prev,
-                        coa_url: trimmed === '' ? null : trimmed,
-                      }));
-                    }}
-                    placeholder="https://…"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-900 focus:border-transparent text-gray-900"
-                  />
+                        coa_links: [...(prev.coa_links ?? []), { label: '', url: '' }],
+                      }))
+                    }
+                    className="mt-3 inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-navy-900 text-navy-900 text-sm font-semibold hover:bg-navy-900 hover:text-white transition-colors"
+                  >
+                    + Add COA link
+                  </button>
                 </div>
                 </CollapsibleSection>
               </div>
