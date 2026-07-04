@@ -52,7 +52,9 @@ describe('ResearchArticle view', () => {
 
   it('renders the medical disclaimer', () => {
     renderArticle(sample.slug);
-    expect(screen.getByText(/not medical advice/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/educational purposes only and is not medical advice/i),
+    ).toBeInTheDocument();
   });
 
   it('redirects unknown slugs to the research index', () => {

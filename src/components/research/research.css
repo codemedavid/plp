@@ -1,0 +1,153 @@
+/* Research blog — article prose styling.
+   Ported from the "Peptide Blog" design. Scoped under .research-prose so it
+   never leaks into the rest of the app. Fonts (Playfair Display + Mulish) are
+   loaded via the Google Fonts import in src/index.css. */
+
+.research-prose {
+  color: #4a5163;
+  font-family: 'Mulish', 'Inter', sans-serif;
+  font-size: 19px;
+  line-height: 1.75;
+}
+
+.research-prose > p:first-child {
+  font-size: 21px;
+  line-height: 1.7;
+  color: #3a4356;
+}
+
+.research-prose p {
+  margin: 0 0 24px;
+}
+
+.research-prose strong {
+  color: #17233e;
+  font-weight: 700;
+}
+
+.research-prose em {
+  color: #5b6474;
+}
+
+.research-prose h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.15;
+  color: #17233e;
+  margin: 56px 0 20px;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 110px;
+}
+
+.research-prose h3 {
+  font-family: 'Mulish', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 21px;
+  color: #17233e;
+  margin: 36px 0 14px;
+  scroll-margin-top: 110px;
+}
+
+.research-prose h2 + p,
+.research-prose h3 + p {
+  margin-top: 0;
+}
+
+.research-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 32px;
+  font-size: 15.5px;
+}
+
+.research-prose thead th {
+  background: #17233e;
+  color: #f4f0e6;
+  font-family: 'Mulish', 'Inter', sans-serif;
+  font-weight: 700;
+  text-align: left;
+  padding: 13px 16px;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.research-prose thead th:first-child {
+  border-top-left-radius: 6px;
+}
+
+.research-prose thead th:last-child {
+  border-top-right-radius: 6px;
+}
+
+.research-prose tbody td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #ebe3d2;
+  color: #4a5163;
+  vertical-align: top;
+}
+
+.research-prose tbody tr:nth-child(even) {
+  background: #fbf8f1;
+}
+
+.research-prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Tables scroll horizontally on narrow screens rather than overflowing. */
+.research-prose table {
+  display: block;
+  overflow-x: auto;
+}
+
+@keyframes plpFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.research-fade {
+  animation: plpFade 0.4s ease both;
+}
+
+@media (max-width: 900px) {
+  .research-article-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .research-article-aside {
+    position: static !important;
+  }
+  .research-index-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .research-featured {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .research-hero-h1 {
+    font-size: 44px !important;
+  }
+  .research-article-h1 {
+    font-size: 34px !important;
+  }
+  .research-pad {
+    padding-left: 22px !important;
+    padding-right: 22px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .research-fade {
+    animation: none;
+  }
+}

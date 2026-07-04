@@ -24,6 +24,8 @@ const FAQ = lazy(() => import('./components/FAQ'));
 const PeptideCalculator = lazy(() => import('./components/PeptideCalculator'));
 const OrderTracking = lazy(() => import('./components/OrderTracking'));
 const ProtocolGuide = lazy(() => import('./components/ProtocolGuide'));
+const ResearchBlog = lazy(() => import('./components/research/ResearchBlog'));
+const ResearchArticle = lazy(() => import('./components/research/ResearchArticle'));
 const UserProfile = lazy(() => import('./components/UserProfile'));
 const ShippingReturns = lazy(() => import('./components/ShippingReturns'));
 const TermsConditions = lazy(() => import('./components/TermsConditions'));
@@ -198,6 +200,8 @@ function App() {
                     <Route path="/calculator" element={<PeptideCalculator />} />
                     <Route path="/track-order" element={<OrderTracking />} />
                     <Route path="/protocols" element={<ProtocolGuide />} />
+                    <Route path="/research" element={<ResearchBlog />} />
+                    <Route path="/research/:slug" element={<ResearchArticle />} />
                     <Route
                         path="/admin"
                         element={

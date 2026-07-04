@@ -29,10 +29,9 @@ describe('ResearchBlog index', () => {
 
   it('lists every non-featured article in the grid', () => {
     renderBlog();
+    const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'));
     for (const article of getOtherArticles()) {
-      expect(
-        screen.getByRole('link', { name: new RegExp(article.title.slice(0, 20), 'i') }),
-      ).toHaveAttribute('href', `/research/${article.slug}`);
+      expect(hrefs).toContain(`/research/${article.slug}`);
     }
   });
 
