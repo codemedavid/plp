@@ -1,9 +1,15 @@
 import React from 'react';
 import { ArrowLeft, Truck } from 'lucide-react';
+import Seo from './seo/Seo';
 
 const ShippingReturns: React.FC = () => {
     return (
         <div className="min-h-screen font-cute" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
+            <Seo
+                title="Shipping & Returns — Peptide Lifestyle Program"
+                description="Shipping timelines, courier options, order tracking, and the return policy for Peptide Lifestyle Program orders."
+                path="/shipping-returns"
+            />
             <div className="bg-white border-b-4 border-brand-500 sticky top-0 z-10 shadow-soft">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center gap-4">

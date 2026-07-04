@@ -1,9 +1,15 @@
 import React from 'react';
+import Seo from './seo/Seo';
 import { ArrowLeft, FileText } from 'lucide-react';
 
 const TermsConditions: React.FC = () => {
     return (
         <div className="min-h-screen font-cute" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
+            <Seo
+                title="Terms & Conditions — Peptide Lifestyle Program"
+                description="Terms and conditions for using the Peptide Lifestyle Program store and services."
+                path="/terms"
+            />
             <div className="bg-white border-b-4 border-brand-500 sticky top-0 z-10 shadow-soft">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center gap-4">

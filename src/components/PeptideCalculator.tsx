@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Seo from './seo/Seo';
 import { Calculator, RotateCcw, Syringe, Droplets, Heart, AlertTriangle, ArrowLeft } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
@@ -78,6 +79,11 @@ const PeptideCalculator: React.FC = () => {
 
     return (
         <div className="min-h-screen font-cute flex flex-col" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
+            <Seo
+                title="Peptide Reconstitution & Dosing Calculator — Peptide Lifestyle Program"
+                description="Free peptide reconstitution and dosing calculator: work out bacteriostatic water volume, syringe units, and dose per injection."
+                path="/calculator"
+            />
             <Header
                 cartItemsCount={cart.getTotalItems()}
                 onCartClick={() => window.location.href = '/'}

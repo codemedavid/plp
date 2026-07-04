@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Seo from './seo/Seo';
 import { Search, Package, Truck, CheckCircle, Clock, AlertCircle, ArrowRight, ExternalLink, ArrowLeft, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from './Header';
@@ -184,6 +185,11 @@ const OrderTracking: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-cream-light">
+            <Seo
+                title="Track Your Order — Peptide Lifestyle Program"
+                description="Track your Peptide Lifestyle Program order status and delivery using your order number and contact details."
+                path="/track-order"
+            />
             <Header
                 cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
                 onCartClick={() => { }}

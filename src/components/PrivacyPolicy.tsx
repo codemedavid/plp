@@ -1,9 +1,15 @@
 import React from 'react';
+import Seo from './seo/Seo';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 
 const PrivacyPolicy: React.FC = () => {
     return (
         <div className="min-h-screen font-cute" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
+            <Seo
+                title="Privacy Policy — Peptide Lifestyle Program"
+                description="How the Peptide Lifestyle Program collects, uses, and protects your personal data."
+                path="/privacy"
+            />
             <div className="bg-white border-b-4 border-brand-500 sticky top-0 z-10 shadow-soft">
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex items-center gap-4">
