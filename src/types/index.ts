@@ -36,7 +36,12 @@ export interface Product {
   // Images and metadata
   image_url: string | null;
   safety_sheet_url: string | null;
+  // Legacy single Certificate of Analysis link. Superseded by coa_links but kept
+  // as a fallback so existing products keep rendering their COA badge.
   coa_url: string | null;
+  // Named Certificate of Analysis documents (e.g. Purity Test, Heavy Metal Testing).
+  // Admin-managed; drives the COA button on the card and product detail page.
+  coa_links: CoaLink[];
 
   // Manual upsell picks; takes priority over auto recommendations
   paired_product_ids: string[];
@@ -49,6 +54,12 @@ export interface Product {
 
   // Relations
   variations?: ProductVariation[];
+}
+
+// A single labeled Certificate of Analysis document link.
+export interface CoaLink {
+  label: string;
+  url: string;
 }
 
 export interface BundleTier {
