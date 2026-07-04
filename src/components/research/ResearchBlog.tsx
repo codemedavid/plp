@@ -89,7 +89,7 @@ export default function ResearchBlog() {
           <div style={{ width: 64, height: 2, background: '#B08D57', margin: '34px 0 26px' }} />
           <p style={{ fontSize: 20, lineHeight: 1.65, color: '#5B6474', maxWidth: '60ch', margin: 0 }}>
             Evidence-based summaries of published clinical data on peptides and GLP-1 therapies. For
-            educational purposes only — always consult a licensed physician before starting a
+            educational purposes only. Always consult a licensed physician before starting a
             protocol.
           </p>
         </section>
@@ -438,7 +438,7 @@ export default function ResearchBlog() {
                 New research, summarized monthly
               </h2>
               <p style={{ fontSize: 16, lineHeight: 1.6, color: '#C3CADB', margin: 0 }}>
-                Trial results, dosing updates, and regulatory news — distilled into plain-English
+                Trial results, dosing updates, and regulatory news, distilled into plain-English
                 briefings.
               </p>
             </div>

@@ -74,7 +74,7 @@ export const ARTICLES: Article[] = [
     category: 'Peptide Science',
     title:
       'The Complete Peptide Guide: What They Are, How They Work, and What to Know Before Starting',
-    dek: 'From GLP-1 drugs like Ozempic and Mounjaro to healing compounds like BPC-157, peptides have moved from niche forums to mainstream medicine. Here is the science, the safety, and the legal landscape — in plain English.',
+    dek: 'From GLP-1 drugs like Ozempic and Mounjaro to healing compounds like BPC-157, peptides have moved from niche forums to mainstream medicine. Here is the science, the safety, and the legal landscape, in plain English.',
     metaDescription:
       'A complete, evidence-based guide to peptides: what they are, how they work in the body, safety, legality, administration, storage, cost, and how to source responsibly.',
     keywords:
@@ -99,16 +99,16 @@ export const ARTICLES: Article[] = [
 <p><strong>Peptides are reshaping how we think about medicine, recovery, and weight loss.</strong> Whether you are curious about faster injury recovery, muscle growth, fat loss, or simply want to understand what these molecules actually do, this guide covers the science, the safety questions that matter, and how to navigate the legal landscape.</p>
 
 <h2 id="what-are-peptides">What are peptides?</h2>
-<p>Peptides are short chains of amino acids — the same building blocks that make up proteins in your body. Think of them as miniature messengers that tell your cells what to do. Naturally occurring peptides regulate countless processes, from controlling blood sugar and inflammation to signaling tissue repair. Insulin is a peptide. So is oxytocin. When your gut releases GLP-1 after a meal to signal fullness, that is a peptide doing its job.</p>
-<p>Scientists have learned to create synthetic peptides that mimic or enhance these natural functions. These lab-made versions form the foundation of peptide therapy — a field that spans FDA-approved medications for diabetes and obesity, experimental compounds for tissue healing, and research chemicals sold online. The difference between an FDA-approved drug and an unregulated research chemical is enormous.</p>
+<p>Peptides are short chains of amino acids, the same building blocks that make up proteins in your body. Think of them as miniature messengers that tell your cells what to do. Naturally occurring peptides regulate countless processes, from controlling blood sugar and inflammation to signaling tissue repair. Insulin is a peptide. So is oxytocin. When your gut releases GLP-1 after a meal to signal fullness, that is a peptide doing its job.</p>
+<p>Scientists have learned to create synthetic peptides that mimic or enhance these natural functions. These lab-made versions form the foundation of peptide therapy, a field that spans FDA-approved medications for diabetes and obesity, experimental compounds for tissue healing, and research chemicals sold online. The difference between an FDA-approved drug and an unregulated research chemical is enormous.</p>
 <h3>Peptides vs. proteins</h3>
 <p>Peptides typically contain 2–50 amino acids, while proteins comprise 50 or more, often folding into complex three-dimensional structures. Peptides are smaller and act more like targeted chemical messages than structural building blocks. Because they are smaller, they can be chemically synthesized rather than grown in living cells, and they tend to be more selective. Their shorter chains also make them less stable, which is why most therapeutic peptides require injection rather than oral dosing.</p>
 
 <h2 id="how-they-work">How do peptides work in the body?</h2>
-<p>Most peptides exert their effects through receptor binding. A peptide circulates through the bloodstream, finds its target receptor on a cell surface, and triggers an intracellular signaling cascade. A growth hormone secretagogue does not flood your body with synthetic growth hormone — it signals your pituitary to produce more of your own, in its natural pulsatile rhythm.</p>
+<p>Most peptides exert their effects through receptor binding. A peptide circulates through the bloodstream, finds its target receptor on a cell surface, and triggers an intracellular signaling cascade. A growth hormone secretagogue does not flood your body with synthetic growth hormone. It signals your pituitary to produce more of your own, in its natural pulsatile rhythm.</p>
 <p>Not all peptides follow this single-receptor model. BPC-157 acts through multiple mechanisms simultaneously without a single defined receptor. GHK-Cu influences over 4,000 genes primarily through copper transport. Some peptides are precise receptor keys; others operate through broader signaling networks.</p>
 <h3>Half-life and bioavailability</h3>
-<p>Two factors determine how any peptide behaves: half-life and bioavailability. Native GLP-1 has a half-life of about 2 minutes; semaglutide, the engineered analog in Ozempic and Wegovy, lasts roughly 7 days. Half-life determines dosing frequency and the steadiness of effect. Bioavailability is the second factor — most peptides cannot survive the digestive system intact, which is why the vast majority are given by subcutaneous injection.</p>
+<p>Two factors determine how any peptide behaves: half-life and bioavailability. Native GLP-1 has a half-life of about 2 minutes; semaglutide, the engineered analog in Ozempic and Wegovy, lasts roughly 7 days. Half-life determines dosing frequency and the steadiness of effect. Bioavailability is the second factor: most peptides cannot survive the digestive system intact, which is why the vast majority are given by subcutaneous injection.</p>
 
 <h2 id="uses">What are peptides used for?</h2>
 <p>The therapeutic applications span a remarkably wide range. Understanding the major categories clarifies which peptides might be relevant for specific goals.</p>
@@ -117,30 +117,30 @@ __TABLE_USES__
 <p>The most visible peptide success story is the GLP-1 receptor agonist class. Tirzepatide, a dual GIP/GLP-1 agonist, produced mean weight loss of <strong>20.9% at 72 weeks</strong> in clinical trials. Retatrutide, a triple agonist adding glucagon receptor activation, achieved <strong>28.3% weight loss</strong> in Phase 3 trials. These results have fundamentally changed how medicine approaches metabolic disease.</p>
 
 <h2 id="safety">Are peptides safe?</h2>
-<p>Safety depends entirely on which peptide you are discussing and how it is sourced. FDA-approved peptide drugs, prescribed under medical supervision, have established safety profiles from extensive clinical trials. The most common adverse effects are gastrointestinal — nausea, vomiting, diarrhea, constipation — typically mild to moderate during dose escalation.</p>
+<p>Safety depends entirely on which peptide you are discussing and how it is sourced. FDA-approved peptide drugs, prescribed under medical supervision, have established safety profiles from extensive clinical trials. The most common adverse effects are gastrointestinal (nausea, vomiting, diarrhea, constipation) and are typically mild to moderate during dose escalation.</p>
 <p>The picture changes dramatically for unregulated peptides purchased online. Independent testing of research-grade peptides has found purity levels ranging from below 50% to over 100% of the stated concentration, plus bacterial endotoxin contamination and incorrect sequences. A patient injecting a compound of unknown purity at an unknown concentration is running an uncontrolled experiment on their own tissue.</p>
 <h3>Who should not use peptides?</h3>
 <p>GLP-1 receptor agonists carry warnings for people with a personal or family history of medullary thyroid carcinoma or Multiple Endocrine Neoplasia syndrome type 2. Those with a pancreatitis history should avoid them. Pregnant or breastfeeding people should not use unregulated peptides. Anyone with active cancer should avoid growth-hormone-stimulating peptides. Peptide use should always be discussed with a healthcare provider.</p>
 
 <h2 id="legality">Are peptides legal and FDA-approved?</h2>
 <p>Some peptides are fully FDA-approved pharmaceutical drugs; others exist in regulatory gray zones; still others are explicitly illegal for human use. More than 80 peptide drugs are available clinically today, beginning with insulin in the 1920s. Recent approvals include semaglutide for type 2 diabetes (2017) and obesity (2021), and tirzepatide for diabetes (2022) and obesity (2023).</p>
-<p>Most peptides discussed in fitness and wellness contexts — BPC-157, TB-500, MOTS-c, CJC-1295 — remain unapproved and are frequently sold as "research chemicals" labeled "not for human consumption." That phrase is a legal disclaimer, not a quality certification. Research-grade peptides are not manufactured to pharmaceutical standards and lack purity verification, sterility assurance, and quality control.</p>
+<p>Most peptides discussed in fitness and wellness contexts, such as BPC-157, TB-500, MOTS-c, and CJC-1295, remain unapproved and are frequently sold as "research chemicals" labeled "not for human consumption." That phrase is a legal disclaimer, not a quality certification. Research-grade peptides are not manufactured to pharmaceutical standards and lack purity verification, sterility assurance, and quality control.</p>
 
 <h2 id="administration">How are peptides administered?</h2>
 <h3>Subcutaneous injection (most common)</h3>
-<p>The vast majority of therapeutic peptides are administered via subcutaneous injection — small needles into the fatty tissue just beneath the skin, bypassing the digestive system. Common sites include the abdomen (avoiding one inch around the navel), the front of the thighs, and the upper outer arms. Rotating sites prevents irritation and ensures consistent absorption.</p>
+<p>The vast majority of therapeutic peptides are administered via subcutaneous injection, using small needles into the fatty tissue just beneath the skin, bypassing the digestive system. Common sites include the abdomen (avoiding one inch around the navel), the front of the thighs, and the upper outer arms. Rotating sites prevents irritation and ensures consistent absorption.</p>
 <h3>Oral and other routes</h3>
 <p>Oral delivery has historically been limited by digestive degradation, but oral semaglutide (Rybelsus) uses an absorption enhancer to overcome the gastrointestinal barrier. Some peptides work topically (GHK-Cu in serums); nasal sprays and transdermal patches are emerging routes for select compounds.</p>
 
 <h2 id="storage">Peptide storage and handling</h2>
-<p>Lyophilized (freeze-dried) peptides are relatively stable and should be stored in a freezer at -20°C for long-term preservation. Once reconstituted with bacteriostatic water, peptides become far more vulnerable to degradation. Reconstitution uses bacteriostatic water (0.9% benzyl alcohol) injected slowly against the vial wall — never shake a vial, as mechanical stress can denature the structure.</p>
+<p>Lyophilized (freeze-dried) peptides are relatively stable and should be stored in a freezer at -20°C for long-term preservation. Once reconstituted with bacteriostatic water, peptides become far more vulnerable to degradation. Reconstitution uses bacteriostatic water (0.9% benzyl alcohol) injected slowly against the vial wall. Never shake a vial, as mechanical stress can denature the structure.</p>
 __TABLE_STORAGE__
 
 <h2 id="choosing">How to choose the right peptide for your goals</h2>
-<p>Selecting a peptide requires matching specific, evidence-based goals with compounds that have documented mechanisms and safety data. Begin with one compound to assess your individual response before adding others — each additional peptide increases complexity, cost, and the difficulty of identifying which compound is responsible for any effect. FDA-approved peptides like semaglutide and tirzepatide are designed for continuous, long-term use rather than cycling.</p>
+<p>Selecting a peptide requires matching specific, evidence-based goals with compounds that have documented mechanisms and safety data. Begin with one compound to assess your individual response before adding others, since each additional peptide increases complexity, cost, and the difficulty of identifying which compound is responsible for any effect. FDA-approved peptides like semaglutide and tirzepatide are designed for continuous, long-term use rather than cycling.</p>
 
 <h2 id="sourcing">How to verify quality and source responsibly</h2>
-<p>Sourcing is arguably the most important decision you will make. Reputable sources should provide Certificates of Analysis (CoA) for every batch, verifying identity, purity (typically claimed at &gt;98–99%), and the absence of contaminants — via third-party HPLC and mass spectrometry, not in-house claims. Be wary of dramatic efficacy claims, prices that seem too good to be true, missing testing documentation, or names mimicking pharmaceutical brands.</p>
+<p>Sourcing is arguably the most important decision you will make. Reputable sources should provide Certificates of Analysis (CoA) for every batch, verifying identity, purity (typically claimed at &gt;98–99%), and the absence of contaminants, via third-party HPLC and mass spectrometry rather than in-house claims. Be wary of dramatic efficacy claims, prices that seem too good to be true, missing testing documentation, or names mimicking pharmaceutical brands.</p>
 `,
     tableUses: {
       head: ['Category', 'Examples', 'Primary use', 'Status'],
@@ -194,9 +194,9 @@ __TABLE_STORAGE__
       },
     ],
     sources: [
-      'U.S. Food & Drug Administration — Peptide drug products and compounding guidance',
-      'New England Journal of Medicine — GLP-1 receptor agonist clinical trials',
-      'Eli Lilly & Company — SURMOUNT trial program data',
+      'U.S. Food & Drug Administration: Peptide drug products and compounding guidance',
+      'New England Journal of Medicine: GLP-1 receptor agonist clinical trials',
+      'Eli Lilly & Company: SURMOUNT trial program data',
     ],
     related: ['tirzepatide-faq', 'retatrutide-faq', 'tirzepatide-vs-retatrutide'],
     productTie: { name: 'PLP Slim 2.0', detail: 'Tirzepatide 30mg + Cagrilintide 5mg' },
@@ -232,7 +232,7 @@ __TABLE_STORAGE__
 <p>Developed by Eli Lilly, it was first approved in May 2022 as <strong>Mounjaro</strong> for type 2 diabetes, then in November 2023 as <strong>Zepbound</strong> for chronic weight management. The active ingredient is identical; the brand names reflect distinct FDA-approved indications.</p>
 
 <h2 id="how-works">How does tirzepatide work?</h2>
-<p>The GLP-1 component slows gastric emptying — food stays in the stomach longer, creating physical fullness — and acts on brain appetite centers, dampening the "food noise" many people with obesity experience. The GIP component adds satiety signaling and enhances insulin sensitivity. It stimulates glucose-dependent insulin secretion (only when blood sugar is elevated, minimizing hypoglycemia risk) and suppresses glucagon.</p>
+<p>The GLP-1 component slows gastric emptying (food stays in the stomach longer, creating physical fullness) and acts on brain appetite centers, dampening the "food noise" many people with obesity experience. The GIP component adds satiety signaling and enhances insulin sensitivity. It stimulates glucose-dependent insulin secretion (only when blood sugar is elevated, minimizing hypoglycemia risk) and suppresses glucagon.</p>
 __TABLE_MECH__
 
 <h2 id="results">How much weight can I lose?</h2>
@@ -282,7 +282,7 @@ __TABLE_DOSING__
     faqs: [
       {
         q: 'How is tirzepatide different from Ozempic?',
-        a: 'Semaglutide (Ozempic/Wegovy) targets only the GLP-1 receptor. Tirzepatide adds GIP receptor activation, which enhances insulin sensitivity and satiety — producing superior weight loss in head-to-head trials (20.2% vs 13.7%).',
+        a: 'Semaglutide (Ozempic/Wegovy) targets only the GLP-1 receptor. Tirzepatide adds GIP receptor activation, which enhances insulin sensitivity and satiety, producing superior weight loss in head-to-head trials (20.2% vs 13.7%).',
       },
       {
         q: 'What happens if I miss a dose?',
@@ -299,7 +299,7 @@ __TABLE_DOSING__
     ],
     sources: [
       'SURMOUNT-1 and SURMOUNT-5 trial publications',
-      'FDA prescribing information — Mounjaro & Zepbound',
+      'FDA prescribing information: Mounjaro & Zepbound',
       'Eli Lilly LillyDirect pricing program',
     ],
     related: ['retatrutide-faq', 'tirzepatide-vs-retatrutide', 'complete-peptide-guide'],
@@ -310,7 +310,7 @@ __TABLE_DOSING__
     slug: 'retatrutide-faq',
     category: 'GLP-1 Medications',
     title: 'Retatrutide: The Complete FAQ on the Triple-Agonist Weight-Loss Drug',
-    dek: 'The most powerful weight-loss drug ever tested in large-scale trials. In TRIUMPH-1, participants lost an average of 28.3% of body weight — with nearly half achieving at least 30% loss, a threshold once associated only with bariatric surgery.',
+    dek: 'The most powerful weight-loss drug ever tested in large-scale trials. In TRIUMPH-1, participants lost an average of 28.3% of body weight, with nearly half achieving at least 30% loss, a threshold once associated only with bariatric surgery.',
     metaDescription:
       "Everything known about retatrutide, Eli Lilly's investigational triple-agonist: how it works, TRIUMPH trial results, side effects, expected FDA approval timeline, and storage.",
     keywords:
@@ -328,17 +328,17 @@ __TABLE_DOSING__
       { id: 'faq', label: 'Frequently asked questions' },
     ],
     body: `
-<p><strong>Retatrutide is the most powerful weight-loss drug ever tested in large-scale clinical trials.</strong> In the pivotal TRIUMPH-1 Phase 3 study, participants lost an average of 28.3% of body weight, with nearly half achieving at least 30% loss — a threshold previously associated only with bariatric surgery.</p>
+<p><strong>Retatrutide is the most powerful weight-loss drug ever tested in large-scale clinical trials.</strong> In the pivotal TRIUMPH-1 Phase 3 study, participants lost an average of 28.3% of body weight, with nearly half achieving at least 30% loss, a threshold previously associated only with bariatric surgery.</p>
 
 <h2 id="what-is">What is retatrutide?</h2>
 <p>Retatrutide (development code LY3437943) is an investigational peptide from Eli Lilly. It is a <strong>triple hormone receptor agonist</strong>, simultaneously activating GLP-1, GIP, and glucagon receptors. Semaglutide targets only GLP-1; tirzepatide targets GLP-1 and GIP; retatrutide adds glucagon receptor activation, creating synergistic effects on appetite, energy expenditure, and fat metabolism. It is a once-weekly subcutaneous injection with a half-life of about 6 days.</p>
 
 <h2 id="how-works">How does retatrutide work?</h2>
-<p>The GLP-1 component suppresses appetite and slows gastric emptying. The GIP component enhances insulin sensitivity and amplifies satiety. The glucagon component is what truly differentiates it — glucagon receptor agonism increases <strong>energy expenditure</strong> and promotes <strong>hepatic fatty acid oxidation</strong>, meaning the liver burns stored fat for fuel, while reducing new fat synthesis. These effects operate independently of reduced caloric intake.</p>
+<p>The GLP-1 component suppresses appetite and slows gastric emptying. The GIP component enhances insulin sensitivity and amplifies satiety. The glucagon component is what truly differentiates it: glucagon receptor agonism increases <strong>energy expenditure</strong> and promotes <strong>hepatic fatty acid oxidation</strong>, meaning the liver burns stored fat for fuel, while reducing new fat synthesis. These effects operate independently of reduced caloric intake.</p>
 __TABLE_MECH__
 
 <h2 id="results">Retatrutide clinical trial results</h2>
-<p>The Phase 2 trial (NEJM 2023) enrolled 338 adults with obesity. At the 12 mg dose, mean weight loss reached 24.2% at 48 weeks — and participants were still losing weight when the trial ended, with no plateau observed. The pivotal Phase 3 TRIUMPH-1 trial extended these findings in 2,339 adults over 80 weeks.</p>
+<p>The Phase 2 trial (NEJM 2023) enrolled 338 adults with obesity. At the 12 mg dose, mean weight loss reached 24.2% at 48 weeks, and participants were still losing weight when the trial ended, with no plateau observed. The pivotal Phase 3 TRIUMPH-1 trial extended these findings in 2,339 adults over 80 weeks.</p>
 __TABLE_RESULTS__
 <p>Beyond weight, Phase 3 data showed roughly 73% improvement in knee osteoarthritis pain, 61% improvement in sleep apnea, and up to 86% liver-fat reduction.</p>
 
@@ -377,7 +377,7 @@ __TABLE_RESULTS__
     faqs: [
       {
         q: 'How is retatrutide different from tirzepatide?',
-        a: 'Tirzepatide is a dual GLP-1/GIP agonist. Retatrutide adds a third target — glucagon — which increases energy expenditure and directly burns hepatic fat, driving greater average weight loss (28.3% vs 20.9%).',
+        a: 'Tirzepatide is a dual GLP-1/GIP agonist. Retatrutide adds a third target, glucagon, which increases energy expenditure and directly burns hepatic fat, driving greater average weight loss (28.3% vs 20.9%).',
       },
       {
         q: 'When will retatrutide be available?',
@@ -393,7 +393,7 @@ __TABLE_RESULTS__
       },
     ],
     sources: [
-      'Jastreboff et al., New England Journal of Medicine (2023) — Phase 2',
+      'Jastreboff et al., New England Journal of Medicine (2023): Phase 2',
       'TRIUMPH-1 Phase 3 trial results (2026)',
       'Eli Lilly investigational pipeline disclosures',
     ],
@@ -428,10 +428,10 @@ __TABLE_RESULTS__
 __TABLE_GLANCE__
 
 <h2 id="mechanism">Mechanism of action: two receptors vs three</h2>
-<p>Tirzepatide activates GLP-1 and GIP receptors. Retatrutide adds a third — <strong>glucagon</strong> — which increases energy expenditure, stimulates hepatic fat oxidation, and reduces new fat synthesis. While tirzepatide primarily works by helping patients eat less, retatrutide helps patients eat less <em>and</em> burn more. This "metabolic advantage" explains the roughly 6–8 percentage-point gap in weight loss between the two drugs.</p>
+<p>Tirzepatide activates GLP-1 and GIP receptors. Retatrutide adds a third, <strong>glucagon</strong>, which increases energy expenditure, stimulates hepatic fat oxidation, and reduces new fat synthesis. While tirzepatide primarily works by helping patients eat less, retatrutide helps patients eat less <em>and</em> burn more. This "metabolic advantage" explains the roughly 6–8 percentage-point gap in weight loss between the two drugs.</p>
 
 <h2 id="efficacy">Weight-loss efficacy</h2>
-<p>As of mid-2026, no published head-to-head randomized trial directly compares the two; the SURMOUNT-5 active-comparator study is expected to report in December 2026. Cross-trial comparison shows tirzepatide at roughly 20.9% and retatrutide at 28.3% mean weight loss — a directional difference large enough to appear robust despite methodological caveats.</p>
+<p>As of mid-2026, no published head-to-head randomized trial directly compares the two; the SURMOUNT-5 active-comparator study is expected to report in December 2026. Cross-trial comparison shows tirzepatide at roughly 20.9% and retatrutide at 28.3% mean weight loss, a directional difference large enough to appear robust despite methodological caveats.</p>
 
 <h2 id="which">Which is better for your goals?</h2>
 <p>The "better" drug depends entirely on individual circumstances, priorities, and constraints.</p>
@@ -473,12 +473,12 @@ __TABLE_WHICH__
       },
       {
         q: 'Are both drugs made by the same company?',
-        a: 'Yes — both tirzepatide and retatrutide are developed by Eli Lilly, which will likely position them for different clinical scenarios.',
+        a: 'Yes. Both tirzepatide and retatrutide are developed by Eli Lilly, which will likely position them for different clinical scenarios.',
       },
     ],
     sources: [
       'SURMOUNT and TRIUMPH trial programs',
-      'FDA prescribing information — tirzepatide',
+      'FDA prescribing information: tirzepatide',
       'Eli Lilly comparative pipeline data',
     ],
     related: ['tirzepatide-faq', 'retatrutide-faq', 'complete-peptide-guide'],
