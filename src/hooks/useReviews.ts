@@ -218,6 +218,26 @@ export const submitCustomerReview = async (review: Partial<NewReview>) => {
     return data;
 };
 
+// Points a customer earns for reviewing a purchased product. Kept in sync with
+// the award_review_points() DB function, which is the source of truth.
+export const REVIEW_REWARD_POINTS = 50;
+
+// Best-effort reward. The DB function validates the verified purchase and credits
+// at most once per (user, order, product); it returns the points actually granted
+// (0 if already claimed or not eligible). A failure here must never block the
+// review itself, so we swallow errors and treat them as "no points this time".
+export const awardReviewPoints = async (
+    orderId: string,
+    productId: string,
+): Promise<number> => {
+    const { data, error } = await supabase.rpc('award_review_points', {
+        p_order_id: orderId,
+        p_product_id: productId,
+    });
+    if (error) return 0;
+    return typeof data === 'number' ? data : 0;
+};
+
 export const getReviewsForOrder = async (orderId: string) => {
     const { data, error } = await supabase
         .from('reviews')

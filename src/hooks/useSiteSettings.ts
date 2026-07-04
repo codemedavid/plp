@@ -23,7 +23,7 @@ export const useSiteSettings = () => {
 
       // Hero carousel images are stored as a JSON array under `hero_images`.
       // Fall back to the legacy single `hero_image_url`, then the static default.
-      const singleHeroImage = settingsData.find(s => s.id === 'hero_image_url')?.value || '/hero-plp-slim.png';
+      const singleHeroImage = settingsData.find(s => s.id === 'hero_image_url')?.value || '/hero-plp-slim.jpg';
       let heroImages: string[] = [];
       const rawHeroImages = settingsData.find(s => s.id === 'hero_images')?.value;
       if (rawHeroImages) {

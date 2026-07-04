@@ -13,7 +13,7 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
   const { siteSettings } = useSiteSettings();
   const slides = (siteSettings?.hero_images && siteSettings.hero_images.length > 0)
     ? siteSettings.hero_images
-    : ['/hero-plp-slim.png'];
+    : ['/hero-plp-slim.jpg'];
 
   const [current, setCurrent] = useState(0);
 
@@ -61,6 +61,11 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
                     alt={`PLP Slim 2.0 — Next level weight management support. Slide ${i + 1}.`}
                     className="w-full h-auto shrink-0"
                     style={{ flex: '0 0 100%' }}
+                    width={1280}
+                    height={720}
+                    loading={i === 0 ? 'eager' : 'lazy'}
+                    fetchPriority={i === 0 ? 'high' : 'auto'}
+                    decoding="async"
                   />
                 ))}
               </div>

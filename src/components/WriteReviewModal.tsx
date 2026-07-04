@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Star } from 'lucide-react';
-import { submitCustomerReview } from '../hooks/useReviews';
+import { X, Star, Gift } from 'lucide-react';
+import { submitCustomerReview, awardReviewPoints, REVIEW_REWARD_POINTS } from '../hooks/useReviews';
 
 interface WriteReviewModalProps {
     isOpen: boolean;
@@ -31,6 +31,9 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [pointsEarned, setPointsEarned] = useState(0);
+
+    const isSignedIn = !!userId;
 
     if (!isOpen) return null;
 
@@ -61,12 +64,16 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
                 is_verified_purchase: true,
                 admin_posted: false,
             });
+            // Credit review points for signed-in customers (best-effort — never
+            // blocks the review). Guests earn nothing; we nudge them to sign in.
+            const earned = isSignedIn ? await awardReviewPoints(orderId, productId) : 0;
+            setPointsEarned(earned);
             setSuccess(true);
             onSubmitted?.();
             setTimeout(() => {
                 setSuccess(false);
                 onClose();
-            }, 1500);
+            }, earned > 0 ? 2600 : 1500);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to submit review');
         } finally {
@@ -93,14 +100,49 @@ const WriteReviewModal: React.FC<WriteReviewModalProps> = ({
 
                 {success ? (
                     <div className="p-10 text-center">
-                        <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 flex items-center justify-center mb-4">
-                            <Star className="w-7 h-7 text-emerald-600 fill-emerald-600" />
-                        </div>
-                        <h4 className="font-semibold text-gray-900 mb-1">Thank you!</h4>
-                        <p className="text-sm text-gray-600">Your review has been submitted.</p>
+                        {pointsEarned > 0 ? (
+                            <>
+                                <div className="w-14 h-14 mx-auto rounded-full bg-gold-50 flex items-center justify-center mb-4">
+                                    <Gift className="w-7 h-7 text-gold-600" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 mb-1">
+                                    You earned {pointsEarned} points!
+                                </h4>
+                                <p className="text-sm text-gray-600">
+                                    That's ₱{pointsEarned} in rewards, added to your account. Thanks for your review!
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                                    <Star className="w-7 h-7 text-emerald-600 fill-emerald-600" />
+                                </div>
+                                <h4 className="font-semibold text-gray-900 mb-1">Thank you!</h4>
+                                <p className="text-sm text-gray-600">
+                                    {isSignedIn
+                                        ? 'Your review has been submitted.'
+                                        : `Your review has been submitted. Sign in next time to earn ${REVIEW_REWARD_POINTS} points per review.`}
+                                </p>
+                            </>
+                        )}
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-gold-50 to-amber-50 border border-gold-200 px-4 py-3">
+                            <div className="w-9 h-9 shrink-0 rounded-full bg-white flex items-center justify-center border border-gold-200">
+                                <Gift className="w-4 h-4 text-gold-600" strokeWidth={1.8} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-navy-900 leading-tight">
+                                    Earn {REVIEW_REWARD_POINTS} points (₱{REVIEW_REWARD_POINTS}) for your review
+                                </p>
+                                <p className="text-xs text-charcoal-500 leading-snug">
+                                    {isSignedIn
+                                        ? 'Credited to your account the moment you submit.'
+                                        : `Sign in to your account to collect your ${REVIEW_REWARD_POINTS} points.`}
+                                </p>
+                            </div>
+                        </div>
                         {error && (
                             <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
                                 {error}

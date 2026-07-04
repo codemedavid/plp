@@ -49,7 +49,7 @@ const SiteSettingsManager: React.FC = () => {
       setLogoPreview(siteSettings.site_logo);
       setHeroImages(siteSettings.hero_images && siteSettings.hero_images.length > 0
         ? siteSettings.hero_images
-        : [siteSettings.hero_image_url || '/hero-plp-slim.png']);
+        : [siteSettings.hero_image_url || '/hero-plp-slim.jpg']);
     }
   }, [siteSettings]);
 
@@ -120,7 +120,7 @@ const SiteSettingsManager: React.FC = () => {
         site_logo: logoUrl,
         hero_images: carouselImages,
         // Keep the legacy single field in sync for backward compatibility.
-        hero_image_url: carouselImages[0] || '/hero-plp-slim.png'
+        hero_image_url: carouselImages[0] || '/hero-plp-slim.jpg'
       });
 
       setLogoFile(null);

@@ -7,7 +7,7 @@ import Footer from './Footer';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import WriteReviewModal from './WriteReviewModal';
-import { getReviewsForOrder } from '../hooks/useReviews';
+import { getReviewsForOrder, REVIEW_REWARD_POINTS } from '../hooks/useReviews';
 import { cleanText } from '../lib/cleanText';
 
 interface TrackingOrder {
@@ -468,10 +468,13 @@ const OrderTracking: React.FC = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setReviewModal({ productId: item.product_id!, productName: item.product_name })}
-                                                                className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-gold-700 hover:text-navy-900 transition-colors font-semibold border-b border-gold-400 hover:border-navy-900 pb-0.5"
+                                                                className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] text-gold-700 hover:text-navy-900 transition-colors font-semibold"
                                                             >
                                                                 <Star className="w-3 h-3" strokeWidth={2} />
-                                                                Write a review
+                                                                <span className="border-b border-gold-400 group-hover:border-navy-900 pb-0.5">Write a review</span>
+                                                                <span className="normal-case tracking-normal text-[10px] font-semibold text-gold-800 bg-gold-50 border border-gold-200 rounded-full px-1.5 py-0.5">
+                                                                    + Earn {REVIEW_REWARD_POINTS} pts
+                                                                </span>
                                                             </button>
                                                         )}
                                                     </div>
