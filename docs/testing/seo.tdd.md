@@ -36,7 +36,7 @@
 
 ## Coverage & known gaps
 - Full suite: `npx vitest run` → **283 passed / 25 files**. New behavior covered by 19 targeted tests + browser verification.
-- **Deferred (optional Phase 5):** per-page social previews for non-JS scrapers require prerendering/SSG — currently non-JS scrapers get the brand-level static OG on every route (documented trade-off). `og:image` intentionally appears twice on dynamic routes (static fallback + Helmet per-route).
-- **Not yet wired with per-page `<Seo>`:** `/track-order`, `/shipping-returns`, `/terms`, `/privacy`, `/calculator` — they inherit the strong `index.html` defaults and are listed in the sitemap; adding unique meta is a quick follow-up.
-- **Accessibility/CWV (plan Phase 5):** image `alt` audit (~15 of 22 `<img>` lacked alt) and hero/product image compression (hero is 708 KB) not yet done.
+- **Per-page social previews (was Phase 5): DONE via server-side meta injection.** `src/lib/renderMeta.ts` (`injectMeta`/`metaForArticle`/`metaForProduct`, 9 unit tests) + `api/render.ts` fetch the built `index.html` and rewrite its `<head>` per URL; `vercel.json` routes `/products/*` and `/research/*` to it. Non-JS scrapers get accurate per-page previews; React still hydrates. `injectMeta`'s regex verified against the real built `index.html` tag format. **Requires a Vercel deploy to verify end-to-end** (validate with the Facebook Sharing Debugger / OG preview on a product + a research URL) — the function cannot run under `vite dev`/jsdom.
+- **All public routes now carry per-page `<Seo>`:** home, products, research, faq, protocols, track-order, shipping-returns, terms, privacy, calculator.
+- **Accessibility:** image `alt` audit — every customer-facing image already had a descriptive `alt` (the earlier "15 missing" was a line-based grep false positive on multi-line JSX). Remaining CWV item: hero/product image compression (hero is 708 KB) — not yet done.
 - `api/sitemap.ts` uses `any` for the handler req/res, matching the existing `api/keepalive.ts` convention.
