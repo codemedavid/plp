@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Heart, ArrowLeft, HelpCircle } from 'lucide-react';
+import Seo from './seo/Seo';
 import { useFAQs } from '../hooks/useFAQs';
 
 const categoryIcons: { [key: string]: React.ReactElement } = {
@@ -37,6 +38,11 @@ const FAQ: React.FC = () => {
 
     return (
         <div className="min-h-screen font-cute" style={{ background: 'linear-gradient(180deg, #F5FAFD, #FFFFFF)' }}>
+            <Seo
+                title="Peptide FAQ — Peptide Lifestyle Program"
+                description="Answers to common questions about peptides, dosing, storage, shipping, and ordering from the Peptide Lifestyle Program."
+                path="/faq"
+            />
             {/* Header */}
             <div className="bg-white border-b-4 border-brand-500 sticky top-0 z-10 shadow-soft">
                 <div className="container mx-auto px-4 py-4">

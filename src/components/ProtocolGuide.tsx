@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Syringe, Thermometer, Clock, ChevronDown, ChevronUp, Flame, Dumbbell, Pill, Sparkles, Brain } from 'lucide-react';
+import Seo from './seo/Seo';
 import Header from './Header';
 import Footer from './Footer';
 import { useCart } from '../hooks/useCart';
@@ -168,6 +169,11 @@ const ProtocolGuide: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-cream-light">
+            <Seo
+                title="Peptide Protocols & Dosing Guides — Peptide Lifestyle Program"
+                description="Step-by-step peptide protocols, dosing schedules, and reconstitution guides from the Peptide Lifestyle Program."
+                path="/protocols"
+            />
             <Header
                 cartItemsCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
                 onCartClick={() => { }}

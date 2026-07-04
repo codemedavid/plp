@@ -1,5 +1,8 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import Seo from './components/seo/Seo';
+import { organizationSchema, websiteSchema, productSchema, DEFAULT_TITLE, SITE_NAME } from './lib/seo';
+import { findProductBySlug, slugify } from './lib/slug';
 import { useIsAdmin } from './hooks/useIsAdmin';
 import NotFound from './pages/NotFound';
 import { useCart } from './hooks/useCart';
@@ -47,6 +50,8 @@ function MainApp() {
     const [cartOpen, setCartOpen] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const { slug: productSlug } = useParams<{ slug: string }>();
+    const activeProduct = productSlug ? findProductBySlug(menuItems, productSlug) : undefined;
 
     useEffect(() => {
         const handler = () => setAuthOpen(true);
@@ -94,6 +99,24 @@ function MainApp() {
 
     return (
         <div className="min-h-screen font-cute flex flex-col bg-white">
+            {activeProduct ? (
+                <Seo
+                    title={`${activeProduct.name} — ${SITE_NAME}`}
+                    description={activeProduct.description || undefined}
+                    path={`/products/${slugify(activeProduct.name)}`}
+                    image={activeProduct.image_url || undefined}
+                    jsonLd={productSchema({
+                        name: activeProduct.name,
+                        slug: slugify(activeProduct.name),
+                        description: activeProduct.description,
+                        image: activeProduct.image_url,
+                        price: activeProduct.base_price,
+                        available: activeProduct.available,
+                    })}
+                />
+            ) : (
+                <Seo title={DEFAULT_TITLE} path="/" jsonLd={[organizationSchema(), websiteSchema()]} />
+            )}
             <Suspense fallback={null}>
                 <WelcomePopup />
             </Suspense>
