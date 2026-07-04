@@ -23,7 +23,6 @@ const ResetPasswordModal = lazy(() => import('./components/ResetPasswordModal'))
 
 // Lazy load route components
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const FAQ = lazy(() => import('./components/FAQ'));
 const PeptideCalculator = lazy(() => import('./components/PeptideCalculator'));
 const OrderTracking = lazy(() => import('./components/OrderTracking'));
 const ProtocolGuide = lazy(() => import('./components/ProtocolGuide'));
@@ -219,7 +218,6 @@ function App() {
                 <Routes>
                     <Route path="/" element={<MainApp />} />
                     <Route path="/products/:slug" element={<MainApp />} />
-                    <Route path="/faq" element={<FAQ />} />
                     <Route path="/calculator" element={<PeptideCalculator />} />
                     <Route path="/track-order" element={<OrderTracking />} />
                     <Route path="/protocols" element={<ProtocolGuide />} />

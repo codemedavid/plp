@@ -18,7 +18,6 @@ export const STATIC_PATHS: string[] = [
   '/research',
   '/protocols',
   '/calculator',
-  '/faq',
   '/track-order',
   '/shipping-returns',
   '/terms',
