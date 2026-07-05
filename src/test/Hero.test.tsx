@@ -43,8 +43,9 @@ describe('Hero research slide', () => {
 describe('Hero referral slide', () => {
   it('shows the referral pitch heading', () => {
     renderHero();
-    expect(screen.getByText(/share your/i)).toBeInTheDocument();
-    expect(screen.getByText(/referral code/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /share your referral code/i }),
+    ).toBeInTheDocument();
   });
 
   it('links the share-your-code CTA to the user profile', () => {
