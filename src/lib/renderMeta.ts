@@ -4,9 +4,9 @@
 // (Facebook, WhatsApp, Telegram) get an accurate link preview. React still
 // hydrates the returned HTML normally. All logic here is pure + testable.
 
-import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME } from './seo';
-import { slugify } from './slug';
-import type { Article } from '../data/researchArticles';
+import { absoluteUrl, DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_NAME } from './seo.js';
+import { slugify } from './slug.js';
+import type { Article } from '../data/researchArticles.js';
 
 export interface PageMeta {
   title: string;
