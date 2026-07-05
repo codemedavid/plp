@@ -13,6 +13,11 @@ const TABLE_PLACEHOLDERS: Array<[string, keyof Article]> = [
   ['__TABLE_DOSING__', 'tableDosing'],
   ['__TABLE_GLANCE__', 'tableGlance'],
   ['__TABLE_WHICH__', 'tableWhich'],
+  ['__TABLE_RESPONSE__', 'tableResponse'],
+  ['__TABLE_DIABETIC__', 'tableDiabetic'],
+  ['__TABLE_TIMELINE__', 'tableTimeline'],
+  ['__TABLE_MEDS__', 'tableMeds'],
+  ['__TABLE_WORKUP__', 'tableWorkup'],
 ];
 
 /** Render a typed table into the design's table markup (styled via `.prose`). */
@@ -50,6 +55,34 @@ export function getFeaturedArticle(articles: Article[] = ARTICLES): Article | un
 export function getOtherArticles(articles: Article[] = ARTICLES): Article[] {
   const featured = getFeaturedArticle(articles);
   return articles.filter((a) => a.slug !== featured?.slug);
+}
+
+/** View model for one entry in the research hero's "Latest Research" card. */
+export interface ResearchHeroPost {
+  slug: string;
+  /** Zero-padded position, e.g. "01". */
+  num: string;
+  categoryUpper: string;
+  title: string;
+  readMins: number;
+  /** SPA route for the article. */
+  href: string;
+}
+
+/**
+ * Non-featured articles mapped to the hero card view model. The featured
+ * article is shown in its own section below the hero, so it is excluded here to
+ * avoid duplicating it (and duplicate article links) inside the hero.
+ */
+export function getResearchHeroPosts(articles: Article[] = ARTICLES): ResearchHeroPost[] {
+  return getOtherArticles(articles).map((article, i) => ({
+    slug: article.slug,
+    num: String(i + 1).padStart(2, '0'),
+    categoryUpper: article.category.toUpperCase(),
+    title: article.title,
+    readMins: article.readMins,
+    href: `/research/${article.slug}`,
+  }));
 }
 
 /** Resolve an article's `related` slugs to articles, preserving order, never self. */

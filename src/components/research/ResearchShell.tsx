@@ -23,7 +23,7 @@ export function ResearchHeader({ active = 'RESEARCH' }: { active?: string }) {
       }}
     >
       <div
-        className="research-pad"
+        className="research-pad research-topbar"
         style={{
           maxWidth: 1200,
           margin: '0 auto',

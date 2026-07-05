@@ -472,18 +472,18 @@ describe('useCart Hook', () => {
       expect(result.current.getTotalPrice()).toBe(0);
     });
 
-    it('calculates total for single item', () => {
+    it('calculates total for single item with auto 3+ bundle discount', () => {
       const { result } = renderHook(() => useCart());
 
       act(() => {
         result.current.addToCart(mockProduct, mockVariation, 3, 'vial_only');
       });
 
-      // 2500 * 3 = 7500
-      expect(result.current.getTotalPrice()).toBe(7500);
+      // 3 bottles => 15% off: 2500 * 3 * 0.85 = 6375
+      expect(result.current.getTotalPrice()).toBeCloseTo(6375);
     });
 
-    it('calculates total for multiple items with different kit types', () => {
+    it('calculates total for multiple items with different kit types and bundle discounts', () => {
       const { result } = renderHook(() => useCart());
 
       act(() => {
@@ -493,9 +493,9 @@ describe('useCart Hook', () => {
         result.current.addToCart(mockProduct, mockVariation, 1, 'complete_kit');
       });
 
-      // vial_only: 2500 * 2 = 5000
-      // complete_kit: (2500 + 150) * 1 = 2650
-      expect(result.current.getTotalPrice()).toBe(7650);
+      // vial_only: 2 bottles => 10% off: 2500 * 2 * 0.9 = 4500
+      // complete_kit: 1 bottle => no discount: (2500 + 150) * 1 = 2650
+      expect(result.current.getTotalPrice()).toBeCloseTo(7150);
     });
   });
 

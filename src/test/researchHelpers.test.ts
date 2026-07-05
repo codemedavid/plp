@@ -6,6 +6,7 @@ import {
   getFeaturedArticle,
   getOtherArticles,
   getRelatedArticles,
+  getResearchHeroPosts,
 } from '../components/research/researchHelpers';
 import { ARTICLES } from '../data/researchArticles';
 import type { Article, TableData } from '../data/researchArticles';
@@ -81,5 +82,35 @@ describe('article selectors', () => {
     const related = getRelatedArticles(guide);
     expect(related.map((a) => a.slug)).toEqual(guide.related);
     expect(related.every((a) => a.slug !== guide.slug)).toBe(true);
+  });
+});
+
+describe('getResearchHeroPosts', () => {
+  it('returns one hero post per non-featured article', () => {
+    const posts = getResearchHeroPosts();
+    expect(posts).toHaveLength(getOtherArticles().length);
+  });
+
+  it('excludes the featured article', () => {
+    const featured = getFeaturedArticle()!;
+    const posts = getResearchHeroPosts();
+    expect(posts.every((p) => p.slug !== featured.slug)).toBe(true);
+  });
+
+  it('numbers posts as zero-padded sequential strings', () => {
+    const posts = getResearchHeroPosts();
+    expect(posts.map((p) => p.num)).toEqual(posts.map((_, i) => String(i + 1).padStart(2, '0')));
+    expect(posts[0].num).toBe('01');
+  });
+
+  it('uppercases the category and links to the SPA article route', () => {
+    const others = getOtherArticles();
+    const posts = getResearchHeroPosts();
+    posts.forEach((post, i) => {
+      expect(post.categoryUpper).toBe(others[i].category.toUpperCase());
+      expect(post.title).toBe(others[i].title);
+      expect(post.readMins).toBe(others[i].readMins);
+      expect(post.href).toBe(`/research/${others[i].slug}`);
+    });
   });
 });

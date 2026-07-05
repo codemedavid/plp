@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Trash2, ShoppingBag, ArrowRight, Plus, Minus, Heart, Gift, Package, X } from 'lucide-react';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
-import { KIT_UPGRADE_PRICE } from '../types';
 import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
-import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
+import { getBundleSavings, FREE_SHIPPING_MIN_QTY } from '../lib/bundlePricing';
 import { cleanText } from '../lib/cleanText';
 import Toast from './Toast';
 
@@ -39,6 +38,7 @@ const Cart: React.FC<CartProps> = ({
     products: allProducts,
     cartItems,
     limit: 3,
+    diversify: true,
   });
   const [toast, setToast] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -63,11 +63,10 @@ const Cart: React.FC<CartProps> = ({
 
   if (!isOpen) return null;
 
-  const getItemPrice = (item: CartItem) =>
-    getEffectiveUnitPrice(item.product, item.variation, item.kitType, item.quantity);
-
   const totalPrice = getTotalPrice();
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const hasFreeShipping = itemCount >= FREE_SHIPPING_MIN_QTY;
+  const bottlesToFreeShipping = Math.max(0, FREE_SHIPPING_MIN_QTY - itemCount);
 
   return (
     <div
@@ -117,7 +116,6 @@ const Cart: React.FC<CartProps> = ({
             {/* Scrollable body */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-3">
               {cartItems.map((item, index) => {
-                const itemPrice = getItemPrice(item);
                 const availableStock = item.variation ? item.variation.stock_quantity : item.product.stock_quantity;
                 return (
                   <div
@@ -204,25 +202,23 @@ const Cart: React.FC<CartProps> = ({
                         </div>
                         <div className="text-right">
                           {(() => {
-                            const lineTotal = itemPrice * item.quantity;
-                            const tier = getMatchingBundleTier(item.product, item.quantity);
-                            const kitUpgradePerUnit = item.kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
-                            const fullTotal = tier
-                              ? (getRegularUnitPrice(item.product, item.variation) + kitUpgradePerUnit) * item.quantity
-                              : lineTotal;
-                            const showSavings = tier != null && lineTotal < fullTotal;
-                            const pct = showSavings ? Math.round((1 - lineTotal / fullTotal) * 100) : 0;
+                            const { discountedTotal, originalTotal, pct, hasSavings } = getBundleSavings(
+                              item.product,
+                              item.variation,
+                              item.kitType,
+                              item.quantity
+                            );
                             return (
                               <>
-                                {showSavings && (
+                                {hasSavings && (
                                   <div className="text-[10px] text-charcoal-300 line-through">
-                                    ₱{fullTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                                    ₱{originalTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                                   </div>
                                 )}
                                 <div className="text-sm font-bold text-charcoal-900">
-                                  ₱{lineTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                                  ₱{discountedTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                                 </div>
-                                {showSavings && (
+                                {hasSavings && (
                                   <div className="text-[10px] font-bold text-emerald-600">SAVE {pct}%</div>
                                 )}
                               </>
@@ -277,6 +273,25 @@ const Cart: React.FC<CartProps> = ({
 
             {/* Footer */}
             <div className="border-t border-brand-100 px-5 py-4 flex-shrink-0 bg-white">
+              {/* Free shipping progress nudge */}
+              <div
+                className={`flex items-center gap-2 rounded-xl px-3 py-2 mb-3 text-xs font-cute ${
+                  hasFreeShipping
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                    : 'bg-brand-50 text-brand-700 border border-brand-100'
+                }`}
+              >
+                <Package className="w-4 h-4 flex-shrink-0" />
+                {hasFreeShipping ? (
+                  <span className="font-bold">Free shipping unlocked!</span>
+                ) : (
+                  <span>
+                    Add <span className="font-bold">{bottlesToFreeShipping}</span> more{' '}
+                    {bottlesToFreeShipping === 1 ? 'product' : 'products'} to get your free shipping
+                  </span>
+                )}
+              </div>
+
               <div className="flex justify-between items-baseline mb-1">
                 <span className="font-heading font-bold text-charcoal-900">Subtotal</span>
                 <span className="text-2xl font-bold text-charcoal-900">
@@ -284,7 +299,7 @@ const Cart: React.FC<CartProps> = ({
                 </span>
               </div>
               <p className="text-xs text-charcoal-400 text-right font-cute mb-4">
-                Shipping calculated at checkout
+                {hasFreeShipping ? 'Free shipping applied at checkout' : 'Shipping calculated at checkout'}
               </p>
 
               <button

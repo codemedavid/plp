@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ArrowLeft, ShieldCheck, Package, CreditCard, Heart, Check, Tag, Upload, Database, Lock, Truck, AlertTriangle, X } from 'lucide-react';
 import posthog from 'posthog-js';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
-import { KIT_UPGRADE_PRICE } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useShippingLocations } from '../hooks/useShippingLocations';
 import { useCouriers } from '../hooks/useCouriers';
@@ -15,7 +14,7 @@ import { useReferral } from '../hooks/useReferral';
 import { useAddresses, type UserAddress } from '../hooks/useAddresses';
 import RecommendationRail from './RecommendationRail';
 import { cleanText } from '../lib/cleanText';
-import { getEffectiveUnitPrice, getMatchingBundleTier, getRegularUnitPrice } from '../lib/bundlePricing';
+import { getEffectiveUnitPrice, getBundleSavings, qualifiesForFreeShipping } from '../lib/bundlePricing';
 import Toast from './Toast';
 
 interface CheckoutProps {
@@ -133,9 +132,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
         }
     }, [paymentMethods, selectedPaymentMethod]);
 
-    // Calculate shipping fee based on location
+    // Calculate shipping fee based on location.
+    // Bundle promo: 3+ bottles in the cart unlocks free shipping (fee waived).
+    const hasFreeShipping = qualifiesForFreeShipping(cartItems);
     const selectedLocation = shippingLocations.find(loc => loc.id === shippingLocation);
-    const shippingFee = selectedLocation ? selectedLocation.fee : 0;
+    const locationFee = selectedLocation ? selectedLocation.fee : 0;
+    const shippingFee = hasFreeShipping ? 0 : locationFee;
 
     // Cap points redemption: cannot exceed balance or (subtotal - promo discount)
     const maxRedeemable = Math.max(0, Math.min(pointsBalance, totalPrice - discountAmount));
@@ -784,7 +786,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Shipping</span>
-                                        <span>₱{shippingFee.toLocaleString()}</span>
+                                        {hasFreeShipping ? (
+                                            <span className="font-bold text-emerald-600">FREE</span>
+                                        ) : (
+                                            <span>₱{shippingFee.toLocaleString()}</span>
+                                        )}
                                     </div>
                                     {discountAmount > 0 && (
                                         <div className="flex justify-between text-brand-600 font-medium">
@@ -1141,20 +1147,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
                         <div className="space-y-4 mb-6">
                             {cartItems.map((item, index) => {
-                                const currentPrice = getEffectiveUnitPrice(
+                                const { discountedTotal, originalTotal, pct, hasSavings } = getBundleSavings(
                                     item.product,
                                     item.variation,
                                     item.kitType,
                                     item.quantity
                                 );
-                                const lineTotal = currentPrice * item.quantity;
-                                const tier = getMatchingBundleTier(item.product, item.quantity);
-                                const kitUpgradePerUnit = item.kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
-                                const fullTotal = tier
-                                    ? (getRegularUnitPrice(item.product, item.variation) + kitUpgradePerUnit) * item.quantity
-                                    : lineTotal;
-                                const showSavings = tier != null && lineTotal < fullTotal;
-                                const pct = showSavings ? Math.round((1 - lineTotal / fullTotal) * 100) : 0;
 
                                 return (
                                     <div key={`${item.product.id}-${item.variation?.id ?? 'novar'}-${item.kitType ?? 'vial'}-${index}`} className="pb-4 border-b border-gray-100">
@@ -1166,15 +1164,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                {showSavings && (
+                                                {hasSavings && (
                                                     <div className="text-[10px] text-charcoal-300 line-through">
-                                                        ₱{fullTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                                                        ₱{originalTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                                                     </div>
                                                 )}
                                                 <span className="font-bold text-charcoal-900 text-sm">
-                                                    ₱{lineTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                                                    ₱{discountedTotal.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
                                                 </span>
-                                                {showSavings && (
+                                                {hasSavings && (
                                                     <div className="text-[10px] font-bold text-emerald-600">SAVE {pct}%</div>
                                                 )}
                                             </div>
@@ -1276,7 +1274,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                 <span>Total Estimate</span>
                                 <span>₱{Math.max(0, totalPrice - discountAmount - effectivePointsRedeemed).toLocaleString()}</span>
                             </div>
-                            <p className="text-xs text-gray-400 text-right italic">+ Shipping fee added at payment</p>
+                            {hasFreeShipping ? (
+                                <p className="text-xs text-emerald-600 text-right font-bold">🎉 Free shipping unlocked (3+ bottles)</p>
+                            ) : (
+                                <p className="text-xs text-gray-400 text-right italic">+ Shipping fee added at payment</p>
+                            )}
                         </div>
 
                         {/* Last-minute add-ons */}

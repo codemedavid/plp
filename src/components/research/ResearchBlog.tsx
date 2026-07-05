@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ARTICLES } from '../../data/researchArticles';
 import { getFeaturedArticle, getOtherArticles } from './researchHelpers';
 import { ResearchHeader, ResearchFooter } from './ResearchShell';
+import ResearchHero from './ResearchHero';
 
 const SITE_TITLE = 'Research Blog — Peptide Lifestyle Program';
 const SITE_DESCRIPTION =
@@ -18,6 +19,11 @@ const SWATCHES = [
 export default function ResearchBlog() {
   const featured = getFeaturedArticle();
   const rest = getOtherArticles();
+  const latestRef = useRef<HTMLElement>(null);
+
+  const scrollToLatest = () => {
+    latestRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   // SEO: restore the index title/description and publish the Blog JSON-LD.
   useEffect(() => {
@@ -55,44 +61,8 @@ export default function ResearchBlog() {
       <ResearchHeader active="RESEARCH" />
 
       <main>
-        {/* Hero */}
-        <section
-          className="research-pad"
-          style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 40px 8px' }}
-        >
-          <div
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: '0.2em',
-              color: '#B08D57',
-              marginBottom: 22,
-            }}
-          >
-            THE RESEARCH LIBRARY
-          </div>
-          <h1
-            className="research-hero-h1"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 600,
-              fontSize: 72,
-              lineHeight: 1.02,
-              color: '#17233E',
-              margin: 0,
-              letterSpacing: '-0.015em',
-              maxWidth: '14ch',
-            }}
-          >
-            Peptide Research &amp; Education
-          </h1>
-          <div style={{ width: 64, height: 2, background: '#B08D57', margin: '34px 0 26px' }} />
-          <p style={{ fontSize: 20, lineHeight: 1.65, color: '#5B6474', maxWidth: '60ch', margin: 0 }}>
-            Evidence-based summaries of published clinical data on peptides and GLP-1 therapies. For
-            educational purposes only. Always consult a licensed physician before starting a
-            protocol.
-          </p>
-        </section>
+        {/* Hero carousel: library intro + the "science behind every protocol" slide */}
+        <ResearchHero onExploreResearch={scrollToLatest} />
 
         {/* Featured */}
         {featured && (
@@ -257,8 +227,9 @@ export default function ResearchBlog() {
 
         {/* Grid */}
         <section
+          ref={latestRef}
           className="research-pad"
-          style={{ maxWidth: 1200, margin: '0 auto', padding: '36px 40px 40px' }}
+          style={{ maxWidth: 1200, margin: '0 auto', padding: '36px 40px 40px', scrollMarginTop: 90 }}
         >
           <div
             style={{
@@ -402,6 +373,7 @@ export default function ResearchBlog() {
           style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px 88px' }}
         >
           <div
+            className="research-newsletter-card"
             style={{
               background: 'linear-gradient(150deg,#1B2947 0%,#2C3D63 100%)',
               borderRadius: 12,
@@ -426,6 +398,7 @@ export default function ResearchBlog() {
                 STAY INFORMED
               </div>
               <h2
+                className="research-newsletter-heading"
                 style={{
                   fontFamily: "'Playfair Display', serif",
                   fontWeight: 600,
@@ -444,6 +417,7 @@ export default function ResearchBlog() {
             </div>
             <form
               onSubmit={(e) => e.preventDefault()}
+              className="research-newsletter-form"
               style={{ display: 'flex', gap: 12, flex: 1, minWidth: 320 }}
             >
               <label

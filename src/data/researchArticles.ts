@@ -48,6 +48,11 @@ export interface Article {
   tableDosing?: TableData;
   tableGlance?: TableData;
   tableWhich?: TableData;
+  tableResponse?: TableData;
+  tableDiabetic?: TableData;
+  tableTimeline?: TableData;
+  tableMeds?: TableData;
+  tableWorkup?: TableData;
   faqs: Faq[];
   sources: string[];
   related: string[];
@@ -82,7 +87,7 @@ export const ARTICLES: Article[] = [
     readMins: 14,
     date: '2026-06-18',
     dateLabel: 'June 18, 2026',
-    featured: true,
+    featured: false,
     toc: [
       { id: 'what-are-peptides', label: 'What are peptides?' },
       { id: 'how-they-work', label: 'How they work in the body' },
@@ -198,7 +203,7 @@ __TABLE_STORAGE__
       'New England Journal of Medicine: GLP-1 receptor agonist clinical trials',
       'Eli Lilly & Company: SURMOUNT trial program data',
     ],
-    related: ['tirzepatide-faq', 'retatrutide-faq', 'tirzepatide-vs-retatrutide'],
+    related: ['why-glp1-not-working', 'tirzepatide-faq', 'retatrutide-faq'],
     productTie: { name: 'PLP Slim 2.0', detail: 'Tirzepatide 30mg + Cagrilintide 5mg' },
   },
 
@@ -302,7 +307,7 @@ __TABLE_DOSING__
       'FDA prescribing information: Mounjaro & Zepbound',
       'Eli Lilly LillyDirect pricing program',
     ],
-    related: ['retatrutide-faq', 'tirzepatide-vs-retatrutide', 'complete-peptide-guide'],
+    related: ['why-glp1-not-working', 'tirzepatide-vs-retatrutide', 'complete-peptide-guide'],
     productTie: { name: 'PLP Slim 2.0', detail: 'Tirzepatide 30mg + Cagrilintide 5mg' },
   },
 
@@ -481,7 +486,196 @@ __TABLE_WHICH__
       'FDA prescribing information: tirzepatide',
       'Eli Lilly comparative pipeline data',
     ],
-    related: ['tirzepatide-faq', 'retatrutide-faq', 'complete-peptide-guide'],
+    related: ['why-glp1-not-working', 'tirzepatide-faq', 'complete-peptide-guide'],
     productTie: { name: 'PLP Slim 2.0', detail: 'Tirzepatide 30mg + Cagrilintide 5mg' },
+  },
+  {
+    slug: 'why-glp1-not-working',
+    category: 'GLP-1 Medications',
+    title:
+      'Why GLP-1 Is Not Effective: The Science Behind Ozempic, Wegovy, and Mounjaro Non-Responders',
+    dek: 'Between 10% and 30% of people on Ozempic, Wegovy, or Mounjaro lose less than 5% of their body weight. If the scale barely moves, the reason is rarely the drug alone. Here is the science of GLP-1 non-response — insulin resistance, plateaus, emotional eating, genetics, and what actually works.',
+    metaDescription:
+      'Why is your GLP-1 not working? The science of Ozempic and Wegovy non-responders: insulin resistance, plateaus, emotional eating, and evidence-based fixes.',
+    keywords:
+      "why isn't ozempic working, glp-1 non-responder, semaglutide not working, insulin resistance ozempic, tirzepatide plateau, ozempic not effective, bakit hindi effective ang glp-1",
+    readMins: 14,
+    date: '2026-07-05',
+    dateLabel: 'July 5, 2026',
+    featured: true,
+    toc: [
+      { id: 'non-responders', label: 'The non-responder problem' },
+      { id: 'insulin-resistance', label: 'Reason 1: Insulin resistance' },
+      { id: 'tagalog-insulin', label: 'Tagalog: Insulin resistance' },
+      { id: 'plateau', label: 'Reason 2: The weight-loss plateau' },
+      { id: 'emotional-eating', label: 'Reason 3: Emotional eating' },
+      { id: 'genetics', label: 'Reason 4: Genetics' },
+      { id: 'microbiome', label: 'Reason 5: The gut microbiome' },
+      { id: 'drug-interactions', label: 'Reason 6: Medication interactions' },
+      { id: 'improper-use', label: 'Reason 7: Improper use' },
+      { id: 'strategies', label: 'Strategies for non-responders' },
+      { id: 'pcos', label: 'Special considerations: PCOS' },
+      { id: 'bottom-line', label: 'The bottom line' },
+      { id: 'faq', label: 'Frequently asked questions' },
+    ],
+    body: `
+<p>GLP-1 medications like <strong>Ozempic, Wegovy, and Mounjaro</strong> have transformed obesity treatment, but they don't work for everyone. Between 10% and 30% of patients who take these drugs are classified as "non-responders," meaning they lose less than 5% of their body weight after months of treatment. For every headline celebrating dramatic weight loss, there is a silent population injecting themselves weekly, paying hundreds of dollars, and watching the scale barely move. If you are one of them, the frustration is real and the question is urgent: why isn't this working?</p>
+<p>The answer is not simple. GLP-1 receptor agonists interact with a complex web of biological, psychological, and behavioral factors. Understanding why they fail for some people — and what can be done about it — requires looking beyond the medication itself and examining the full metabolic picture, with a special focus on how insulin resistance can blunt their effectiveness.</p>
+
+<h2 id="non-responders">The non-responder problem: by the numbers</h2>
+<p>In the landmark STEP 1 trial of semaglutide (Wegovy), 86.4% of participants lost at least 5% of their body weight. Flip that statistic and 13.6% lost less than 5%, the clinical threshold for a meaningful response. With tirzepatide (Zepbound), roughly 9% were non-responders. Real-world data from an obesity clinic in Vancouver tells a starker story: among 483 patients followed for an average of 17 months, 17.8% were non-responders and only 33.8% achieved hyper-response status (&gt;15% loss).</p>
+__TABLE_RESPONSE__
+<p>These numbers represent real people. A non-responder who has endured side effects, paid out of pocket, and rearranged their life around weekly injections deserves to understand why the drug failed and what alternatives exist. The good news: science has identified many factors that predict poor response, and several strategies can improve outcomes.</p>
+
+<h2 id="insulin-resistance">Reason 1: Insulin resistance blunts GLP-1 effectiveness</h2>
+<p>This is the single most important factor for many non-responders. Insulin resistance and elevated insulin levels can significantly reduce the weight-loss effectiveness of GLP-1 receptor agonists.</p>
+<h3>The biology: how hyperglycemia impairs GLP-1 receptor signaling</h3>
+<p>Research in <em>Diabetologia</em> showed that pancreatic beta cells exposed to sustained high glucose lose GLP-1 receptors from the cell surface through receptor internalization, reduce GLP-1 receptor mRNA expression, and blunt downstream signaling. In practical terms, a person with poorly controlled type 2 diabetes has beta cells that are partially "deaf" to GLP-1 stimulation — the medication arrives at the receptor, but the receptor has been pulled inside the cell.</p>
+<h3>The clinical evidence: diabetes patients lose 30–50% less weight</h3>
+<p>In SURMOUNT-1, tirzepatide produced a mean 20.9% weight loss in non-diabetic participants; in SURMOUNT-2 (type 2 diabetes), the same 15 mg dose produced only 15.7%. This pattern holds across the entire drug class.</p>
+__TABLE_DIABETIC__
+<p>The magnitude of weight loss diminishes as baseline hyperglycemia worsens. A patient with an HbA1c of 6.5% will lose substantially more weight on semaglutide than a patient with an HbA1c of 9.5% at the same dose — not because the drug is broken, but because the target tissue has been metabolically damaged by sustained hyperglycemia. Paradoxically, a 2024 machine-learning study of nearly 8,000 patients found that higher pre-treatment HbA1c is the dominant predictor of a good <em>glycemic</em> response even as it predicts <em>worse</em> weight loss.</p>
+
+<section lang="fil">
+<h2 id="tagalog-insulin">Bakit hindi effective ang GLP-1: ang epekto ng insulin resistance</h2>
+<p>Para sa mga Pilipinong gumagamit ng Ozempic o Wegovy at hindi nakakaranas ng pagbaba ng timbang, ang insulin resistance ang isa sa pinakamalalang dahilan.</p>
+<h3>Ano ang insulin resistance?</h3>
+<p>Ang insulin resistance ay kondisyon kung saan ang mga selula sa katawan ay hindi na sumasagot nang maayos sa insulin. Kapag insulin resistant ka, ang iyong pancreas ay kailangang mag-produce ng mas maraming insulin — ang resulta ay mataas na insulin levels sa dugo (hyperinsulinemia) at mataas na blood sugar. Napakakaraniwan nito sa Pilipinas dahil sa mataas na konsumo ng kanin, tinapay, pasta, at matatamis na pagkain, kasama ang sedentary lifestyle. Kung ikaw ay may PCOS, mas malaki ang posibilidad na insulin resistant ka.</p>
+<h3>Ang "rice factor": bakit mahirap pumayat sa Pilipinas</h3>
+<p>Ang typical Filipino diet na mayaman sa kanin, pandesal, at matatamis na inumin ay nagko-contribute sa insulin resistance. Kung ikaw ay nasa GLP-1 pero patuloy pa ring kumakain ng malalaking serving ng kanin, ang iyong insulin levels ay mananatiling mataas at hindi magiging effective ang gamot. Ang pagbawas ng kanin, tinapay, at matatamis, at pagdagdag ng protina, gulay, at healthy fats ay hindi lang recommendation — ito ay requirement para gumana ang GLP-1.</p>
+</section>
+
+<h2 id="plateau">Reason 2: The weight-loss plateau is biologically inevitable</h2>
+<p>Many people who initially respond well find their weight loss stalls after 6–12 months. This is not the drug "stopping working" — it is the body adapting through well-documented mechanisms. As you lose weight your basal metabolic rate drops, and adaptive thermogenesis makes you burn fewer calories than predicted by body mass alone. The hypothalamus detects reduced leptin signaling and increases ghrelin while decreasing satiety signals. GLP-1 drugs counteract some of this, but do not eliminate it.</p>
+__TABLE_TIMELINE__
+<p>A plateau after 6–12 months is the expected trajectory, not treatment failure. Strategies to push through include resistance training to preserve muscle, refining dietary composition, and in some cases switching to a more potent agent or combination therapy.</p>
+
+<h2 id="emotional-eating">Reason 3: Emotional and behavioral eating overrides the medication</h2>
+<p>GLP-1 receptor agonists reduce <em>physical</em> hunger. They do not eliminate the psychological and habitual drivers of overeating. Obesity researchers describe four types of hunger: slow-burn (baseline metabolic need) and hungry-gut (empty stomach) hunger, which GLP-1 drugs address well through central appetite suppression and slowed gastric emptying — and hungry-brain (habit and environmental cues) and emotional (stress, anxiety, boredom) hunger, which the medication barely touches.</p>
+<p>A Japanese study of 92 people with diabetes found that those who overate for emotional reasons responded significantly worse to GLP-1 treatment long term. If you eat when not physically hungry, continue past fullness, or use food to cope with stress, appetite suppression alone will not fix it. The solution is not to abandon the medication but to integrate psychological support — cognitive behavioral therapy (CBT) and emotion-regulation interventions are effective alongside pharmacological treatment.</p>
+
+<h2 id="genetics">Reason 4: Genetics play a role (but a smaller one than you might think)</h2>
+<p>A landmark genome-wide association study published in <em>Nature</em> in April 2026 examined roughly 27,900 participants and identified a variant in the GLP-1 receptor gene (rs10305420) associated with about 0.76 kg additional loss per allele. The biology is credible — the variants map directly to the drug targets — but the clinical significance is modest. In trials where typical weight loss is 10–15%, under 1 kg per allele is not a game-changer. Non-genetic factors such as sex, drug type, dose, and duration explain far more of the variability than genetics does.</p>
+
+<h2 id="microbiome">Reason 5: The gut microbiome may influence response</h2>
+<p>Gut microbes ferment dietary fiber into short-chain fatty acids that activate the same intestinal L-cells that produce your own GLP-1, potentially enhancing natural secretion. Dysbiosis, by contrast, promotes inflammation that can impair insulin signaling. A 2021 pilot study found microbiome differences between responders and non-responders, but a comprehensive 2026 review in the <em>British Journal of Clinical Pharmacology</em> concluded that direct causal evidence in humans is currently insufficient to guide treatment. Supporting gut health with a high-fiber diet and fermented foods is a reasonable adjunct — not a primary solution.</p>
+
+<h2 id="drug-interactions">Reason 6: Medication interactions and contraindicated drugs</h2>
+<p>Several commonly prescribed medications can counteract GLP-1 weight loss or promote weight gain independently, creating a tug-of-war the GLP-1 drug may not win.</p>
+__TABLE_MEDS__
+<p>If you take any of these alongside a GLP-1 drug, discuss alternatives with your prescriber. Switching to a weight-neutral option (olanzapine to aripiprazole, or metoprolol to carvedilol) can remove a significant barrier without compromising the primary therapeutic goal.</p>
+
+<h2 id="improper-use">Reason 7: Improper use and unrealistic expectations</h2>
+<p>Not every case of "GLP-1 not working" is true pharmacological non-response. GLP-1 medications are intentionally started at sub-therapeutic doses and titrated up over weeks. Semaglutide begins at 0.25 mg and escalates to 2.4 mg over 16–20 weeks; tirzepatide starts at 2.5 mg (purely for acclimation) and escalates to 15 mg. Judging effectiveness before reaching the therapeutic range is like testing a car's top speed in first gear. A fair trial requires reaching at least an intermediate dose and holding it for 12–16 weeks.</p>
+<p>Adherence compounds the problem: 20–60% of patients discontinue within the first year, and one study found people who paused tirzepatide regained about 15% of their lost weight within four months. Missed doses and premature discontinuation are frequently misclassified as "the drug didn't work."</p>
+
+<h2 id="strategies">Strategies to improve GLP-1 response for non-responders</h2>
+<h3>Strategy 1: Address insulin resistance head-on</h3>
+<p>Since insulin resistance is the most common biological barrier, treat it directly. Adding <strong>metformin</strong> improves insulin sensitivity through AMPK activation; combined with a GLP-1 agonist it produces greater HbA1c and weight reductions than either alone. A low-carbohydrate or ketogenic approach for 4–8 weeks lowers fasting insulin and can restore receptor responsiveness — for Filipino patients that means significantly reducing rice, bread, and sugary foods. Resistance training 2–4 times weekly improves insulin sensitivity independent of weight loss.</p>
+<h3>Strategy 2: Switch to a more potent agent</h3>
+<p>If semaglutide underperforms after a fair trial, switching to tirzepatide adds a second (GIP) receptor pathway; head-to-head, tirzepatide produced 20.2% vs 13.7% weight loss at 72 weeks. If tirzepatide also fails, combination therapy with phentermine, topiramate, naltrexone/bupropion, or an SGLT-2 inhibitor may be considered.</p>
+<h3>Strategy 3: Investigate root causes</h3>
+<p>If two incretin-based medications have failed, the problem may not be the medications. A comprehensive metabolic workup should include:</p>
+__TABLE_WORKUP__
+<h3>Strategy 4: Optimize lifestyle factors</h3>
+<p>Protein of 0.7–1.0 g per pound of goal body weight preserves muscle and enhances satiety. Sleep of 7–9 hours regulates hunger hormones. Stress management lowers cortisol-driven eating. Hydration of 2–3 liters supports metabolism and reduces false hunger signals.</p>
+
+<h2 id="pcos">Special considerations for women with PCOS</h2>
+<p>PCOS affects 6–20% of reproductive-age women and features insulin resistance as a primary defect, not merely a consequence of obesity. GLP-1 receptor agonists still help — a 2025 meta-analysis found they were superior to metformin at reducing testosterone, DHEA-S, and HOMA-IR — but the magnitude of weight loss may be smaller due to the underlying insulin resistance. Combining the medication with metformin and a low-glycemic diet plus resistance training produces the best outcomes; inositol, vitamin D, omega-3s, and probiotics may add metabolic support.</p>
+
+<h2 id="bottom-line">The bottom line: is GLP-1 right for you?</h2>
+<p>GLP-1 receptor agonists are remarkable medications, but they are not magic bullets and not universally effective. If you are not losing weight, the productive response is systematic investigation, not despair: Have you reached a therapeutic dose and stayed there long enough? Is insulin resistance being addressed? Are emotional or behavioral eating patterns undermining the drug? Have you had metabolic testing to rule out thyroid dysfunction or PCOS? A non-response to one GLP-1 drug is not a non-response to all weight-loss interventions — it is a signal to dig deeper and personalize the approach until you find what works for your biology.</p>
+`,
+    tableResponse: {
+      head: [
+        'Response category',
+        'Definition',
+        'Semaglutide (Wegovy)',
+        'Tirzepatide (Zepbound)',
+        'Real-world GLP-1',
+      ],
+      rows: [
+        ['Non-responder', '<5% weight loss', '~13.6%', '~9%', '17.8%'],
+        ['Moderate responder', '5–15% weight loss', '~35%', '~40%', '48.4%'],
+        ['Hyper-responder', '>15% weight loss', '~51%', '~51%', '33.8%'],
+      ],
+    },
+    tableDiabetic: {
+      head: ['Drug', 'Non-diabetic weight loss', 'Diabetic weight loss', 'Reduction in diabetics'],
+      rows: [
+        ['Liraglutide', '6.0%', '4.0%', '~33% less'],
+        ['Semaglutide', '12.4%', '6.2%', '~50% less'],
+        ['Tirzepatide', '17.8%', '9.6%', '~46% less'],
+      ],
+    },
+    tableTimeline: {
+      head: ['Timeline', 'Expected effect'],
+      rows: [
+        ['Months 1–3', 'Appetite reduction begins, initial weight loss accelerates'],
+        ['Months 3–6', 'Peak weight-loss period, maximum drug effect'],
+        ['Months 6–12', 'Weight loss slows, plateau begins'],
+        ['Beyond 12 months', 'Weight maintained or very gradual additional loss'],
+      ],
+    },
+    tableMeds: {
+      head: ['Medication class', 'Examples', 'Effect on weight / GLP-1 response'],
+      rows: [
+        ['Corticosteroids', 'Prednisone, dexamethasone', 'Promote weight gain, increase insulin resistance'],
+        ['Antipsychotics', 'Olanzapine, quetiapine, risperidone', 'Strongly promote weight gain'],
+        ['Antidepressants', 'Mirtazapine, paroxetine, amitriptyline', 'Can cause weight gain; SSRIs vary'],
+        ['Insulin / sulfonylureas', 'Glargine, glipizide, glyburide', 'Cause weight gain; high insulin may blunt GLP-1'],
+        ['Beta blockers', 'Propranolol, metoprolol', 'May reduce metabolic rate, promote weight gain'],
+      ],
+    },
+    tableWorkup: {
+      head: ['Test', 'What it reveals'],
+      rows: [
+        ['Complete thyroid panel (TSH, free T3/T4, anti-TPO)', 'Hypothyroidism dramatically slows metabolism'],
+        ['Fasting insulin + HOMA-IR', 'Quantifies insulin-resistance severity'],
+        ['HbA1c + fasting glucose', 'Assesses glycemic control and glucose toxicity'],
+        ['Cortisol (salivary or serum)', "Cushing's syndrome or adrenal dysfunction"],
+        ['Sex hormone panel', 'PCOS, low testosterone, estrogen imbalances'],
+        ['Sleep study', 'Sleep apnea causes metabolic disruption'],
+      ],
+    },
+    faqs: [
+      {
+        q: "Why isn't my Ozempic (or GLP-1) working?",
+        a: 'The most common reasons are insulin resistance blunting receptor signaling, not yet reaching a therapeutic dose, a normal 6–12 month plateau, emotional or habitual eating the drug cannot suppress, or weight-promoting medications working against it. Most are addressable once identified.',
+      },
+      {
+        q: 'Do people with diabetes lose less weight on GLP-1 drugs?',
+        a: 'Yes. Across the drug class, diabetic patients lose roughly 30–50% less weight than non-diabetic patients on the same dose, because sustained high glucose downregulates GLP-1 receptors on pancreatic beta cells.',
+      },
+      {
+        q: 'Is a weight-loss plateau after 6–12 months a sign the drug failed?',
+        a: 'No. A plateau is the expected trajectory of pharmacological weight loss as metabolic adaptation and hunger hormones reach equilibrium with the medication. It is a cue to add resistance training, refine diet, or consider a more potent agent — not to quit.',
+      },
+      {
+        q: 'Bakit hindi ako pumapayat sa Ozempic o Wegovy?',
+        a: 'Kadalasan ang insulin resistance ang dahilan — ang mataas na blood sugar ay nagda-damage sa GLP-1 receptors. Ang mataas na konsumo ng kanin at matatamis ay nagpapataas ng insulin at binabawasan ang bisa ng gamot. Ang pagbawas ng refined carbs, pagdagdag ng protina at gulay, at pag-abot sa therapeutic dose ay kritikal.',
+      },
+      {
+        q: 'Can I do anything to make GLP-1 work better?',
+        a: 'Yes: address insulin resistance (metformin, lower refined carbs, resistance training), reach and hold a therapeutic dose for 12–16 weeks, prioritize protein and sleep, add behavioral support for emotional eating, and get a metabolic workup (thyroid, insulin, cortisol) before concluding the drug has failed.',
+      },
+      {
+        q: 'Should I switch from semaglutide to tirzepatide if I am not responding?',
+        a: "After a fair trial at therapeutic doses, switching to tirzepatide adds a second (GIP) receptor pathway and produced greater weight loss head-to-head (20.2% vs 13.7% at 72 weeks). It helps a meaningful subset of semaglutide non-responders.",
+      },
+    ],
+    sources: [
+      'STEP 1 trial (semaglutide) and SURMOUNT-1/-2 (tirzepatide) program data',
+      'Real-world GLP-1 response cohort, Vancouver obesity clinic (n=483)',
+      'Diabetologia: glucotoxicity and GLP-1 receptor internalization in beta cells',
+      'Nature (April 2026): genome-wide predictors of GLP-1 response (n≈27,900)',
+      'British Journal of Clinical Pharmacology (2026): GLP-1 and the gut microbiome review',
+      '2025 meta-analysis: GLP-1 RAs vs metformin in PCOS',
+    ],
+    related: ['tirzepatide-faq', 'complete-peptide-guide', 'tirzepatide-vs-retatrutide'],
+    productTie: {
+      name: 'PLP Slim 2.0',
+      detail: 'Tirzepatide 30mg + Cagrilintide 5mg — a dual-mechanism option for non-responders',
+    },
   },
 ];
