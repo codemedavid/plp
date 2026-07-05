@@ -66,23 +66,27 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
                     <a
                       key="assessment-slide"
                       href="/assessment"
-                      className="shrink-0 flex flex-col items-center justify-center gap-4 px-6 text-center bg-navy-900 aspect-[16/9]"
+                      className="group/slide shrink-0 flex flex-col items-center justify-center gap-3 sm:gap-5 px-6 text-center bg-cream-light aspect-[16/9]"
                       style={{ flex: '0 0 100%' }}
                       aria-label="Take the free peptide assessment to find your protocol."
                     >
-                      <span className="inline-flex items-center gap-3 text-[10px] sm:text-[11px] font-semibold tracking-[0.32em] uppercase text-gold-400">
-                        <span className="w-6 h-px bg-gold-500" />
-                        New · Peptide Assessment
+                      <span className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.32em] text-gold-600">
+                        Personalized Recommendations
                       </span>
-                      <h2 className="font-heading text-2xl sm:text-4xl md:text-5xl font-medium leading-tight text-cream-light max-w-2xl">
-                        Which peptide protocol is right for you?
+                      <h2 className="font-heading text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.1] text-navy-900 max-w-3xl">
+                        Which peptide protocol<br className="hidden sm:block" /> is right for you?
                       </h2>
-                      <p className="hidden sm:block text-sm md:text-base text-cream-light/70 max-w-md">
-                        Find the right protocol for your goals in 3 minutes — includes a safety check.
+                      <span className="h-0.5 w-12 sm:w-16 bg-gold-500" />
+                      <p className="hidden sm:block text-sm md:text-base leading-relaxed text-charcoal-500 max-w-md">
+                        Answer a few screening and lifestyle questions and get a ranked protocol
+                        matched to your goals — with a safety check before you begin.
                       </p>
-                      <span className="mt-1 inline-flex items-center gap-2 text-[11px] sm:text-xs font-semibold tracking-[0.22em] uppercase text-gold-400">
-                        Take the Test
-                        <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.8} />
+                      <span
+                        className="mt-1 inline-flex items-center gap-3 bg-navy-900 px-7 py-3 sm:px-11 sm:py-4 text-[11px] sm:text-[13px] font-semibold uppercase tracking-[0.28em] text-cream-light transition-colors group-hover/slide:bg-gold-500 group-hover/slide:text-navy-900"
+                        style={{ borderRadius: '2px' }}
+                      >
+                        Begin Assessment
+                        <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" strokeWidth={1.8} />
                       </span>
                     </a>
                   );
