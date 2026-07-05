@@ -17,9 +17,9 @@ type HeroSlide =
 const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
   const [isVisible, setIsVisible] = useState(false);
   const { siteSettings } = useSiteSettings();
-  const images = (siteSettings?.hero_images && siteSettings.hero_images.length > 0)
-    ? siteSettings.hero_images
-    : ['/hero-plp-slim.jpg'];
+  // Hero images are optional — the carousel still runs on its content slides
+  // (assessment / referral / research) when no image is configured.
+  const images = siteSettings?.hero_images ?? [];
 
   // Admins toggle the assessment slide and its position in Site Settings →
   // Hero Carousel (shown by default, last unless made the primary slide).
