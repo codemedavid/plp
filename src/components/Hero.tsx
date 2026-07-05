@@ -66,18 +66,18 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
                     <a
                       key="assessment-slide"
                       href="/assessment"
-                      className="group/slide shrink-0 flex flex-col items-center justify-center gap-3 sm:gap-5 px-6 text-center bg-cream-light aspect-[16/9]"
+                      className="group/slide shrink-0 flex flex-col items-center justify-center gap-4 sm:gap-5 px-6 py-10 text-center bg-cream-light aspect-[4/5] sm:aspect-[16/9]"
                       style={{ flex: '0 0 100%' }}
                       aria-label="Take the free peptide assessment to find your protocol."
                     >
-                      <span className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.32em] text-gold-600">
+                      <span className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.28em] sm:tracking-[0.32em] text-gold-600">
                         Personalized Recommendations
                       </span>
-                      <h2 className="font-heading text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.1] text-navy-900 max-w-3xl">
+                      <h2 className="font-heading text-[26px] sm:text-4xl md:text-5xl lg:text-6xl font-medium leading-[1.12] text-navy-900 max-w-3xl">
                         Which peptide protocol<br className="hidden sm:block" /> is right for you?
                       </h2>
                       <span className="h-0.5 w-12 sm:w-16 bg-gold-500" />
-                      <p className="hidden sm:block text-sm md:text-base leading-relaxed text-charcoal-500 max-w-md">
+                      <p className="text-[13px] sm:text-base leading-relaxed text-charcoal-500 max-w-xs sm:max-w-md">
                         Answer a few screening and lifestyle questions and get a ranked protocol
                         matched to your goals — with a safety check before you begin.
                       </p>
@@ -96,7 +96,7 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
                     key={`${slide.src}-${i}`}
                     type="button"
                     onClick={onShopAll}
-                    className="block shrink-0 cursor-pointer focus:outline-none"
+                    className="flex shrink-0 items-center justify-center cursor-pointer focus:outline-none bg-cream-light"
                     style={{ flex: '0 0 100%' }}
                     aria-label="PLP Slim 2.0 — Next level weight management support. Explore products."
                   >
