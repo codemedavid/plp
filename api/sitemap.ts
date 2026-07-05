@@ -1,11 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
-import { slugify } from '../src/lib/slug';
+import { slugify } from '../src/lib/slug.js';
 import {
   buildSitemapXml,
   staticEntries,
   researchEntries,
   productEntries,
-} from '../src/lib/sitemap';
+} from '../src/lib/sitemap.js';
 
 // Dynamic sitemap: static routes + research articles + available products.
 // If Supabase is unreachable, still serves the static + research portion so

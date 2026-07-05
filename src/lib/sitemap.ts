@@ -2,8 +2,8 @@
 // Keeping the XML assembly here (rather than inline in the handler) makes it
 // unit-testable and keeps the function thin.
 
-import { ARTICLES } from '../data/researchArticles';
-import { absoluteUrl } from './seo';
+import { ARTICLES } from '../data/researchArticles.js';
+import { absoluteUrl } from './seo.js';
 
 export interface SitemapEntry {
   loc: string;

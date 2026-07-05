@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { ARTICLES } from '../src/data/researchArticles';
-import { findProductBySlug } from '../src/lib/slug';
-import { injectMeta, metaForArticle, metaForProduct, type PageMeta } from '../src/lib/renderMeta';
+import { ARTICLES } from '../src/data/researchArticles.js';
+import { findProductBySlug } from '../src/lib/slug.js';
+import { injectMeta, metaForArticle, metaForProduct, type PageMeta } from '../src/lib/renderMeta.js';
 
 // Server-side social-preview shell. Rewrites (see vercel.json) send
 // /products/* and /research/* here. We fetch the built index.html, inject the
