@@ -45,6 +45,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick, onMenuClic
   const navLinks = [
     { label: 'PRODUCTS', href: '/#all-products', onClick: goToCatalog },
     { label: 'PROTOCOLS', href: '/protocols' },
+    { label: 'ASSESSMENT', href: '/assessment' },
     { label: 'RESEARCH', href: '/research' },
     { label: 'TRACK ORDER', href: '/track-order' },
     ...(isAdmin ? [{ label: 'ADMIN', href: '/admin' } as { label: string; href: string; onClick?: () => void }] : []),

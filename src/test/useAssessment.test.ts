@@ -85,6 +85,51 @@ describe('useAssessment', () => {
     expect(result.current.result?.dq).toBe(true);
   });
 
+  it('select() auto-advances a single-select answer to the next question', () => {
+    const { result } = renderHook(() => useAssessment());
+    act(() => result.current.start());
+    act(() => result.current.select('age', 'a30', false));
+    expect(result.current.answers.age).toBe('a30');
+    expect(result.current.step).toBe(1);
+    expect(result.current.current?.id).toBe('pregnant');
+  });
+
+  it('select() does not auto-advance a multi-select answer', () => {
+    const { result } = renderHook(() => useAssessment());
+    act(() => result.current.start());
+    // Jump to the multi-select "conditions" question by answering prior singles.
+    act(() => result.current.select('age', 'a30', false));
+    act(() => result.current.select('pregnant', 'no', false));
+    act(() => result.current.select('thyroid', 'no', false));
+    act(() => result.current.select('pancreatitis', 'no', false));
+    expect(result.current.current?.id).toBe('conditions');
+    act(() => result.current.select('conditions', 't2d', true));
+    expect(result.current.answers.conditions).toEqual(['t2d']);
+    expect(result.current.current?.id).toBe('conditions');
+  });
+
+  it('select() on the final single-select question completes the assessment', () => {
+    const { result } = renderHook(() => useAssessment());
+    act(() => result.current.start());
+    // Non-weight goal keeps the question set free of the conditional weight steps.
+    const path: Record<string, string> = {
+      age: 'a30', pregnant: 'no', thyroid: 'no', pancreatitis: 'no', primary: 'skin',
+    };
+    let guard = 0;
+    while (result.current.view === 'quiz' && guard++ < 50) {
+      const q = result.current.current!;
+      const val = path[q.id] ?? q.opts[0].v;
+      if (q.multi) {
+        act(() => result.current.pick(q.id, val, true));
+        act(() => result.current.advance());
+      } else {
+        act(() => result.current.select(q.id, val, false));
+      }
+    }
+    expect(result.current.view).toBe('results');
+    expect(result.current.result?.recs.length).toBeGreaterThan(0);
+  });
+
   it('goHome() resets the wizard back to the start', () => {
     const { result } = renderHook(() => useAssessment());
     act(() => result.current.start());

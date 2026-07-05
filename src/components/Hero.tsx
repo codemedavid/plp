@@ -127,6 +127,14 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
               View Protocols
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.8} />
             </a>
+            <a
+              href="/assessment"
+              className="group inline-flex items-center justify-between gap-6 px-7 py-4 bg-transparent text-navy-900 text-xs font-semibold tracking-[0.22em] uppercase border border-navy-900/25 hover:bg-navy-900 hover:text-white transition-all"
+              style={{ borderRadius: '2px' }}
+            >
+              Take the Assessment
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={1.8} />
+            </a>
           </div>
         </div>
 

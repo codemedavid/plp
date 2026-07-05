@@ -20,6 +20,20 @@ type BannerSlide = {
 
 const SLIDES: BannerSlide[] = [
   {
+    id: 'assessment',
+    eyebrow: 'New',
+    message: (
+      <>
+        Find the right protocol for <span className="text-gold-400 font-medium">your goals</span> in 3 minutes
+      </>
+    ),
+    cta: {
+      label: 'Take the Assessment',
+      href: '/assessment',
+      event: 'plp_promo_banner_assessment_click',
+    },
+  },
+  {
     id: 'referral',
     eyebrow: 'Earn Monthly',
     message: (

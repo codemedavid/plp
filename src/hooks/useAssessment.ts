@@ -27,6 +27,8 @@ export interface UseAssessmentReturn {
   goHome: () => void;
   restart: () => void;
   pick: (qid: string, value: string, multi: boolean) => void;
+  /** Pick and, for single-select, immediately advance using the fresh answer. */
+  select: (qid: string, value: string, multi: boolean) => void;
   advance: () => void;
   back: () => void;
 }
@@ -96,6 +98,23 @@ export function useAssessment(): UseAssessmentReturn {
     else setStep(safeStep + 1);
   };
 
+  // Single-select convenience: pick the value and advance using the freshly
+  // updated answers, avoiding the stale-closure trap of a deferred advance().
+  const select = (qid: string, value: string, multi: boolean) => {
+    pick(qid, value, multi);
+    if (multi) return;
+    const nextAnswers = { ...answers, [qid]: value };
+    const nextQuestions = visibleQuestions(nextAnswers);
+    const idx = nextQuestions.findIndex((q) => q.id === qid);
+    if (idx === -1) return;
+    if (idx + 1 >= nextQuestions.length) {
+      const { dq } = computeAssessment(nextAnswers);
+      setView(dq ? 'dq' : 'results');
+    } else {
+      setStep(idx + 1);
+    }
+  };
+
   const back = () => setStep((s) => Math.max(0, s - 1));
 
   return {
@@ -112,6 +131,7 @@ export function useAssessment(): UseAssessmentReturn {
     goHome,
     restart,
     pick,
+    select,
     advance,
     back,
   };
