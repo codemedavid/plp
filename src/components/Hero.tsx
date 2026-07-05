@@ -19,13 +19,17 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
     ? siteSettings.hero_images
     : ['/hero-plp-slim.jpg'];
 
-  // The assessment is the final slide in the rotation, after the hero images.
-  // Admins can toggle it off in Site Settings → Hero Carousel (default on).
+  // Admins toggle the assessment slide and its position in Site Settings →
+  // Hero Carousel (shown by default, last unless made the primary slide).
   const showAssessmentSlide = siteSettings?.hero_show_assessment_slide !== false;
-  const slides: HeroSlide[] = [
-    ...images.map((src): HeroSlide => ({ kind: 'image', src })),
-    ...(showAssessmentSlide ? [{ kind: 'assessment' } as HeroSlide] : []),
-  ];
+  const assessmentFirst = siteSettings?.hero_assessment_slide_position === 'first';
+  const imageSlides: HeroSlide[] = images.map((src) => ({ kind: 'image', src }));
+  const assessmentSlide: HeroSlide = { kind: 'assessment' };
+  const slides: HeroSlide[] = showAssessmentSlide
+    ? assessmentFirst
+      ? [assessmentSlide, ...imageSlides]
+      : [...imageSlides, assessmentSlide]
+    : imageSlides;
   const slideCount = slides.length;
 
   const [current, setCurrent] = useState(0);

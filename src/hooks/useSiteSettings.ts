@@ -59,7 +59,12 @@ export const useSiteSettings = () => {
         hero_images: heroImages,
         // Default on: the assessment slide shows unless an admin turns it off.
         hero_show_assessment_slide:
-          settingsData.find(s => s.id === 'hero_show_assessment_slide')?.value !== 'false'
+          settingsData.find(s => s.id === 'hero_show_assessment_slide')?.value !== 'false',
+        // Assessment slide sits last unless an admin makes it the primary slide.
+        hero_assessment_slide_position:
+          settingsData.find(s => s.id === 'hero_assessment_slide_position')?.value === 'first'
+            ? 'first'
+            : 'last'
       };
 
       setSiteSettings(settings);

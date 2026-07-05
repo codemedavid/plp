@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Layout, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Layout, Plus, Trash2, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
@@ -29,6 +29,7 @@ const SiteSettingsManager: React.FC = () => {
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [showAssessmentSlide, setShowAssessmentSlide] = useState(true);
+  const [assessmentPosition, setAssessmentPosition] = useState<'first' | 'last'>('last');
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
@@ -52,6 +53,7 @@ const SiteSettingsManager: React.FC = () => {
         ? siteSettings.hero_images
         : [siteSettings.hero_image_url || '/hero-plp-slim.jpg']);
       setShowAssessmentSlide(siteSettings.hero_show_assessment_slide !== false);
+      setAssessmentPosition(siteSettings.hero_assessment_slide_position === 'first' ? 'first' : 'last');
     }
   }, [siteSettings]);
 
@@ -94,6 +96,19 @@ const SiteSettingsManager: React.FC = () => {
     setHeroImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Make an image the primary (first) slide, and ensure the assessment slide
+  // gives up the primary position so this image really shows first.
+  const handleMakePrimaryImage = (index: number) => {
+    setHeroImages(prev => {
+      if (index <= 0 || index >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(index, 1);
+      next.unshift(moved);
+      return next;
+    });
+    setAssessmentPosition('last');
+  };
+
   const handleMoveHeroImage = (index: number, direction: -1 | 1) => {
     setHeroImages(prev => {
       const target = index + direction;
@@ -123,7 +138,8 @@ const SiteSettingsManager: React.FC = () => {
         hero_images: carouselImages,
         // Keep the legacy single field in sync for backward compatibility.
         hero_image_url: carouselImages[0] || '/hero-plp-slim.jpg',
-        hero_show_assessment_slide: showAssessmentSlide
+        hero_show_assessment_slide: showAssessmentSlide,
+        hero_assessment_slide_position: assessmentPosition
       });
 
       setLogoFile(null);
@@ -252,12 +268,26 @@ const SiteSettingsManager: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {heroImages.map((url, index) => (
                 <div key={`${url}-${index}`} className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 relative group">
-                  <div className="absolute top-2 left-2 z-10 bg-black/60 text-white text-xs font-medium px-2 py-0.5 rounded">
-                    {index === 0 ? 'First' : `#${index + 1}`}
+                  <div className={`absolute top-2 left-2 z-10 text-white text-xs font-medium px-2 py-0.5 rounded ${
+                    index === 0 && !(showAssessmentSlide && assessmentPosition === 'first') ? 'bg-gold-600' : 'bg-black/60'
+                  }`}>
+                    {index === 0 && !(showAssessmentSlide && assessmentPosition === 'first')
+                      ? 'Primary'
+                      : `#${index + 1 + (showAssessmentSlide && assessmentPosition === 'first' ? 1 : 0)}`}
                   </div>
                   <img src={url} alt={`Hero slide ${index + 1}`} className="w-full h-36 object-contain bg-white" />
                   <div className="flex items-center justify-between gap-1 p-2 bg-white border-t border-gray-100">
                     <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleMakePrimaryImage(index)}
+                        disabled={index === 0 && !(showAssessmentSlide && assessmentPosition === 'first')}
+                        className="p-1.5 rounded-md hover:bg-gold-50 text-gold-600 disabled:opacity-30 disabled:hover:bg-transparent"
+                        aria-label="Make this the primary (first) slide"
+                        title="Make primary"
+                      >
+                        <Star className="w-4 h-4" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleMoveHeroImage(index, -1)}
@@ -307,22 +337,49 @@ const SiteSettingsManager: React.FC = () => {
               <p className="text-xs text-amber-600 mt-3">No images added — the homepage will use the default hero image.</p>
             )}
 
-            {/* Peptide Assessment slide toggle */}
-            <label className="mt-4 flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showAssessmentSlide}
-                onChange={(e) => setShowAssessmentSlide(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-navy-900"
-              />
-              <span>
-                <span className="block text-sm font-medium text-gray-800">Show Peptide Assessment slide</span>
-                <span className="block text-xs text-gray-500 mt-0.5">
-                  Adds an “Which peptide protocol is right for you?” slide (linking to /assessment) as the
-                  last slide in the hero carousel. This slide is built-in — it is not an uploaded image.
+            {/* Peptide Assessment slide toggle + position */}
+            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showAssessmentSlide}
+                  onChange={(e) => setShowAssessmentSlide(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-navy-900"
+                />
+                <span>
+                  <span className="block text-sm font-medium text-gray-800">Show Peptide Assessment slide</span>
+                  <span className="block text-xs text-gray-500 mt-0.5">
+                    Adds an “Which peptide protocol is right for you?” slide (linking to /assessment) to the
+                    hero carousel. This slide is built-in — it is not an uploaded image.
+                  </span>
                 </span>
-              </span>
-            </label>
+              </label>
+
+              {showAssessmentSlide && (
+                <div className="mt-3 pl-7">
+                  <span className="block text-xs font-medium text-gray-700 mb-1.5">Assessment slide position</span>
+                  <div className="flex gap-2">
+                    {(['first', 'last'] as const).map((pos) => (
+                      <button
+                        key={pos}
+                        type="button"
+                        onClick={() => setAssessmentPosition(pos)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                          assessmentPosition === pos
+                            ? 'border-navy-900 bg-navy-900 text-white'
+                            : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
+                        }`}
+                      >
+                        {pos === 'first' ? 'First (primary)' : 'Last'}
+                      </button>
+                    ))}
+                  </div>
+                  {assessmentPosition === 'first' && (
+                    <p className="text-xs text-gold-700 mt-2">The assessment slide is the primary slide — it shows first.</p>
+                  )}
+                </div>
+              )}
+            </div>
 
             <p className="text-xs text-gray-400 mt-3">Remember to click “Save Changes” to apply.</p>
           </div>
