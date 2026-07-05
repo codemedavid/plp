@@ -133,6 +133,8 @@ export interface SiteSettings {
   hero_accent_color?: string;
   hero_image_url?: string;
   hero_images?: string[];
+  /** Show the Peptide Assessment slide as the last hero carousel slide. */
+  hero_show_assessment_slide?: boolean;
 }
 
 // Pen Type Options (for injectable products)

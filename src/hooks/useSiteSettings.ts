@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { SiteSettings, SiteSetting } from '../types';
+import { SiteSettings } from '../types';
 
 export const useSiteSettings = () => {
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
@@ -56,7 +56,10 @@ export const useSiteSettings = () => {
         hero_description: settingsData.find(s => s.id === 'hero_description')?.value || 'RSPEPTIDE provides research-grade peptides engineered for precision, purity, and consistency.',
         hero_accent_color: settingsData.find(s => s.id === 'hero_accent_color')?.value || 'gold-500',
         hero_image_url: singleHeroImage,
-        hero_images: heroImages
+        hero_images: heroImages,
+        // Default on: the assessment slide shows unless an admin turns it off.
+        hero_show_assessment_slide:
+          settingsData.find(s => s.id === 'hero_show_assessment_slide')?.value !== 'false'
       };
 
       setSiteSettings(settings);

@@ -28,6 +28,7 @@ const SiteSettingsManager: React.FC = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [showAssessmentSlide, setShowAssessmentSlide] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
@@ -50,6 +51,7 @@ const SiteSettingsManager: React.FC = () => {
       setHeroImages(siteSettings.hero_images && siteSettings.hero_images.length > 0
         ? siteSettings.hero_images
         : [siteSettings.hero_image_url || '/hero-plp-slim.jpg']);
+      setShowAssessmentSlide(siteSettings.hero_show_assessment_slide !== false);
     }
   }, [siteSettings]);
 
@@ -120,7 +122,8 @@ const SiteSettingsManager: React.FC = () => {
         site_logo: logoUrl,
         hero_images: carouselImages,
         // Keep the legacy single field in sync for backward compatibility.
-        hero_image_url: carouselImages[0] || '/hero-plp-slim.jpg'
+        hero_image_url: carouselImages[0] || '/hero-plp-slim.jpg',
+        hero_show_assessment_slide: showAssessmentSlide
       });
 
       setLogoFile(null);
@@ -303,6 +306,24 @@ const SiteSettingsManager: React.FC = () => {
             {heroImages.length === 0 && (
               <p className="text-xs text-amber-600 mt-3">No images added — the homepage will use the default hero image.</p>
             )}
+
+            {/* Peptide Assessment slide toggle */}
+            <label className="mt-4 flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showAssessmentSlide}
+                onChange={(e) => setShowAssessmentSlide(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-navy-900"
+              />
+              <span>
+                <span className="block text-sm font-medium text-gray-800">Show Peptide Assessment slide</span>
+                <span className="block text-xs text-gray-500 mt-0.5">
+                  Adds an “Which peptide protocol is right for you?” slide (linking to /assessment) as the
+                  last slide in the hero carousel. This slide is built-in — it is not an uploaded image.
+                </span>
+              </span>
+            </label>
+
             <p className="text-xs text-gray-400 mt-3">Remember to click “Save Changes” to apply.</p>
           </div>
 
