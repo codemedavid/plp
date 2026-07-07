@@ -53,6 +53,8 @@ export interface Article {
   tableTimeline?: TableData;
   tableMeds?: TableData;
   tableWorkup?: TableData;
+  tableFactors?: TableData;
+  tableMyths?: TableData;
   faqs: Faq[];
   sources: string[];
   related: string[];
@@ -502,7 +504,7 @@ __TABLE_WHICH__
     readMins: 14,
     date: '2026-07-05',
     dateLabel: 'July 5, 2026',
-    featured: true,
+    featured: false,
     toc: [
       { id: 'non-responders', label: 'The non-responder problem' },
       { id: 'insulin-resistance', label: 'Reason 1: Insulin resistance' },
@@ -672,10 +674,214 @@ __TABLE_WORKUP__
       'British Journal of Clinical Pharmacology (2026): GLP-1 and the gut microbiome review',
       '2025 meta-analysis: GLP-1 RAs vs metformin in PCOS',
     ],
-    related: ['tirzepatide-faq', 'complete-peptide-guide', 'tirzepatide-vs-retatrutide'],
+    related: [
+      'why-others-lose-more-weight',
+      'tirzepatide-faq',
+      'complete-peptide-guide',
+      'tirzepatide-vs-retatrutide',
+    ],
     productTie: {
       name: 'PLP Slim 2.0',
       detail: 'Tirzepatide 30mg + Cagrilintide 5mg — a dual-mechanism option for non-responders',
+    },
+  },
+
+  {
+    slug: 'why-others-lose-more-weight',
+    category: 'GLP-1 Medications',
+    title:
+      'Why Others Lose More Weight on the Same GLP-1 Dose (and Why Your Weight-Loss Plateau Happens)',
+    dek: 'On identical Ozempic, Wegovy, or Mounjaro doses, one person drops 18% and another just 8%. It is not luck. Here is the science of individual variability, the diabetes gap, and why a plateau is normal biology, not a signal to switch suppliers.',
+    metaDescription:
+      'Why others lose more weight than you on the same GLP-1 dose: the science of variability, the diabetes gap, and why a plateau is normal, not a supplier problem.',
+    keywords:
+      'bakit mas malaki ang nabawas sa iba, why others lose more weight, glp-1 plateau, ozempic plateau, weight loss plateau, tirzepatide plateau, do diabetics lose less weight on glp-1, bakit humihinto ang timbangan, plateau hindi na effective ang gamot',
+    readMins: 12,
+    date: '2026-07-07',
+    dateLabel: 'July 7, 2026',
+    featured: true,
+    toc: [
+      { id: 'variability', label: 'The reality of individual variability' },
+      { id: 'top-factors', label: 'Top 10 reasons others lose more' },
+      { id: 'diabetes-gap', label: 'The diabetes gap explained' },
+      { id: 'tagalog-variability', label: 'Tagalog: Bakit mas malaki ang nabawas' },
+      { id: 'plateau', label: 'Why the plateau happens' },
+      { id: 'still-working', label: 'Is the drug still working?' },
+      { id: 'supplier-myth', label: 'Do I need a new supplier?' },
+      { id: 'break-plateau', label: 'How to break a plateau' },
+      { id: 'myths', label: 'Plateau myths vs. reality' },
+      { id: 'takeaways', label: 'Key takeaways' },
+      { id: 'faq', label: 'Frequently asked questions' },
+    ],
+    body: `
+<p><strong>If you are on a GLP-1 medication (Ozempic, Wegovy, Mounjaro, or Zepbound) and notice other people losing weight faster on the same drug and the same dose, you are not alone.</strong> "Why does everyone else lose more than me?" is one of the most common questions in online communities and clinic visits. And when the scale stops moving, many wonder why it happens and how to push through. This article explains, with science, why some people lose faster and why a plateau is a normal part of the weight-loss journey.</p>
+
+<h2 id="variability">The reality of individual variability</h2>
+<p>Clinical trials of GLP-1 medications report an <em>average</em> weight loss, but the real story is in the distribution of results. In the STEP 1 trial of semaglutide (Wegovy), average weight loss was 12–15%, yet the range ran from almost nothing to 20% or more. This is not "luck." There are scientific reasons why one person loses 8% while another loses 18% on the same dose over the same duration.</p>
+<p>A retrospective cohort study published in <em>Diabetes, Obesity and Metabolism</em> analyzed 679 people using GLP-1 receptor agonists. Researchers classified participants into three groups — successful weight loss, stable weight (no change), and weight regain — and identified the factors that most influenced response:</p>
+__TABLE_FACTORS__
+<p>The study shows that people who are non-diabetic and start with lower blood sugar are far more likely to succeed. In other words, if your gym buddy is non-diabetic and you have type 2 diabetes, you carry a 30–50% disadvantage in weight loss even on the identical drug and dose.</p>
+
+<h2 id="top-factors">The top 10 reasons others lose more weight than you</h2>
+<p>Individual response is shaped by a stack of biological and behavioral factors. These are the ten that matter most:</p>
+<h3>1. Diabetes status (the single biggest factor)</h3>
+<p>Type 2 diabetes is the strongest predictor of a poor weight-loss response to GLP-1 medications. Chronic hyperglycemia downregulates GLP-1 receptors on pancreatic beta cells through receptor internalization, reduced cAMP signaling, and impaired CREB phosphorylation — the target cells become partially "deaf" to the drug.</p>
+__TABLE_DIABETIC__
+<h3>2. Insulin resistance severity</h3>
+<p>Even without diabetes, your degree of insulin resistance directly affects the result. People with lower HOMA-IR and better beta-cell function experience better weight loss; insulin resistance compromises GLP-1 receptor signaling and blunts the response.</p>
+<h3>3. Genetic variation (GLP1R gene)</h3>
+<p>A genome-wide association study in <em>Nature</em> (April 2026) found a GLP1R missense variant (rs10305420) linked to roughly 0.76 kg additional loss per allele. The effect is modest, but it confirms genetics play a real role in individual response.</p>
+<h3>4. Starting body composition</h3>
+<p>People with a higher body-fat percentage (especially men) are more likely to succeed in the first three months. A larger fat reservoir provides more to burn, and leptin from fat tissue interacts with GLP-1 pathways.</p>
+<h3>5. Gut microbiome differences</h3>
+<p>Gut bacteria influence response through short-chain fatty acid production, bile acid metabolism, and inflammatory signaling. A healthier microbiome may produce more endogenous GLP-1, adding to the drug's effect.</p>
+<h3>6. Emotional eating vs. physiological hunger</h3>
+<p>A Japanese study of 92 people found that emotional eaters — those who eat from stress, anxiety, or boredom — responded significantly worse to GLP-1 treatment long term. The medication suppresses physiological hunger but does not remove the psychological drive to eat.</p>
+<h3>7. Medication interactions</h3>
+<p>Weight-promoting drugs can counteract the GLP-1 effect, including corticosteroids (prednisone), antipsychotics (olanzapine, quetiapine), insulin, sulfonylureas, and some antidepressants.</p>
+<h3>8. Adherence and consistency</h3>
+<p>People who stay consistent with weekly injections and follow the proper dose-escalation schedule get better outcomes. Missing doses or stopping early is linked to weight regain and a blunted response.</p>
+<h3>9. Lifestyle factors (sleep, stress, exercise)</h3>
+<p>Seven to nine hours of quality sleep, lower stress, and regular activity (especially resistance training) optimize the metabolic response. Chronic sleep deprivation raises ghrelin and cortisol, both working against weight loss.</p>
+<h3>10. Sex and hormonal factors</h3>
+<p>Women may respond differently from men due to hormonal fluctuations, PCOS status, and menstrual-cycle effects on insulin sensitivity. Men with body fat above 30% showed faster initial weight loss.</p>
+
+<h2 id="diabetes-gap">Why the diabetes gap is so large</h2>
+<p>The magnitude of weight loss diminishes as baseline hyperglycemia worsens. A patient with an HbA1c of 6.5% will lose substantially more on the same dose than a patient at 9.5% — not because the drug is broken, but because sustained high glucose has metabolically damaged the target tissue. This is why diabetic patients across the whole drug class lose roughly 30–50% less weight than non-diabetic patients.</p>
+
+<section lang="fil">
+<h2 id="tagalog-variability">Bakit mas malaki ang nabawas sa iba? (Tagalog)</h2>
+<p>Ang tanong na "Bakit mas malaki ang nabawas sa iba?" ay may siyentipikong sagot. Hindi ito "swerte" o "malas." Ang pagkakaroon ng type 2 diabetes ang pinakamalaking dahilan — ang chronic hyperglycemia (mataas na blood sugar) ay nagdo-downregulate ng GLP-1 receptors sa pancreatic beta cells, kaya't ang mga taong may diabetes ay nawawalan ng 30–50% na mas kaunting timbang kahit pareho ang gamot at dosis.</p>
+<h3>Iba pang factors</h3>
+<p>Ang lebel ng insulin resistance, genetics (GLP1R gene), starting body fat, gut microbiome, emotional eating, adherence, sleep, at stress ay lahat nakakaapekto. Kung ikaw ay mabagal pumayat, hindi ibig sabihin na "lemang" ang gamot mo — malamang may isa o higit pang factor na ito ang dahilan. Ang solusyon ay tugunan ang mga factor na ito, hindi ang basta-basta pagpalit ng gamot o supplier.</p>
+</section>
+
+<h2 id="plateau">Why the plateau happens</h2>
+<p>Many people who respond well early find their weight loss stalls after 6–12 months. A weight-loss plateau is a normal and expected biological phenomenon — it does <em>not</em> mean the drug "stopped working." Your body adapts through several mechanisms:</p>
+<p><strong>Metabolic adaptation (adaptive thermogenesis).</strong> As you lose weight your basal metabolic rate drops, because a smaller body needs fewer calories. Your body also becomes more efficient, burning fewer calories at rest than predicted — a survival mechanism honed over millions of years of evolution.</p>
+<p><strong>Hormonal shifts.</strong> Shrinking fat stores release less leptin (the satiety hormone) while ghrelin (the hunger hormone) rises. The hypothalamus detects reduced leptin signaling and responds by increasing appetite drive.</p>
+<p><strong>Smaller body = lower energy needs.</strong> A 200-pound body needs significantly more calories to maintain than a 160-pound body. Even eating the same amount, your caloric deficit naturally shrinks as you lose weight.</p>
+
+<h2 id="still-working">Is the drug still working? What "effective" actually means</h2>
+<p>Effectiveness is not measured by the scale alone. These are signs your GLP-1 medication is still doing its job, even during a plateau:</p>
+<p><strong>Appetite suppression.</strong> If you eat smaller portions than before and no longer feel intense hunger or cravings, the drug is still active in your brain's satiety centers.</p>
+<p><strong>Reduced "food noise."</strong> If you are not obsessing about food all day, the medication is still working.</p>
+<p><strong>Stable blood sugar.</strong> For people with type 2 diabetes, maintained HbA1c and the absence of glucose spikes prove the therapeutic effect is still present.</p>
+<p><strong>Slower eating and early satiety.</strong> Delayed gastric emptying — feeling full sooner and longer — keeps functioning through the plateau phase.</p>
+
+<h2 id="supplier-myth">Do I need to change suppliers? (The myth)</h2>
+<p>One of the most common questions at a plateau is: "Is the medicine no longer effective? Should I change suppliers?" The answer: a stalled scale does not mean the drug has failed. As long as your appetite is still suppressed, it is still working. A plateau is a normal phase of the journey, not a signal to switch brands or suppliers.</p>
+<p>The idea that you must switch suppliers comes from misunderstanding what causes a plateau. A plateau is caused by biological adaptation that would happen with <em>any</em> brand or source — not by supplier quality. Reputable suppliers provide the same active ingredient (tirzepatide or semaglutide) with the same therapeutic effect; switching while on a plateau does not change the biological mechanisms causing it. Someone who switches may feel a temporary placebo effect or appetite fluctuation driven by expectation, but the real solution is evidence-based strategy, not a new supplier.</p>
+
+<h2 id="break-plateau">How to actually break a plateau (evidence-based strategies)</h2>
+<h3>1. Escalate to a higher dose (if not yet at maximum)</h3>
+<p>If you are still at 5 mg or 7.5 mg of tirzepatide, escalating to 10 mg or 15 mg can break a plateau. Clinical trials show dose-dependent weight loss, with higher doses producing greater reduction.</p>
+<h3>2. Switch from semaglutide to tirzepatide</h3>
+<p>If you are on semaglutide and plateaued, switching to tirzepatide adds the GIP receptor pathway, which can overcome resistance at the GLP-1 receptor alone. Head-to-head, tirzepatide produced 20.2% vs 13.7% weight loss.</p>
+<h3>3. Add metformin to address insulin resistance</h3>
+<p>Adding metformin improves insulin sensitivity and enhances weight loss; combination therapy produced greater reductions in HbA1c and body weight than monotherapy.</p>
+<h3>4. Optimize protein and add resistance training</h3>
+<p>Protein at 0.7–1.0 g per pound of goal body weight preserves muscle and maintains metabolic rate. Resistance training 2–4× per week builds metabolically active muscle.</p>
+<h3>5. Prioritize sleep and stress management</h3>
+<p>Seven to nine hours of quality sleep and stress reduction regulate hunger hormones and support insulin sensitivity. Chronic sleep deprivation raises ghrelin and cortisol, both working against weight loss.</p>
+<h3>6. Consider combination therapy</h3>
+<p>If GLP-1 monotherapy is not enough, adding phentermine (appetite suppressant), topiramate (craving reducer), or naltrexone/bupropion (reward-pathway modifier) may provide additional benefit.</p>
+<h3>7. Be patient — plateaus are temporary</h3>
+<p>A plateau typically lasts 2–4 months before weight loss resumes or stabilizes at a lower set point. Giving up or trying dangerous hacks does more harm than waiting and optimizing the other factors.</p>
+
+<h2 id="myths">Plateau myths vs. scientific reality</h2>
+__TABLE_MYTHS__
+
+<h2 id="takeaways">Key takeaways</h2>
+<p><strong>Individual variability is real and scientifically explainable.</strong> Diabetes status, insulin resistance, genetics, gut microbiome, emotional eating, and lifestyle all affect response.</p>
+<p><strong>Diabetic patients lose 30–50% less weight</strong> than non-diabetics on the same drug and dose, due to GLP-1 receptor downregulation from chronic hyperglycemia.</p>
+<p><strong>A plateau does not mean your medication stopped working.</strong> As long as you feel appetite suppression, reduced food noise, and stable blood sugar, the drug is still doing its job — your body is simply adapting.</p>
+<p><strong>Changing suppliers is not the solution to a plateau.</strong> The same active ingredient works the same way regardless of source; a plateau is caused by biology, not supplier quality.</p>
+<p><strong>Plateaus are solved through evidence-based strategies</strong> — dose escalation, switching drugs, adding metformin, resistance training, protein, sleep, and stress management. Consistency beats cycling.</p>
+`,
+    tableFactors: {
+      head: ['Factor', 'Effect on weight-loss success'],
+      rows: [
+        ['Longer duration on GLP-1', 'More likely to lose weight successfully at 6 and 12 months'],
+        ['Semaglutide vs other GLP-1s', 'Starting on semaglutide linked to better success at 3 and 6 months'],
+        ['Not having type 2 diabetes', 'Significantly better weight-loss outcomes'],
+        ['Lower HbA1c levels', 'Associated with successful weight reduction'],
+        ['Higher body fat % (in men)', 'Linked to successful weight loss at 3 months'],
+        ['Better beta-cell function (HOMA-β)', 'Associated with greater weight decline'],
+        ['Lower fasting plasma glucose', 'Successful losers had better metabolic markers'],
+      ],
+    },
+    tableDiabetic: {
+      head: ['Drug', 'Non-diabetic loss', 'Diabetic loss', 'Gap'],
+      rows: [
+        ['Liraglutide', '6.0%', '4.0%', '~33% less'],
+        ['Semaglutide', '12.4%', '6.2%', '~50% less'],
+        ['Tirzepatide', '17.8%', '9.6%', '~46% less'],
+      ],
+    },
+    tableMyths: {
+      head: ['Myth', 'Scientific reality'],
+      rows: [
+        [
+          '"Plateau means the drug stopped working"',
+          'False. A plateau is normal biology; the drug is still active if appetite is suppressed.',
+        ],
+        [
+          '"I need to change suppliers to break the plateau"',
+          'False. A plateau is caused by biological adaptation, not supplier quality. The same active ingredient works the same way regardless of source.',
+        ],
+        [
+          '"Weight loss should be continuous and linear"',
+          'False. Weight loss naturally slows as body size decreases — a smaller body needs fewer calories.',
+        ],
+        [
+          '"If I\'m not losing weight, the medicine isn\'t working"',
+          'False. Appetite suppression, reduced food noise, and stable blood sugar are all signs the drug works even during a plateau.',
+        ],
+        [
+          '"Plateaus last forever — I\'ll never lose more"',
+          'False. Most plateaus last 2–4 months. Evidence-based strategies can help break through.',
+        ],
+      ],
+    },
+    faqs: [
+      {
+        q: 'Why do others lose more weight than me on the same GLP-1 dose?',
+        a: 'Response varies with diabetes status, insulin resistance, genetics, starting body composition, gut microbiome, emotional eating, adherence, and lifestyle. Diabetes is the biggest single factor — diabetic patients lose 30–50% less on the same dose because chronic high blood sugar downregulates GLP-1 receptors.',
+      },
+      {
+        q: 'Bakit mas malaki ang nabawas sa iba kaysa sa akin?',
+        a: 'May siyentipikong dahilan — hindi ito swerte. Ang type 2 diabetes, insulin resistance, genetics, body fat, gut microbiome, at emotional eating ay lahat nakakaapekto. Ang mga may diabetes ay nawawalan ng 30–50% na mas kaunti kahit pareho ang gamot at dosis.',
+      },
+      {
+        q: 'Is a weight-loss plateau after 6–12 months a sign the drug failed?',
+        a: 'No. A plateau is the expected trajectory as your metabolism adapts and hunger hormones reach equilibrium with the medication. As long as appetite is still suppressed, the drug is working. It is a cue to add resistance training, refine diet, escalate the dose, or consider a more potent agent — not to quit.',
+      },
+      {
+        q: 'Do I need to change suppliers when my weight stalls?',
+        a: 'No. A plateau is caused by biological adaptation, not supplier quality. The same active ingredient (tirzepatide or semaglutide) works the same way regardless of source. Switching suppliers does not change the biology causing the plateau.',
+      },
+      {
+        q: 'Bakit hindi kailangang magpalit ng supplier kapag huminto ang timbangan?',
+        a: 'Dahil ang plateau ay dulot ng biological adaptation, hindi ng kalidad ng supplier. Ang parehong active ingredient ay gumagana nang pareho kahit saan galing. Ang tunay na solusyon ay dose escalation, lifestyle optimization, at pakikipagtulungan sa iyong healthcare provider.',
+      },
+      {
+        q: 'How do I break through a GLP-1 weight-loss plateau?',
+        a: 'Escalate the dose if you are below maximum, switch from semaglutide to tirzepatide, add metformin for insulin resistance, prioritize protein (0.7–1.0 g/lb goal weight) and resistance training, optimize sleep and stress, and consider combination therapy. Most plateaus resolve in 2–4 months with patience and optimization.',
+      },
+    ],
+    sources: [
+      'STEP 1 trial (semaglutide): distribution of weight-loss response',
+      'Diabetes, Obesity and Metabolism: retrospective GLP-1 cohort (n=679) — predictors of response',
+      'Nature (April 2026): genome-wide GLP1R variant rs10305420 and weight-loss response',
+      'SURMOUNT-1 / SURMOUNT-2: tirzepatide weight loss in non-diabetic vs diabetic patients',
+      'Diabetologia: glucotoxicity and GLP-1 receptor downregulation in beta cells',
+      'Reviews on adaptive thermogenesis and hormonal adaptation in weight-loss plateaus',
+    ],
+    related: ['why-glp1-not-working', 'tirzepatide-faq', 'tirzepatide-vs-retatrutide'],
+    productTie: {
+      name: 'PLP Slim 2.0',
+      detail: 'Tirzepatide 30mg + Cagrilintide 5mg — a potent option for pushing past a plateau',
     },
   },
 ];

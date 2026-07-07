@@ -18,6 +18,8 @@ const TABLE_PLACEHOLDERS: Array<[string, keyof Article]> = [
   ['__TABLE_TIMELINE__', 'tableTimeline'],
   ['__TABLE_MEDS__', 'tableMeds'],
   ['__TABLE_WORKUP__', 'tableWorkup'],
+  ['__TABLE_FACTORS__', 'tableFactors'],
+  ['__TABLE_MYTHS__', 'tableMyths'],
 ];
 
 /** Render a typed table into the design's table markup (styled via `.prose`). */

@@ -63,7 +63,7 @@ describe('buildBody', () => {
     expect(html).not.toMatch(/__TABLE_[A-Z]+__/);
     // Known cells authored into tableFactors and tableMyths.
     expect(html).toContain('Longer duration on GLP-1');
-    expect(html).toContain('Scientific Reality');
+    expect(html).toContain('Scientific reality');
   });
 });
 
