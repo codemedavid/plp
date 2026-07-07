@@ -3,6 +3,7 @@ import { X, Mail, Lock, Gift } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { SIGNUP_BONUS_POINTS, signupBonusPesos } from '../lib/rewards';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -181,6 +182,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <p className="text-xs text-charcoal-500 text-center mt-2 tracking-wider">
             {mode === 'signin' ? 'Welcome back' : 'Join the Peptide Lifestyle Program'}
           </p>
+
+          {mode === 'signup' && (
+            <div className="mt-4 flex items-center justify-center gap-2 border border-gold-300 bg-gold-50 px-4 py-2.5 rounded">
+              <Gift className="w-4 h-4 text-gold-600 shrink-0" strokeWidth={1.6} />
+              <p className="text-xs text-navy-900 leading-snug">
+                Sign up and get{' '}
+                <span className="font-semibold">{SIGNUP_BONUS_POINTS} points</span> — worth{' '}
+                <span className="font-semibold">{signupBonusPesos()}</span> at checkout.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <label className="block">

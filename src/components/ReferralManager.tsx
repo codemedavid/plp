@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, Check, X, Save, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import PendingApprovalsTab from './PendingApprovalsTab';
 
 interface ReferralConfig {
   id: number;
@@ -27,7 +28,7 @@ interface Props {
   onBack: () => void;
 }
 
-type Tab = 'config' | 'withdrawals' | 'products' | 'lookup';
+type Tab = 'withdrawals' | 'pending' | 'config' | 'products' | 'lookup';
 
 export default function ReferralManager({ onBack }: Props) {
   const [tab, setTab] = useState<Tab>('withdrawals');
@@ -42,13 +43,13 @@ export default function ReferralManager({ onBack }: Props) {
           <h1 className="text-lg font-bold text-gray-900">Referral Program</h1>
         </div>
         <div className="container mx-auto px-4 flex gap-1 text-sm">
-          {(['withdrawals', 'config', 'products', 'lookup'] as Tab[]).map(t => (
+          {(['withdrawals', 'pending', 'config', 'products', 'lookup'] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-4 py-2 capitalize border-b-2 ${tab === t ? 'border-brand-600 text-brand-700 font-semibold' : 'border-transparent text-gray-600'}`}
             >
-              {t === 'lookup' ? 'User Lookup' : t}
+              {t === 'lookup' ? 'User Lookup' : t === 'pending' ? 'Pending Approvals' : t}
             </button>
           ))}
         </div>
@@ -56,6 +57,7 @@ export default function ReferralManager({ onBack }: Props) {
       <main className="container mx-auto px-4 py-6 max-w-5xl">
         {tab === 'config' && <ConfigTab />}
         {tab === 'withdrawals' && <WithdrawalsTab />}
+        {tab === 'pending' && <PendingApprovalsTab />}
         {tab === 'products' && <ProductsTab />}
         {tab === 'lookup' && <LookupTab />}
       </main>

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 type Response = { data?: unknown; error?: unknown };
@@ -23,10 +24,12 @@ function buildChain(table: string) {
 }
 
 const fromMock = vi.fn((table: string) => buildChain(table));
+const rpcMock = vi.fn<(fn: string, args: Record<string, unknown>) => Promise<Response>>();
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: (table: string) => fromMock(table),
+    rpc: (fn: string, args: Record<string, unknown>) => rpcMock(fn, args),
   },
 }));
 
@@ -61,6 +64,8 @@ const profile2 = {
 beforeEach(() => {
   responsesByTable = new Map();
   fromMock.mockClear();
+  rpcMock.mockReset();
+  rpcMock.mockResolvedValue({ data: 1, error: null });
 });
 
 function seedLoaded(profiles: unknown[], balances: unknown[], orders: unknown[]) {
@@ -163,6 +168,60 @@ describe('UserLookupManager', () => {
     fireEvent.click(screen.getByText('Janey'));
     expect(await screen.findByText('User details')).toBeInTheDocument();
     expect(screen.getByText('Contact')).toBeInTheDocument();
+  });
+
+  it('shows an Approve button on pending points rows and approves a single entry', async () => {
+    const user = userEvent.setup();
+    seedLoaded([baseProfile], [{ user_id: 'u-1', balance: 0 }], []);
+    responsesByTable.set('points_ledger', [
+      {
+        data: [
+          { id: 'pl-1', delta: 500, reason: 'referral_l1', source_order_id: null, status: 'pending', notes: null, created_at: '2026-06-15T00:00:00Z' },
+          { id: 'pl-2', delta: 50, reason: 'review', source_order_id: null, status: 'available', notes: null, created_at: '2026-06-10T00:00:00Z' },
+        ],
+        error: null,
+      },
+    ]);
+    render(<UserLookupManager onBack={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('Janey')).toBeInTheDocument());
+    await user.click(screen.getByText('Janey'));
+    const pointsStat = await screen.findByRole('button', { name: /Points/ });
+    fireEvent.click(pointsStat);
+    await screen.findByText('Points history');
+
+    const approveButtons = await screen.findAllByRole('button', { name: /^Approve$/ });
+    // Only the pending row (pl-1) is approvable, not the already-available review row.
+    expect(approveButtons).toHaveLength(1);
+    await user.click(approveButtons[0]);
+
+    await waitFor(() =>
+      expect(rpcMock).toHaveBeenCalledWith('admin_approve_pending_points', { p_user_id: 'u-1', p_ledger_id: 'pl-1' })
+    );
+  });
+
+  it('approves all pending points for a user from the points history modal', async () => {
+    const user = userEvent.setup();
+    seedLoaded([baseProfile], [{ user_id: 'u-1', balance: 0 }], []);
+    responsesByTable.set('points_ledger', [
+      {
+        data: [
+          { id: 'pl-1', delta: 500, reason: 'referral_l1', source_order_id: null, status: 'pending', notes: null, created_at: '2026-06-15T00:00:00Z' },
+          { id: 'pl-2', delta: 150, reason: 'referral_l2', source_order_id: null, status: 'pending', notes: null, created_at: '2026-06-16T00:00:00Z' },
+        ],
+        error: null,
+      },
+    ]);
+    render(<UserLookupManager onBack={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('Janey')).toBeInTheDocument());
+    await user.click(screen.getByText('Janey'));
+    const pointsStat = await screen.findByRole('button', { name: /Points/ });
+    fireEvent.click(pointsStat);
+    await screen.findByText('Points history');
+
+    await user.click(await screen.findByRole('button', { name: /Approve all pending/i }));
+    await waitFor(() =>
+      expect(rpcMock).toHaveBeenCalledWith('admin_approve_pending_points', { p_user_id: 'u-1' })
+    );
   });
 
   it('calls onBack when back button clicked', async () => {

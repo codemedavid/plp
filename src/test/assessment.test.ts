@@ -123,10 +123,10 @@ describe('computeAssessment — safety screening', () => {
 });
 
 describe('computeAssessment — recommendations', () => {
-  it('ranks the strongest primary-goal match first, capped at three results', () => {
+  it('ranks the strongest primary-goal match first, returning every matching product', () => {
     const result = computeAssessment({ ...cleanBase, primary: 'skin' });
-    expect(result.recs.length).toBeGreaterThan(0);
-    expect(result.recs.length).toBeLessThanOrEqual(3);
+    // All three skin-affinity products are returned (no artificial top-N cap).
+    expect(result.recs.length).toBe(3);
     expect(result.recs[0].name).toBe('PLP-Glow');
     expect(result.recs[0].rank).toBe(1);
     expect(result.recs[0].match).toBe(97);

@@ -307,6 +307,33 @@ function UserDetailDrawer({
   const [ledger, setLedger] = useState<LedgerRow[] | null>(null);
   const [ledgerLoading, setLedgerLoading] = useState(false);
   const [ledgerError, setLedgerError] = useState<string | null>(null);
+  const [approving, setApproving] = useState<string | null>(null);
+  const [approveError, setApproveError] = useState<string | null>(null);
+
+  // Fast-approve pending referral points. Pass a ledgerId to approve one entry,
+  // or omit it to approve every pending entry for this user.
+  const approvePending = async (ledgerId?: string) => {
+    setApproving(ledgerId ?? 'all');
+    setApproveError(null);
+    const args = ledgerId
+      ? { p_user_id: profile.id, p_ledger_id: ledgerId }
+      : { p_user_id: profile.id };
+    const { error } = await supabase.rpc('admin_approve_pending_points', args);
+    setApproving(null);
+    if (error) {
+      setApproveError(error.message);
+      return;
+    }
+    setLedger(prev =>
+      prev
+        ? prev.map(r =>
+            (!ledgerId || r.id === ledgerId) && r.status === 'pending'
+              ? { ...r, status: 'available' }
+              : r
+          )
+        : prev
+    );
+  };
 
   const openPointsHistory = async () => {
     setHistoryView('points');
@@ -668,6 +695,10 @@ function UserDetailDrawer({
             loading={ledgerLoading}
             error={ledgerError}
             orders={orders}
+            approving={approving}
+            approveError={approveError}
+            onApproveOne={approvePending}
+            onApproveAll={() => approvePending()}
             onClose={() => setHistoryView(null)}
           />
         )}
@@ -831,6 +862,10 @@ function PointsHistoryModal({
   loading,
   error,
   orders,
+  approving,
+  approveError,
+  onApproveOne,
+  onApproveAll,
   onClose,
 }: {
   balance: number;
@@ -838,9 +873,15 @@ function PointsHistoryModal({
   loading: boolean;
   error: string | null;
   orders: OrderRow[];
+  approving: string | null;
+  approveError: string | null;
+  onApproveOne: (ledgerId: string) => void;
+  onApproveAll: () => void;
   onClose: () => void;
 }) {
   const orderNumberById = new Map(orders.map((o) => [o.id, o.order_number || o.id.slice(0, 8)]));
+  const pendingRows = (ledger ?? []).filter((r) => r.status === 'pending' && r.delta > 0);
+  const pendingTotal = pendingRows.reduce((sum, r) => sum + r.delta, 0);
   return (
     <div className="fixed inset-0 z-[60]">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
@@ -855,6 +896,21 @@ function PointsHistoryModal({
           </button>
         </div>
         <div className="overflow-y-auto p-5 flex-1">
+          {pendingRows.length > 0 && (
+            <div className="mb-4 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="text-sm text-amber-800">
+                {pendingRows.length} pending entr{pendingRows.length === 1 ? 'y' : 'ies'} · ₱{pendingTotal.toLocaleString()} awaiting approval
+              </div>
+              <button
+                onClick={onApproveAll}
+                disabled={approving !== null}
+                className="text-xs px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50 whitespace-nowrap"
+              >
+                {approving === 'all' ? 'Approving…' : 'Approve all pending'}
+              </button>
+            </div>
+          )}
+          {approveError && <p className="mb-3 text-sm text-red-600">{approveError}</p>}
           {loading && <p className="text-sm text-gray-500">Loading…</p>}
           {error && <p className="text-sm text-red-600">{error}</p>}
           {!loading && !error && ledger && ledger.length === 0 && (
@@ -868,7 +924,8 @@ function PointsHistoryModal({
                   <th className="py-2 pr-3">Reason</th>
                   <th className="py-2 pr-3">Order</th>
                   <th className="py-2 pr-3">Status</th>
-                  <th className="py-2 text-right">Points</th>
+                  <th className="py-2 pr-3 text-right">Points</th>
+                  <th className="py-2 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -892,8 +949,21 @@ function PointsHistoryModal({
                       <td className="py-2 pr-3 align-top">
                         {row.status ? <StatusBadge value={row.status} /> : <span className="text-gray-400">—</span>}
                       </td>
-                      <td className={`py-2 text-right font-semibold align-top ${isCredit ? 'text-emerald-700' : 'text-red-700'}`}>
+                      <td className={`py-2 pr-3 text-right font-semibold align-top ${isCredit ? 'text-emerald-700' : 'text-red-700'}`}>
                         {isCredit ? '+' : ''}{row.delta.toLocaleString()}
+                      </td>
+                      <td className="py-2 text-right align-top">
+                        {row.status === 'pending' && row.delta > 0 ? (
+                          <button
+                            onClick={() => onApproveOne(row.id)}
+                            disabled={approving !== null}
+                            className="text-xs px-2 py-1 bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            {approving === row.id ? '…' : 'Approve'}
+                          </button>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
                       </td>
                     </tr>
                   );

@@ -72,4 +72,12 @@ describe('Hero referral slide', () => {
       screen.getByRole('button', { name: /go to the referral slide/i }),
     ).toBeInTheDocument();
   });
+
+  it('does not render the oversized decorative gift illustration', () => {
+    // The gift illustration made the referral slide taller than every other
+    // slide (full-screen on mobile). Removing it keeps the slide uniform.
+    renderHero();
+    expect(screen.queryByText(/lifestyle program/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^peptide$/i)).not.toBeInTheDocument();
+  });
 });

@@ -146,7 +146,8 @@ const BUDGET_MAX: Record<string, number> = {
 
 const MATCH_FLOOR = 55;
 const MATCH_TOP = 97;
-const MAX_RECS = 3;
+/** Show every product that matches the applicant's goals, not just a top few. */
+const MAX_RECS = ASSESSMENT_PRODUCTS.length;
 
 const goalLabel = (id: GoalId): string =>
   GOALS.find(([v]) => v === id)?.[1] ?? id;
