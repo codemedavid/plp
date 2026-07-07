@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { ARTICLES, AUTHOR } from '../data/researchArticles';
 
 describe('researchArticles data', () => {
-  it('contains all five articles', () => {
-    expect(ARTICLES).toHaveLength(5);
+  it('contains all six articles', () => {
+    expect(ARTICLES).toHaveLength(6);
   });
 
   it('has unique slugs', () => {
@@ -15,9 +15,9 @@ describe('researchArticles data', () => {
     expect(ARTICLES.filter((a) => a.featured)).toHaveLength(1);
   });
 
-  it('the featured article is the GLP-1 non-responder guide', () => {
+  it('the featured article is the individual-variability / plateau guide', () => {
     const featured = ARTICLES.find((a) => a.featured);
-    expect(featured?.slug).toBe('why-glp1-not-working');
+    expect(featured?.slug).toBe('why-others-lose-more-weight');
   });
 
   it('every related slug resolves to a real article', () => {
@@ -59,6 +59,8 @@ describe('researchArticles data', () => {
       __TABLE_TIMELINE__: 'tableTimeline',
       __TABLE_MEDS__: 'tableMeds',
       __TABLE_WORKUP__: 'tableWorkup',
+      __TABLE_FACTORS__: 'tableFactors',
+      __TABLE_MYTHS__: 'tableMyths',
     };
     for (const article of ARTICLES) {
       for (const [placeholder, key] of Object.entries(placeholderToKey)) {
@@ -88,9 +90,9 @@ describe('researchArticles data', () => {
   describe('GLP-1 non-responder article (SEO)', () => {
     const article = ARTICLES.find((a) => a.slug === 'why-glp1-not-working');
 
-    it('exists and is the featured article', () => {
+    it('exists but is no longer the featured article', () => {
       expect(article).toBeDefined();
-      expect(article?.featured).toBe(true);
+      expect(article?.featured).toBe(false);
     });
 
     it('keeps its meta description within the ~155-char SERP limit', () => {
@@ -121,6 +123,58 @@ describe('researchArticles data', () => {
       expect(article!.related.length).toBeGreaterThanOrEqual(3);
       const backlinks = ARTICLES.filter((a) => a.related.includes('why-glp1-not-working'));
       expect(backlinks.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('individual-variability / plateau article (SEO)', () => {
+    const article = ARTICLES.find((a) => a.slug === 'why-others-lose-more-weight');
+
+    it('exists and is the featured article', () => {
+      expect(article).toBeDefined();
+      expect(article?.featured).toBe(true);
+    });
+
+    it('is categorised under GLP-1 Medications', () => {
+      expect(article!.category).toBe('GLP-1 Medications');
+    });
+
+    it('keeps its meta description within the ~160-char SERP limit', () => {
+      expect(article!.metaDescription.length).toBeGreaterThan(0);
+      expect(article!.metaDescription.length).toBeLessThanOrEqual(160);
+    });
+
+    it('targets the variability + plateau keyword cluster (English + Tagalog)', () => {
+      const kw = article!.keywords.toLowerCase();
+      expect(kw).toContain('ozempic');
+      expect(kw).toContain('plateau');
+      expect(kw).toContain('bakit mas malaki ang nabawas sa iba');
+    });
+
+    it('marks its Tagalog sections with lang="fil" for bilingual crawling', () => {
+      expect(article!.body).toContain('lang="fil"');
+    });
+
+    it('renders every data table it references', () => {
+      expect(article!.tableFactors).toBeTruthy();
+      expect(article!.tableDiabetic).toBeTruthy();
+      expect(article!.tableMyths).toBeTruthy();
+    });
+
+    it('references each of its tables via a placeholder in the body', () => {
+      expect(article!.body).toContain('__TABLE_FACTORS__');
+      expect(article!.body).toContain('__TABLE_DIABETIC__');
+      expect(article!.body).toContain('__TABLE_MYTHS__');
+    });
+
+    it('cross-links to and receives a backlink from the non-responder guide', () => {
+      expect(article!.related.length).toBeGreaterThanOrEqual(3);
+      expect(article!.related).toContain('why-glp1-not-working');
+      const nonResponder = ARTICLES.find((a) => a.slug === 'why-glp1-not-working');
+      expect(nonResponder!.related).toContain('why-others-lose-more-weight');
+    });
+
+    it('carries a product tie-in', () => {
+      expect(article!.productTie.name.length).toBeGreaterThan(0);
     });
   });
 });

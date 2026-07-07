@@ -56,6 +56,15 @@ describe('buildBody', () => {
     const article = { body: '<p>No tables here</p>' } as Article;
     expect(buildBody(article)).toBe('<p>No tables here</p>');
   });
+
+  it('injects the factors and myths tables for the variability/plateau article', () => {
+    const article = ARTICLES.find((a) => a.slug === 'why-others-lose-more-weight')!;
+    const html = buildBody(article);
+    expect(html).not.toMatch(/__TABLE_[A-Z]+__/);
+    // Known cells authored into tableFactors and tableMyths.
+    expect(html).toContain('Longer duration on GLP-1');
+    expect(html).toContain('Scientific Reality');
+  });
 });
 
 describe('article selectors', () => {
