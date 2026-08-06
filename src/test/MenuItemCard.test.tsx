@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import MenuItemCard from '../components/MenuItemCard';
@@ -69,7 +69,58 @@ beforeEach(() => {
 // Integration Tests: MenuItemCard Component
 // ─────────────────────────────────────────────────────
 
+// The 8.8 promo (Aug 7-11 PHT) halves every price, so card pricing depends on
+// the wall clock. Pin it off-promo by default and opt in per-block, otherwise
+// these assertions would silently change meaning during the sale.
+const DURING_PROMO = new Date('2026-08-09T12:00:00+08:00');
+const OFF_PROMO = new Date('2026-09-01T00:00:00+08:00');
+
 describe('MenuItemCard Component', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(OFF_PROMO);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  describe('8.8 promo pricing', () => {
+    it('halves the displayed price during the promo window', () => {
+      vi.setSystemTime(DURING_PROMO);
+
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.getByText(/₱1,250/)).toBeInTheDocument();
+    });
+
+    it('shows a 50% Off badge during the promo', () => {
+      vi.setSystemTime(DURING_PROMO);
+
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.getByText(/50% Off/i)).toBeInTheDocument();
+    });
+
+    it('halves base price rather than honouring a shallower sale price', () => {
+      vi.setSystemTime(DURING_PROMO);
+      const shallowSale = { ...baseProduct, discount_active: true, discount_price: 2000 };
+
+      render(<MenuItemCard product={shallowSale} />);
+
+      // base 2500 -> promo 1250 beats the 2000 sale price
+      expect(screen.getByText(/₱1,250/)).toBeInTheDocument();
+    });
+
+    it('reverts to list pricing once the promo expires', () => {
+      vi.setSystemTime(new Date('2026-08-12T00:00:00+08:00'));
+
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.getByText(/₱2,500/)).toBeInTheDocument();
+    });
+  });
+
   describe('Rendering', () => {
     it('displays product name', () => {
       render(<MenuItemCard product={baseProduct} />);

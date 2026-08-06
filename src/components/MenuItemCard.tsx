@@ -3,6 +3,7 @@ import { Heart } from 'lucide-react';
 import type { Product, ProductVariation, KitType } from '../types';
 import { cleanText } from '../lib/cleanText';
 import { getCoaLinks } from '../lib/coa';
+import { getPromoUnitPrice } from '../lib/bundlePricing';
 import { CoaButton } from './ui/CoaButton';
 
 interface MenuItemCardProps {
@@ -17,11 +18,11 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
   const [imageError, setImageError] = useState(false);
   const coaLinks = getCoaLinks(product);
 
-  const effectivePrice = (v: ProductVariation) =>
-    v.discount_active && v.discount_price != null ? v.discount_price : v.price;
+  // Shared pricing helper so the card, PDP, cart and checkout can never
+  // disagree — during the 8.8 promo this returns the halved price.
+  const effectivePrice = (v: ProductVariation) => getPromoUnitPrice(product, v);
 
-  const productEffective =
-    product.discount_active && product.discount_price != null ? product.discount_price : product.base_price;
+  const productEffective = getPromoUnitPrice(product);
 
   const fromPrice =
     product.variations && product.variations.length > 0

@@ -14,7 +14,7 @@ import { KIT_UPGRADE_PRICE } from '../types';
 import { useRecommendations } from '../hooks/useRecommendations';
 import RecommendationRail from './RecommendationRail';
 import ProductReviews from './ProductReviews';
-import { getBundleSavings, FREE_SHIPPING_MIN_QTY } from '../lib/bundlePricing';
+import { getBundleSavings, getPromoUnitPrice, FREE_SHIPPING_MIN_QTY } from '../lib/bundlePricing';
 import { cleanText } from '../lib/cleanText';
 import { getCoaLinks } from '../lib/coa';
 import { CoaButton } from './ui/CoaButton';
@@ -79,14 +79,14 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClos
   const isKitVariation = selectedVariation?.name?.toLowerCase().includes('kit');
   const showKitToggle = isSetProduct && !isKitVariation;
 
+  // Pre-promo list price, kept raw so the strikethrough shows what the
+  // customer would otherwise pay.
   const baseOriginal = selectedVariation ? selectedVariation.price : product.base_price;
-  const baseDiscounted: number | null = selectedVariation
-    ? (selectedVariation.discount_active && selectedVariation.discount_price != null
-        ? selectedVariation.discount_price
-        : null)
-    : (product.discount_active && product.discount_price != null
-        ? product.discount_price
-        : null);
+  // Shared helper so the PDP can never disagree with the card, cart or
+  // checkout — during the 8.8 promo this is the halved price.
+  const baseEffective = getPromoUnitPrice(product, selectedVariation);
+  const baseDiscounted: number | null =
+    baseEffective < baseOriginal ? baseEffective : null;
   const hasDiscount = baseDiscounted != null && baseDiscounted < baseOriginal;
   const discountPercent = hasDiscount
     ? Math.round((1 - (baseDiscounted! / baseOriginal)) * 100)
