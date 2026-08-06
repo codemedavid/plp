@@ -4,11 +4,20 @@ import { KIT_UPGRADE_PRICE } from '../types';
 import {
   getBundleDiscountRate,
   getRegularUnitPrice,
+  getPromoUnitPrice,
   getEffectiveUnitPrice,
   getBundleSavings,
   qualifiesForFreeShipping,
+  isPromo88Active,
   FREE_SHIPPING_MIN_QTY,
+  PROMO_88_RATE,
 } from '../lib/bundlePricing';
+
+// The 8.8 sale runs Aug 7 00:00 -> Aug 12 00:00 PHT (Aug 11 is a full selling day).
+// Every pricing assertion pins an explicit `now` so the suite stays deterministic
+// once the window closes; without it these tests would change behaviour on Aug 12.
+const DURING_PROMO = new Date('2026-08-09T12:00:00+08:00');
+const OFF_PROMO = new Date('2026-09-01T00:00:00+08:00');
 
 // ─────────────────────────────────────────────────────
 // Test Fixtures
@@ -128,35 +137,43 @@ describe('getRegularUnitPrice', () => {
 // getEffectiveUnitPrice — auto bundle discount applied per unit
 // ─────────────────────────────────────────────────────
 
-describe('getEffectiveUnitPrice', () => {
+describe('getEffectiveUnitPrice (outside the 8.8 promo)', () => {
   it('charges regular price for 1 bottle', () => {
-    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 1)).toBe(4999);
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 1, OFF_PROMO)).toBe(4999);
   });
 
   it('applies 10% off per unit at 2 bottles', () => {
-    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 2)).toBeCloseTo(4999 * 0.9);
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 2, OFF_PROMO)).toBeCloseTo(
+      4999 * 0.9
+    );
   });
 
   it('applies 15% off per unit at 3+ bottles', () => {
-    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 3)).toBeCloseTo(4999 * 0.85);
-    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 5)).toBeCloseTo(4999 * 0.85);
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 3, OFF_PROMO)).toBeCloseTo(
+      4999 * 0.85
+    );
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 5, OFF_PROMO)).toBeCloseTo(
+      4999 * 0.85
+    );
   });
 
   it('stacks the bundle discount on top of an active product sale price', () => {
     // discountedProduct sells at 2000; 2 bottles => 10% off => 1800
-    expect(getEffectiveUnitPrice(discountedProduct, undefined, 'vial_only', 2)).toBeCloseTo(1800);
+    expect(getEffectiveUnitPrice(discountedProduct, undefined, 'vial_only', 2, OFF_PROMO)).toBeCloseTo(
+      1800
+    );
   });
 
   it('adds the kit upgrade fee after discounting the product price', () => {
     // 2 bottles: (4999 * 0.9) + 150 kit fee
-    expect(getEffectiveUnitPrice(baseProduct, undefined, 'complete_kit', 2)).toBeCloseTo(
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'complete_kit', 2, OFF_PROMO)).toBeCloseTo(
       4999 * 0.9 + KIT_UPGRADE_PRICE
     );
   });
 
   it('lets an explicit admin tier price override the auto discount', () => {
     // adminTierProduct pinned 2-pack at 8000 total => 4000/unit, beats auto 5000*0.9=4500
-    expect(getEffectiveUnitPrice(adminTierProduct, undefined, 'vial_only', 2)).toBe(4000);
+    expect(getEffectiveUnitPrice(adminTierProduct, undefined, 'vial_only', 2, OFF_PROMO)).toBe(4000);
   });
 });
 
@@ -164,9 +181,9 @@ describe('getEffectiveUnitPrice', () => {
 // getBundleSavings — totals + percentage for display
 // ─────────────────────────────────────────────────────
 
-describe('getBundleSavings', () => {
+describe('getBundleSavings (outside the 8.8 promo)', () => {
   it('reports no savings for a single bottle', () => {
-    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 1);
+    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 1, OFF_PROMO);
     expect(s.hasSavings).toBe(false);
     expect(s.pct).toBe(0);
     expect(s.discountedTotal).toBe(4999);
@@ -174,7 +191,7 @@ describe('getBundleSavings', () => {
   });
 
   it('reports 10% savings for 2 bottles', () => {
-    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 2);
+    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 2, OFF_PROMO);
     expect(s.hasSavings).toBe(true);
     expect(s.pct).toBe(10);
     expect(s.originalTotal).toBe(4999 * 2);
@@ -182,9 +199,137 @@ describe('getBundleSavings', () => {
   });
 
   it('reports 15% savings for 3 bottles', () => {
-    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 3);
+    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 3, OFF_PROMO);
     expect(s.pct).toBe(15);
     expect(s.discountedTotal).toBeCloseTo(4999 * 3 * 0.85);
+  });
+});
+
+// ─────────────────────────────────────────────────────
+// 8.8 sitewide promo — 50% off base price, Aug 7-11 PHT
+// Policy: the promo REPLACES bundle-quantity discounts and per-product
+// sale prices; it never stacks with them. Free shipping is a shipping
+// perk (cart quantity), not a price discount, so it still applies.
+// ─────────────────────────────────────────────────────
+
+// Mirrors the live PLP-Slim (Tirzepatide 15mg) row: admin-pinned tiers that
+// are all more expensive than half price, so the promo must win.
+const promoRegressionProduct: Product = {
+  ...baseProduct,
+  id: 'prod-plp-slim-15',
+  name: 'PLP-Slim (Tirzepatide 15mg)',
+  base_price: 3999,
+  bundle_tiers: [
+    { qty: 2, label: '1 BOTTLE', price: 6000 },
+    { qty: 3, label: '3 BOTTLES', price: 8500 },
+  ],
+};
+
+// Hypothetical clearance SKU already cheaper than 50% off base. The promo
+// must never RAISE a price, so the deeper existing sale price wins.
+const deepSaleProduct: Product = {
+  ...baseProduct,
+  id: 'prod-deep-sale',
+  base_price: 4000,
+  discount_price: 1200, // 70% off, deeper than the 50% promo
+  discount_active: true,
+};
+
+describe('isPromo88Active', () => {
+  it('exposes the promo rate as 50%', () => {
+    expect(PROMO_88_RATE).toBe(0.5);
+  });
+
+  it('is inactive the moment before the window opens', () => {
+    expect(isPromo88Active(new Date('2026-08-06T23:59:59+08:00'))).toBe(false);
+  });
+
+  it('is active at exactly Aug 7 00:00 PHT', () => {
+    expect(isPromo88Active(new Date('2026-08-07T00:00:00+08:00'))).toBe(true);
+  });
+
+  it('is active through the whole of Aug 11 PHT', () => {
+    expect(isPromo88Active(new Date('2026-08-11T23:59:59+08:00'))).toBe(true);
+  });
+
+  it('expires at Aug 12 00:00 PHT without a deploy', () => {
+    expect(isPromo88Active(new Date('2026-08-12T00:00:00+08:00'))).toBe(false);
+  });
+});
+
+describe('getPromoUnitPrice', () => {
+  it('halves the base price during the promo', () => {
+    expect(getPromoUnitPrice(baseProduct, undefined, DURING_PROMO)).toBeCloseTo(4999 * 0.5);
+  });
+
+  it('halves the variation price when a variation is chosen', () => {
+    expect(getPromoUnitPrice(baseProduct, variation, DURING_PROMO)).toBeCloseTo(3000 * 0.5);
+  });
+
+  it('ignores a shallower per-product sale price and halves base instead', () => {
+    // discountedProduct: base 2500, sale 2000. Promo = 1250, deeper than the sale.
+    expect(getPromoUnitPrice(discountedProduct, undefined, DURING_PROMO)).toBeCloseTo(1250);
+  });
+
+  it('never raises a price above an already-deeper sale price', () => {
+    // base 4000 -> promo 2000, but the live sale price is 1200. Customer keeps 1200.
+    expect(getPromoUnitPrice(deepSaleProduct, undefined, DURING_PROMO)).toBe(1200);
+  });
+
+  it('falls back to the regular list price outside the window', () => {
+    expect(getPromoUnitPrice(baseProduct, undefined, OFF_PROMO)).toBe(4999);
+    expect(getPromoUnitPrice(discountedProduct, undefined, OFF_PROMO)).toBe(2000);
+  });
+});
+
+describe('getEffectiveUnitPrice (during the 8.8 promo)', () => {
+  it('gives a flat 50% off regardless of quantity, never stacking the bundle discount', () => {
+    const half = 4999 * 0.5;
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 1, DURING_PROMO)).toBeCloseTo(half);
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 2, DURING_PROMO)).toBeCloseTo(half);
+    // Would be 57.5% off if the 15% bundle rate stacked — it must not.
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'vial_only', 3, DURING_PROMO)).toBeCloseTo(half);
+  });
+
+  it('suspends admin-pinned bundle tier prices', () => {
+    // adminTierProduct pins 2-pack at 4000/unit; promo half of 5000 = 2500 is cheaper.
+    expect(getEffectiveUnitPrice(adminTierProduct, undefined, 'vial_only', 2, DURING_PROMO)).toBe(2500);
+  });
+
+  it('beats every live PLP-Slim 15mg tier price', () => {
+    // Live tier: 3 bottles = 8500. Promo: 3999 * 0.5 * 3 = 5998.50
+    const unit = getEffectiveUnitPrice(promoRegressionProduct, undefined, 'vial_only', 3, DURING_PROMO);
+    expect(unit * 3).toBeCloseTo(5998.5);
+    expect(unit * 3).toBeLessThan(8500);
+  });
+
+  it('adds the kit upgrade fee undiscounted on top of the promo price', () => {
+    expect(getEffectiveUnitPrice(baseProduct, undefined, 'complete_kit', 2, DURING_PROMO)).toBeCloseTo(
+      4999 * 0.5 + KIT_UPGRADE_PRICE
+    );
+  });
+});
+
+describe('getBundleSavings (during the 8.8 promo)', () => {
+  it('shows a 50% saving against the pre-promo list price on a single bottle', () => {
+    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 1, DURING_PROMO);
+    expect(s.hasSavings).toBe(true);
+    expect(s.pct).toBe(50);
+    expect(s.originalTotal).toBe(4999);
+    expect(s.discountedTotal).toBeCloseTo(4999 * 0.5);
+  });
+
+  it('still shows 50% (not 57.5%) at 3 bottles', () => {
+    const s = getBundleSavings(baseProduct, undefined, 'vial_only', 3, DURING_PROMO);
+    expect(s.pct).toBe(50);
+    expect(s.originalTotal).toBe(4999 * 3);
+    expect(s.discountedTotal).toBeCloseTo(4999 * 3 * 0.5);
+  });
+});
+
+describe('free shipping during the 8.8 promo', () => {
+  it('still unlocks at 3+ bottles (a shipping perk, not a price discount)', () => {
+    expect(qualifiesForFreeShipping([{ quantity: 3 }])).toBe(true);
   });
 });
 
