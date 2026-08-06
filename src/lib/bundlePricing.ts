@@ -13,6 +13,26 @@ import { KIT_UPGRADE_PRICE } from '../types';
 export const BUNDLE_2_DISCOUNT = 0.1;
 export const BUNDLE_3_PLUS_DISCOUNT = 0.15;
 
+// ─────────────────────────────────────────────────────
+// 8.8 sitewide promo — 50% off, Aug 7 -> Aug 11 PHT inclusive
+//
+// The promo REPLACES the bundle-quantity schedule and any per-product sale
+// price rather than stacking with them, so the deepest a customer can go is
+// 50% off list. The window is half-open: active from START up to but not
+// including END, so Aug 11 is a full selling day and the promo expires on
+// its own at Aug 12 00:00 PHT with no deploy.
+//
+// Free shipping is deliberately untouched — it keys off cart quantity
+// (qualifiesForFreeShipping), so it is a shipping perk, not a price discount.
+// ─────────────────────────────────────────────────────
+
+export const PROMO_88_RATE = 0.5;
+export const PROMO_88_START = new Date('2026-08-07T00:00:00+08:00');
+export const PROMO_88_END = new Date('2026-08-12T00:00:00+08:00');
+
+export const isPromo88Active = (now: Date = new Date()): boolean =>
+  now.getTime() >= PROMO_88_START.getTime() && now.getTime() < PROMO_88_END.getTime();
+
 // Cart-wide bottle count that unlocks free shipping.
 export const FREE_SHIPPING_MIN_QTY = 3;
 
@@ -50,22 +70,45 @@ export const getRegularUnitPrice = (
     : product.base_price;
 };
 
+// Per-unit selling price while the 8.8 promo is running: half the LIST price
+// (base_price, or the variation price), ignoring any shallower per-product
+// sale price. Floor-guarded against the regular price so the promo can never
+// RAISE what a customer pays — a clearance SKU already below half price keeps
+// its deeper price. Outside the window this is just the regular price.
+export const getPromoUnitPrice = (
+  product: Product,
+  variation?: ProductVariation,
+  now: Date = new Date()
+): number => {
+  const regularUnit = getRegularUnitPrice(product, variation);
+  if (!isPromo88Active(now)) return regularUnit;
+  const listUnit = variation ? variation.price : product.base_price;
+  return Math.min(listUnit * PROMO_88_RATE, regularUnit);
+};
+
 // Per-unit price including bundle discount and kit upgrade.
-// Precedence: explicit admin tier price (if set) > automatic promo discount.
-// The bundle discount applies to the product price only; the flat kit upgrade
-// fee is added afterwards.
+// Precedence during the 8.8 promo: the flat 50% replaces both the admin tier
+// price and the automatic quantity discount (they never stack).
+// Outside the promo: explicit admin tier price (if set) > automatic discount.
+// Either way the flat kit upgrade fee is added afterwards, undiscounted.
 export const getEffectiveUnitPrice = (
   product: Product,
   variation: ProductVariation | undefined,
   kitType: KitType,
-  quantity: number
+  quantity: number,
+  now: Date = new Date()
 ): number => {
+  const kitUpgrade = kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
+
+  if (isPromo88Active(now)) {
+    return getPromoUnitPrice(product, variation, now) + kitUpgrade;
+  }
+
   const tier = getMatchingBundleTier(product, quantity);
   const regularUnit = getRegularUnitPrice(product, variation);
   const baseUnit = tier
     ? tier.price! / tier.qty
     : regularUnit * (1 - getBundleDiscountRate(quantity));
-  const kitUpgrade = kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
   return baseUnit + kitUpgrade;
 };
 
@@ -86,11 +129,14 @@ export const getBundleSavings = (
   product: Product,
   variation: ProductVariation | undefined,
   kitType: KitType,
-  quantity: number
+  quantity: number,
+  now: Date = new Date()
 ): BundleSavings => {
   const kitUpgrade = kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
+  // originalTotal deliberately uses the pre-promo regular price so the
+  // strikethrough and SAVE % show the full 50% the customer is getting.
   const originalTotal = (getRegularUnitPrice(product, variation) + kitUpgrade) * quantity;
-  const discountedTotal = getEffectiveUnitPrice(product, variation, kitType, quantity) * quantity;
+  const discountedTotal = getEffectiveUnitPrice(product, variation, kitType, quantity, now) * quantity;
   const hasSavings = discountedTotal < originalTotal;
   const pct = hasSavings && originalTotal > 0
     ? Math.round((1 - discountedTotal / originalTotal) * 100)
