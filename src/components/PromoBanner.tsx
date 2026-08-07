@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { isPromo88Active } from '../lib/bundlePricing';
 import { X, ArrowRight, Send, type LucideIcon } from 'lucide-react';
 import posthog from 'posthog-js';
 
@@ -18,7 +19,21 @@ type BannerSlide = {
   };
 };
 
-const SLIDES: BannerSlide[] = [
+const ALL_SLIDES: BannerSlide[] = [
+  {
+    id: 'promo-88',
+    eyebrow: '8.8 Sale',
+    message: (
+      <>
+        <span className="text-gold-400 font-medium">50% off everything</span> — while the sale runs
+      </>
+    ),
+    cta: {
+      label: 'Shop the Sale',
+      href: '/#products',
+      event: 'plp_promo_banner_88_sale_click',
+    },
+  },
   {
     id: 'assessment',
     eyebrow: 'New',
@@ -71,6 +86,13 @@ export default function PromoBanner() {
   );
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+
+  // The 8.8 slide only rides along while the sale is actually running, so the
+  // banner stops advertising 50% off the moment the window closes.
+  const SLIDES = useMemo(
+    () => ALL_SLIDES.filter((slide) => slide.id !== 'promo-88' || isPromo88Active()),
+    []
+  );
 
   // Auto-rotate through slides; pause on hover/focus.
   useEffect(() => {
