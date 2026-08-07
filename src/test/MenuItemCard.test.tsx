@@ -102,14 +102,18 @@ describe('MenuItemCard Component', () => {
       expect(screen.getByText(/50% Off/i)).toBeInTheDocument();
     });
 
-    it('halves base price rather than honouring a shallower sale price', () => {
+    it('shows the admin sale price rather than halving base', () => {
       vi.setSystemTime(DURING_PROMO);
-      const shallowSale = { ...baseProduct, discount_active: true, discount_price: 2000 };
+      const adminSale = { ...baseProduct, discount_active: true, discount_price: 2000 };
 
-      render(<MenuItemCard product={shallowSale} />);
+      render(<MenuItemCard product={adminSale} />);
 
-      // base 2500 -> promo 1250 beats the 2000 sale price
-      expect(screen.getByText(/₱1,250/)).toBeInTheDocument();
+      // base 2500, live sale 2000. The active sale price opts this SKU out of
+      // the promo, so the card shows what merchandising set, not 1,250.
+      expect(screen.getByText(/₱2,000/)).toBeInTheDocument();
+      expect(screen.queryByText(/₱1,250/)).not.toBeInTheDocument();
+      // Badge reflects the real saving off list: 2500 -> 2000 is 20%.
+      expect(screen.getByText(/20% Off/i)).toBeInTheDocument();
     });
 
     it('reverts to list pricing once the promo expires', () => {

@@ -491,16 +491,17 @@ describe('useCart Hook', () => {
       expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(1250);
     });
 
-    it('halves base price rather than honouring a shallower sale price', () => {
+    it('charges the admin sale price rather than halving base', () => {
       vi.setSystemTime(DURING_PROMO);
       const { result } = renderHook(() => useCart());
 
       act(() => {
-        // mockProduct: base 2500, sale 2000. Promo 1250 is deeper, so it wins.
+        // mockProduct: base 2500, live sale 2000. The active sale price opts
+        // this SKU out of the promo, so the cart charges what admin set.
         result.current.addToCart(mockProduct, undefined, 1, 'vial_only');
       });
 
-      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(1250);
+      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(2000);
     });
 
     it('adds the kit upgrade fee undiscounted on top of the promo price', () => {
@@ -511,9 +512,9 @@ describe('useCart Hook', () => {
         result.current.addToCart(mockProduct, mockVariation, 1, 'complete_kit');
       });
 
-      // variation list 3000 -> promo 1500 (deeper than its 2500 sale price),
-      // plus the flat kit fee, which is never discounted.
-      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(1500 + KIT_UPGRADE_PRICE);
+      // mockVariation carries its own live sale price (2500), which opts this
+      // SKU out of the promo, plus the flat kit fee, which is never discounted.
+      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(2500 + KIT_UPGRADE_PRICE);
     });
 
     it('reverts to regular pricing once the window closes', () => {

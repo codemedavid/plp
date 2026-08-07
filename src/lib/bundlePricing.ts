@@ -16,11 +16,17 @@ export const BUNDLE_3_PLUS_DISCOUNT = 0.15;
 // ─────────────────────────────────────────────────────
 // 8.8 sitewide promo — 50% off, Aug 7 -> Aug 9 PHT inclusive
 //
-// The promo REPLACES the bundle-quantity schedule and any per-product sale
-// price rather than stacking with them, so the deepest a customer can go is
-// 50% off list. The window is half-open: active from START up to but not
-// including END, so Aug 9 is a full selling day and the promo expires on
-// its own at Aug 10 00:00 PHT with no deploy.
+// The promo REPLACES the bundle-quantity schedule rather than stacking with
+// it, so a promo SKU never goes deeper than 50% off list. The window is
+// half-open: active from START up to but not including END, so Aug 9 is a
+// full selling day and the promo expires on its own at Aug 10 00:00 PHT
+// with no deploy.
+//
+// An ACTIVE admin sale price opts its SKU out of the promo entirely (see
+// hasActiveSalePrice). Merchandising types a price in admin to have that
+// exact price shown; silently undercutting it left their edits invisible
+// for the whole window. Opted-out SKUs price exactly as they do outside
+// the promo, quantity schedule and all.
 //
 // Free shipping is deliberately untouched — it keys off cart quantity
 // (qualifiesForFreeShipping), so it is a shipping perk, not a price discount.
@@ -70,11 +76,22 @@ export const getRegularUnitPrice = (
     : product.base_price;
 };
 
+// True when the SKU being priced carries a live admin sale price. Evaluated
+// against the chosen variation when there is one, since that variation — not
+// its parent product — is what the customer is buying. A sale price that is
+// stored but switched off is not live and does not count.
+const hasActiveSalePrice = (
+  product: Product,
+  variation?: ProductVariation
+): boolean =>
+  variation
+    ? variation.discount_active && variation.discount_price != null
+    : product.discount_active && product.discount_price != null;
+
 // Per-unit selling price while the 8.8 promo is running: half the LIST price
-// (base_price, or the variation price), ignoring any shallower per-product
-// sale price. Floor-guarded against the regular price so the promo can never
-// RAISE what a customer pays — a clearance SKU already below half price keeps
-// its deeper price. Outside the window this is just the regular price.
+// (base_price, or the variation price). A SKU with a live admin sale price is
+// opted out and keeps that price, whether it is shallower or deeper than half.
+// Outside the window this is just the regular price.
 export const getPromoUnitPrice = (
   product: Product,
   variation?: ProductVariation,
@@ -82,14 +99,17 @@ export const getPromoUnitPrice = (
 ): number => {
   const regularUnit = getRegularUnitPrice(product, variation);
   if (!isPromo88Active(now)) return regularUnit;
+  if (hasActiveSalePrice(product, variation)) return regularUnit;
   const listUnit = variation ? variation.price : product.base_price;
-  return Math.min(listUnit * PROMO_88_RATE, regularUnit);
+  return listUnit * PROMO_88_RATE;
 };
 
 // Per-unit price including bundle discount and kit upgrade.
-// Precedence during the 8.8 promo: the flat 50% replaces both the admin tier
-// price and the automatic quantity discount (they never stack).
-// Outside the promo: explicit admin tier price (if set) > automatic discount.
+// Precedence during the 8.8 promo, for SKUs the promo applies to: the flat
+// 50% replaces both the admin tier price and the automatic quantity discount
+// (they never stack). A SKU opted out by a live admin sale price falls
+// through to the regular path below, exactly as it prices outside the window.
+// Regular path: explicit admin tier price (if set) > automatic discount.
 // Either way the flat kit upgrade fee is added afterwards, undiscounted.
 export const getEffectiveUnitPrice = (
   product: Product,
@@ -100,7 +120,7 @@ export const getEffectiveUnitPrice = (
 ): number => {
   const kitUpgrade = kitType === 'complete_kit' ? KIT_UPGRADE_PRICE : 0;
 
-  if (isPromo88Active(now)) {
+  if (isPromo88Active(now) && !hasActiveSalePrice(product, variation)) {
     return getPromoUnitPrice(product, variation, now) + kitUpgrade;
   }
 
