@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
 // Mock posthog
@@ -90,9 +90,21 @@ const mockOutOfStockVariation: ProductVariation = {
   stock_quantity: 0,
 };
 
+// The 8.8 promo (Aug 7-9 PHT) halves every price, so cart totals depend on the
+// wall clock. Pin the clock off-promo by default so the bundle/kit assertions
+// below keep asserting regular pricing; promo behaviour has its own block.
+const DURING_PROMO = new Date('2026-08-08T12:00:00+08:00');
+const OFF_PROMO = new Date('2026-09-01T00:00:00+08:00');
+
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.setSystemTime(OFF_PROMO);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 // ─────────────────────────────────────────────────────
@@ -460,6 +472,56 @@ describe('useCart Hook', () => {
 
       act(() => {
         result.current.addToCart(mockProduct, mockVariation, 1, 'vial_only');
+      });
+
+      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(2500);
+    });
+  });
+
+  describe('8.8 promo pricing', () => {
+    it('halves the item price while the promo is live', () => {
+      vi.setSystemTime(DURING_PROMO);
+      const { result } = renderHook(() => useCart());
+
+      act(() => {
+        result.current.addToCart(mockProductNoDiscount, undefined, 1, 'vial_only');
+      });
+
+      // base 2500 -> 1250 at 50% off
+      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(1250);
+    });
+
+    it('halves base price rather than honouring a shallower sale price', () => {
+      vi.setSystemTime(DURING_PROMO);
+      const { result } = renderHook(() => useCart());
+
+      act(() => {
+        // mockProduct: base 2500, sale 2000. Promo 1250 is deeper, so it wins.
+        result.current.addToCart(mockProduct, undefined, 1, 'vial_only');
+      });
+
+      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(1250);
+    });
+
+    it('adds the kit upgrade fee undiscounted on top of the promo price', () => {
+      vi.setSystemTime(DURING_PROMO);
+      const { result } = renderHook(() => useCart());
+
+      act(() => {
+        result.current.addToCart(mockProduct, mockVariation, 1, 'complete_kit');
+      });
+
+      // variation list 3000 -> promo 1500 (deeper than its 2500 sale price),
+      // plus the flat kit fee, which is never discounted.
+      expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(1500 + KIT_UPGRADE_PRICE);
+    });
+
+    it('reverts to regular pricing once the window closes', () => {
+      vi.setSystemTime(new Date('2026-08-10T00:00:00+08:00'));
+      const { result } = renderHook(() => useCart());
+
+      act(() => {
+        result.current.addToCart(mockProductNoDiscount, undefined, 1, 'vial_only');
       });
 
       expect(result.current.getItemPrice(result.current.cartItems[0])).toBe(2500);

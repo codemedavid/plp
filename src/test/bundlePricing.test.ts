@@ -13,9 +13,9 @@ import {
   PROMO_88_RATE,
 } from '../lib/bundlePricing';
 
-// The 8.8 sale runs Aug 7 00:00 -> Aug 12 00:00 PHT (Aug 11 is a full selling day).
+// The 8.8 sale runs Aug 7 00:00 -> Aug 10 00:00 PHT (Aug 9 is a full selling day).
 // Every pricing assertion pins an explicit `now` so the suite stays deterministic
-// once the window closes; without it these tests would change behaviour on Aug 12.
+// once the window closes; without it these tests would change behaviour on Aug 10.
 const DURING_PROMO = new Date('2026-08-09T12:00:00+08:00');
 const OFF_PROMO = new Date('2026-09-01T00:00:00+08:00');
 
@@ -248,12 +248,18 @@ describe('isPromo88Active', () => {
     expect(isPromo88Active(new Date('2026-08-07T00:00:00+08:00'))).toBe(true);
   });
 
-  it('is active through the whole of Aug 11 PHT', () => {
-    expect(isPromo88Active(new Date('2026-08-11T23:59:59+08:00'))).toBe(true);
+  it('is active through the whole of Aug 9 PHT', () => {
+    expect(isPromo88Active(new Date('2026-08-09T23:59:59+08:00'))).toBe(true);
   });
 
-  it('expires at Aug 12 00:00 PHT without a deploy', () => {
-    expect(isPromo88Active(new Date('2026-08-12T00:00:00+08:00'))).toBe(false);
+  it('expires at Aug 10 00:00 PHT without a deploy', () => {
+    expect(isPromo88Active(new Date('2026-08-10T00:00:00+08:00'))).toBe(false);
+  });
+
+  // Aug 10 and 11 were the previous (wrong) window; guard against a revert.
+  it('is inactive on Aug 10 and Aug 11 PHT', () => {
+    expect(isPromo88Active(new Date('2026-08-10T12:00:00+08:00'))).toBe(false);
+    expect(isPromo88Active(new Date('2026-08-11T23:59:59+08:00'))).toBe(false);
   });
 });
 
