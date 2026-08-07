@@ -25,7 +25,7 @@ const ALL_SLIDES: BannerSlide[] = [
     eyebrow: '8.8 Sale',
     message: (
       <>
-        <span className="text-gold-400 font-medium">50% off everything</span> — while the sale runs
+        <span className="text-gold-400 font-medium">Up to 50% off everything</span> — while the sale runs
       </>
     ),
     cta: {
