@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ShieldCheck, Package, CreditCard, Heart, Check, Tag, Upload, Database, Lock, Truck, AlertTriangle, X } from 'lucide-react';
 import posthog from 'posthog-js';
 import type { CartItem, Product, ProductVariation, KitType } from '../types';
@@ -15,6 +15,11 @@ import { useAddresses, type UserAddress } from '../hooks/useAddresses';
 import RecommendationRail from './RecommendationRail';
 import { cleanText } from '../lib/cleanText';
 import { getEffectiveUnitPrice, getBundleSavings, qualifiesForFreeShipping } from '../lib/bundlePricing';
+import {
+    getMaxRedeemablePoints,
+    getPointsGateShortfall,
+    POINTS_MIN_ORDER_TOTAL,
+} from '../lib/pointsRedemption';
 import Toast from './Toast';
 
 interface CheckoutProps {
@@ -139,9 +144,21 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     const locationFee = selectedLocation ? selectedLocation.fee : 0;
     const shippingFee = hasFreeShipping ? 0 : locationFee;
 
-    // Cap points redemption: cannot exceed balance or (subtotal - promo discount)
-    const maxRedeemable = Math.max(0, Math.min(pointsBalance, totalPrice - discountAmount));
+    // Points gate: redemption needs a post-promo, post-promo-code subtotal of at
+    // least POINTS_MIN_ORDER_TOTAL. Shipping is deliberately excluded from the
+    // basis so a delivery fee cannot be used to reach the threshold.
+    const pointsGateBasis = totalPrice - discountAmount;
+    const maxRedeemable = getMaxRedeemablePoints(pointsBalance, pointsGateBasis);
+    const pointsGateShortfall = getPointsGateShortfall(pointsGateBasis);
+    const isPointsGateOpen = maxRedeemable > 0;
     const effectivePointsRedeemed = Math.max(0, Math.min(pointsToRedeem, maxRedeemable));
+
+    // The input clamps on change, but the cap also moves when the cart or promo
+    // code changes. Without this, removing an item could leave a redemption
+    // applied that the gate no longer allows.
+    useEffect(() => {
+        setPointsToRedeem((current) => (current > maxRedeemable ? maxRedeemable : current));
+    }, [maxRedeemable]);
 
     // Calculate final total (Subtotal + Shipping - Discount - Points)
     const finalTotal = Math.max(0, totalPrice + shippingFee - discountAmount - effectivePointsRedeemed);
@@ -1239,17 +1256,31 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                         placeholder="0"
                                         min={0}
                                         max={maxRedeemable}
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                                        disabled={!isPointsGateOpen}
+                                        aria-describedby="points-gate-hint"
+                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setPointsToRedeem(maxRedeemable)}
-                                        className="px-3 py-2 bg-brand-50 text-brand-700 rounded text-xs font-bold border border-brand-200 hover:bg-brand-100 shrink-0"
+                                        disabled={!isPointsGateOpen}
+                                        className="px-3 py-2 bg-brand-50 text-brand-700 rounded text-xs font-bold border border-brand-200 hover:bg-brand-100 shrink-0 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed"
                                     >
                                         MAX
                                     </button>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">1 pt = ₱1 — up to ₱{maxRedeemable.toLocaleString()} on this order.</p>
+                                {/* Keep the panel visible below the threshold and show the gap —
+                                    hiding it entirely just reads as a missing feature. */}
+                                {isPointsGateOpen ? (
+                                    <p id="points-gate-hint" className="text-xs text-gray-500 mt-1">
+                                        1 pt = ₱1 — up to ₱{maxRedeemable.toLocaleString()} on this order.
+                                    </p>
+                                ) : (
+                                    <p id="points-gate-hint" className="text-xs text-amber-700 mt-1">
+                                        Spend ₱{pointsGateShortfall.toLocaleString()} more to unlock your points
+                                        — orders must reach ₱{POINTS_MIN_ORDER_TOTAL.toLocaleString()} after discounts.
+                                    </p>
+                                )}
                             </div>
                         )}
 
