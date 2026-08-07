@@ -224,6 +224,63 @@ describe('UserLookupManager', () => {
     );
   });
 
+  it('grants points to a customer with a named reason via the Add points form', async () => {
+    const user = userEvent.setup();
+    seedLoaded([baseProfile], [{ user_id: 'u-1', balance: 100 }], []);
+    render(<UserLookupManager onBack={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('Janey')).toBeInTheDocument());
+    await user.click(screen.getByText('Janey'));
+    await screen.findByText('User details');
+
+    await user.type(screen.getByPlaceholderText('e.g. 250'), '250');
+    await user.type(
+      screen.getByPlaceholderText(/Loyalty bonus/i),
+      'Loyalty bonus'
+    );
+    await user.click(screen.getByRole('button', { name: /^Add points$/ }));
+
+    await waitFor(() =>
+      expect(rpcMock).toHaveBeenCalledWith('admin_grant_points', {
+        p_user_id: 'u-1',
+        p_amount: 250,
+        p_label: 'Loyalty bonus',
+      })
+    );
+    expect(await screen.findByText(/Added 250 pts/)).toBeInTheDocument();
+  });
+
+  it('shows an error and does not call the RPC when the amount is invalid', async () => {
+    const user = userEvent.setup();
+    seedLoaded([baseProfile], [{ user_id: 'u-1', balance: 0 }], []);
+    render(<UserLookupManager onBack={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('Janey')).toBeInTheDocument());
+    await user.click(screen.getByText('Janey'));
+    await screen.findByText('User details');
+
+    // Reason given, but amount left blank (0) -> validation fails client-side.
+    await user.type(screen.getByPlaceholderText(/Loyalty bonus/i), 'Goodwill');
+    await user.click(screen.getByRole('button', { name: /^Add points$/ }));
+
+    expect(await screen.findByText(/greater than zero/i)).toBeInTheDocument();
+    expect(rpcMock).not.toHaveBeenCalledWith('admin_grant_points', expect.anything());
+  });
+
+  it('surfaces the RPC error when a grant fails server-side', async () => {
+    const user = userEvent.setup();
+    seedLoaded([baseProfile], [{ user_id: 'u-1', balance: 0 }], []);
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'not authorized' } });
+    render(<UserLookupManager onBack={vi.fn()} />);
+    await waitFor(() => expect(screen.getByText('Janey')).toBeInTheDocument());
+    await user.click(screen.getByText('Janey'));
+    await screen.findByText('User details');
+
+    await user.type(screen.getByPlaceholderText('e.g. 250'), '250');
+    await user.type(screen.getByPlaceholderText(/Loyalty bonus/i), 'Loyalty bonus');
+    await user.click(screen.getByRole('button', { name: /^Add points$/ }));
+
+    expect(await screen.findByText('not authorized')).toBeInTheDocument();
+  });
+
   it('calls onBack when back button clicked', async () => {
     seedLoaded([baseProfile], [], []);
     const onBack = vi.fn();

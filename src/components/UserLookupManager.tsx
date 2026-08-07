@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Search, ChevronRight, Mail, Phone, MapPin, Wallet, ShoppingBag, Users as UsersIcon, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { adminGrantPoints, MAX_GRANT_LABEL_LENGTH } from '../lib/adminPoints';
 
 interface ProfileRow {
   id: string;
@@ -281,6 +282,13 @@ export default function UserLookupManager({ onBack }: UserLookupManagerProps) {
           onReferralChanged={(id, patch) =>
             setProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)))
           }
+          onBalanceChanged={(id, delta) =>
+            setBalances((prev) =>
+              prev.some((b) => b.user_id === id)
+                ? prev.map((b) => (b.user_id === id ? { ...b, balance: b.balance + delta } : b))
+                : [...prev, { user_id: id, balance: delta }]
+            )
+          }
         />
       )}
     </div>
@@ -293,12 +301,14 @@ function UserDetailDrawer({
   onClose,
   onRoleChanged,
   onReferralChanged,
+  onBalanceChanged,
 }: {
   overview: UserOverview;
   allProfiles: ProfileRow[];
   onClose: () => void;
   onRoleChanged: (id: string, role: 'user' | 'admin') => void;
   onReferralChanged: (id: string, patch: Partial<ProfileRow>) => void;
+  onBalanceChanged: (id: string, delta: number) => void;
 }) {
   const { profile, email, balance, orderCount, totalSpent, referralCount, orders, referredBy, referrals } = overview;
   const [roleSaving, setRoleSaving] = useState(false);
@@ -352,6 +362,48 @@ function UserDetailDrawer({
       return;
     }
     setLedger((data as LedgerRow[]) ?? []);
+  };
+
+  // ── Grant points (admin manual award) ─────────────────────
+  const [grantAmount, setGrantAmount] = useState('');
+  const [grantLabel, setGrantLabel] = useState('');
+  const [granting, setGranting] = useState(false);
+  const [grantError, setGrantError] = useState<string | null>(null);
+  const [grantSuccess, setGrantSuccess] = useState<string | null>(null);
+
+  const submitGrant = async () => {
+    setGrantError(null);
+    setGrantSuccess(null);
+    const amount = Number(grantAmount);
+    setGranting(true);
+    const { error } = await adminGrantPoints({ userId: profile.id, amount, label: grantLabel });
+    setGranting(false);
+    if (error) {
+      setGrantError(error);
+      return;
+    }
+    // Reflect the award immediately: bump the parent balance and, if the points
+    // history is already loaded, prepend the new available entry.
+    onBalanceChanged(profile.id, amount);
+    setLedger((prev) =>
+      prev
+        ? [
+            {
+              id: `optimistic-${prev.length}-${amount}`,
+              delta: amount,
+              reason: 'admin_adjust',
+              source_order_id: null,
+              status: 'available',
+              notes: grantLabel.trim(),
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ]
+        : prev
+    );
+    setGrantSuccess(`Added ${amount.toLocaleString()} pts for “${grantLabel.trim()}”.`);
+    setGrantAmount('');
+    setGrantLabel('');
   };
 
   // ── Referral editing ──────────────────────────────────────
@@ -682,6 +734,48 @@ function UserDetailDrawer({
               Click the <strong>Points</strong> stat above to view this user&rsquo;s full points history.
               Manage withdrawals in the Referrals section.
             </p>
+
+            <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+              <p className="text-[11px] uppercase tracking-wider text-gray-500 font-medium">
+                Add points
+              </p>
+              <div className="text-sm">
+                <label className="text-[11px] uppercase tracking-wider text-gray-500">
+                  Points to add
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={grantAmount}
+                  onChange={(e) => setGrantAmount(e.target.value)}
+                  placeholder="e.g. 250"
+                  className="mt-1 w-full text-sm border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"
+                />
+              </div>
+              <div className="text-sm">
+                <label className="text-[11px] uppercase tracking-wider text-gray-500">
+                  What the points are for
+                </label>
+                <input
+                  value={grantLabel}
+                  maxLength={MAX_GRANT_LABEL_LENGTH}
+                  onChange={(e) => setGrantLabel(e.target.value)}
+                  placeholder="e.g. Loyalty bonus, Complaint goodwill"
+                  className="mt-1 w-full text-sm border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:border-indigo-400"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={submitGrant}
+                disabled={granting}
+                className="w-full bg-indigo-600 text-white text-sm font-medium rounded px-3 py-2 hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              >
+                {granting ? 'Adding…' : 'Add points'}
+              </button>
+              {grantError && <p className="text-xs text-red-600">{grantError}</p>}
+              {grantSuccess && <p className="text-xs text-emerald-600">{grantSuccess}</p>}
+            </div>
           </Section>
         </div>
 
