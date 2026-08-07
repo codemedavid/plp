@@ -69,7 +69,7 @@ beforeEach(() => {
 // Integration Tests: MenuItemCard Component
 // ─────────────────────────────────────────────────────
 
-// The 8.8 promo (Aug 7-11 PHT) halves every price, so card pricing depends on
+// The 8.8 promo (Aug 7-9 PHT) halves every price, so card pricing depends on
 // the wall clock. Pin it off-promo by default and opt in per-block, otherwise
 // these assertions would silently change meaning during the sale.
 const DURING_PROMO = new Date('2026-08-09T12:00:00+08:00');
@@ -113,11 +113,49 @@ describe('MenuItemCard Component', () => {
     });
 
     it('reverts to list pricing once the promo expires', () => {
-      vi.setSystemTime(new Date('2026-08-12T00:00:00+08:00'));
+      vi.setSystemTime(new Date('2026-08-10T00:00:00+08:00'));
 
       render(<MenuItemCard product={baseProduct} />);
 
       expect(screen.getByText(/₱2,500/)).toBeInTheDocument();
+    });
+  });
+
+  describe('original price alongside the discount', () => {
+    it('shows the pre-promo list price next to the sale price', () => {
+      vi.setSystemTime(DURING_PROMO);
+
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.getByText(/₱1,250/)).toBeInTheDocument();
+      expect(screen.getByText(/₱2,500/)).toBeInTheDocument();
+    });
+
+    it('strikes through the original price so the saving reads at a glance', () => {
+      vi.setSystemTime(DURING_PROMO);
+
+      render(<MenuItemCard product={baseProduct} />);
+
+      // <s> carries the "no longer accurate" meaning to assistive tech, not
+      // just a line-through class.
+      expect(screen.getByText(/₱2,500/).closest('s')).not.toBeNull();
+    });
+
+    it('labels the two prices for screen readers', () => {
+      vi.setSystemTime(DURING_PROMO);
+
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.getByText(/original price/i)).toBeInTheDocument();
+      expect(screen.getByText(/sale price/i)).toBeInTheDocument();
+    });
+
+    it('shows no strikethrough when the product is not discounted', () => {
+      // Off-promo, undiscounted product: one price, nothing struck through.
+      render(<MenuItemCard product={baseProduct} />);
+
+      expect(screen.getByText(/₱2,500/).closest('s')).toBeNull();
+      expect(screen.queryByText(/original price/i)).not.toBeInTheDocument();
     });
   });
 

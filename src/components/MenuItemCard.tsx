@@ -122,9 +122,24 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ product, onProductClick }) 
             <p className="text-[9px] sm:text-[10px] text-charcoal-400 uppercase tracking-wider leading-none mb-0.5">
               From
             </p>
-            <p className="text-sm sm:text-base font-bold text-brand-600 leading-none">
-              ₱{fromPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
-            </p>
+            {/* Sale price leads; the struck-through list price sits beside it so
+                the saving reads without arithmetic. The sr-only labels are
+                siblings, not children, so each price string matches exactly one
+                element for assistive tech and for queries. */}
+            <div className="flex items-baseline justify-end gap-1.5 flex-wrap">
+              {hasDiscount && <span className="sr-only">Sale price</span>}
+              <p className="text-sm sm:text-base font-bold text-brand-600 leading-none">
+                ₱{fromPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+              </p>
+              {hasDiscount && (
+                <>
+                  <span className="sr-only">Original price</span>
+                  <s className="text-[10px] sm:text-xs font-normal text-charcoal-400 leading-none decoration-charcoal-300">
+                    ₱{fromOriginalPrice.toLocaleString('en-PH', { minimumFractionDigits: 0 })}
+                  </s>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
