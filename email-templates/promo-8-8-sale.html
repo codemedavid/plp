@@ -1,15 +1,35 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  PLP 8.8 SALE — 50% OFF EVERYTHING
+  PLP 8.8 SALE — UP TO 50% OFF
   Broadcast email · Aug 7–9, 2026
   ============================================================
 
+  *** CHECK THE BUNDLE MARGIN BEFORE SENDING — see below ***
+    discount_active no longer decides anything during the window.
+    getPromoUnitPrice halves base_price for EVERY product, so the
+    old worry about PLP-Slim 2.0 showing full price is gone: it is
+    ₱9,499 → ₱4,749.50 like everything else, and could be featured.
+
+    Prices below were re-derived from base_price × 0.5 and checked
+    against the live products table on Aug 7, 2026.
+
+    The one open item is margin: the Slim & Glow Bundle now sells
+    at ₱3,749.50, a price that was never margin-checked. Details
+    in the PRICE SOURCE block below.
+
+  *** NO AUTOMATIC EXPIRY ***
+    All active discounts have null discount_start_date and
+    discount_end_date, so they run until switched off by hand.
+    You said you'll flip discount_active off manually on Aug 9.
+    The copy says "Sale ends August 9" — nothing in the system
+    enforces that, so it's on you to switch them off that day.
+
   SUBJECT LINE OPTIONS (pick one in PostHog):
-    A. 8.8 Sale: 50% off everything. Three days.
-    B. Half off. Every peptide. Starts now.
-    C. Your protocol, 50% off — 8.8 Sale is live
-    D. 50% off everything until Aug 9
+    A. The 8.8 Sale is live — up to 50% off
+    B. ₱3,749.50 off the Slim & Glow Bundle. Three days.
+    C. Your protocol, up to 50% off — 8.8 Sale
+    D. 8.8 Sale: three days, five protocols, real numbers
 
   PREVIEW TEXT: set inside the hidden div below.
 
@@ -22,17 +42,44 @@
     so first_name is not set on the PostHog person and would render
     blank. Add it to the identify() call before using a name tag.
 
-  NO PROMO CODE — HOW TO ACTUALLY RUN THE SALE:
-    The products table already supports scheduled discounts. Before
-    sending, set on every row you want included:
-      discount_price      = FLOOR(base_price / 2)
-      discount_start_date = 2026-08-07 00:00 (site TZ)
-      discount_end_date   = 2026-08-11 23:59 (site TZ)
-      discount_active     = true
-    The prices printed below are FLOOR(base_price/2) as of Aug 7, 2026,
-    verified against the live products table. They round DOWN from the
-    exact half, so no customer is ever charged more than advertised.
-    If base_price changes before send, re-check the four figures below.
+  PRICE SOURCE — the 8.8 promo is applied in CODE, not by discount_price.
+    src/lib/bundlePricing.ts (getPromoUnitPrice) charges base_price × 0.5
+    for every product while the window is open, and deliberately IGNORES
+    discount_price. The per-product sale prices previously listed here
+    (2499 / 349 / 4899 / 2999 / 3999) are no longer what the site charges
+    — every one of them was higher than half price, so the email was
+    undercharging itself. Figures below are base_price × 0.5:
+      Tirzepatide 15mg  3999 → 1999.50   50%
+      Laennec Placenta   550 →  275      50%
+      Slim & Glow       7499 → 3749.50   50%   <-- biggest ₱
+      Tirzepatide 20mg  4499 → 2249.50   50%
+      Tirzepatide 30mg  4999 → 2499.50   50%
+
+    Editing discount_price in admin will NOT change what the site charges
+    during the window. To change the sale, change PROMO_88_RATE or the
+    window constants in src/lib/bundlePricing.ts.
+
+    *** MARGIN RECHECK NEEDED (Aug 7, 2026) ***
+    The old check was against a ₱4,899 bundle price: cost ₱2,101
+    left ₱2,798 gross, a 57% margin. At the flat 50% the bundle
+    now sells for ₱3,749.50, leaving ₱1,648 gross — roughly 44%.
+    That price was never margin-checked. Confirm it is acceptable
+    before sending.
+
+    The bundle no longer undercuts its own components. At half
+    price it is ₱3,749.50 against Tirz 30mg ₱2,499.50 + PLP-Glow
+    ₱1,249.50 = ₱3,749 — fifty centavos MORE. The old
+    "₱1,599 below buying separately" line has been removed.
+
+    NOW INCLUDED, unlike the earlier draft: the promo applies to
+    every product, so "50% off everything" is accurate. The five
+    rows below are bestsellers, not the full list of what is on
+    sale. PLP-Slim 2.0 is also 50% off (9499 → 4749.50).
+
+    NOTE ON THE TIRZEPATIDE LADDER: the 30mg has the smallest
+    headline % but the best value per mg (₱133/mg, vs ₱150 for the
+    20mg and ₱166 for the 15mg). The ladder is sound — don't
+    "fix" the 20% figure without checking per-mg value first.
   ============================================================
 -->
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -41,14 +88,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
-  <title>8.8 Sale — 50% Off Everything</title>
+  <title>The 8.8 Sale — Up to 50% Off</title>
   <style>
     @media only screen and (max-width: 480px) {
       .container   { width: 100% !important; }
       .px-pad      { padding-left: 24px !important; padding-right: 24px !important; }
-      .hero-number { font-size: 78px !important; }
+      .hero-number { font-size: 72px !important; }
       .stack       { display: block !important; width: 100% !important; }
       .stack-gap   { padding-bottom: 12px !important; }
+      .row-name    { font-size: 15px !important; }
+      .row-price   { font-size: 17px !important; }
     }
   </style>
 </head>
@@ -56,7 +105,7 @@
 
   <!-- Preview text (hidden in body, shown in inbox list) -->
   <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent; mso-hide:all;">
-    Every peptide, every protocol, half price. Aug 7&ndash;11 only &mdash; no code needed.
+    Three days. Up to 50% off everything &mdash; including &#8369;3,749.50 off the Slim &amp; Glow Bundle. No code needed.
     &#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;&#847;&zwnj;&nbsp;
   </div>
 
@@ -81,11 +130,13 @@
             <td align="center" style="background-color:#1d3354; padding:8px 32px 44px;">
 
               <!-- Eyebrow: the date, treated as the mark -->
-              <p style="margin:0 0 6px; font-family:Arial,Helvetica,sans-serif; font-size:11px; font-weight:700; letter-spacing:7px; color:#c9a558; text-transform:uppercase;">8&nbsp;&middot;&nbsp;8&nbsp;&nbsp;Sale</p>
+              <p style="margin:0 0 10px; font-family:Arial,Helvetica,sans-serif; font-size:11px; font-weight:700; letter-spacing:7px; color:#c9a558; text-transform:uppercase;">8&nbsp;&middot;&nbsp;8&nbsp;&nbsp;Sale</p>
+
+              <p style="margin:0 0 2px; font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; letter-spacing:6px; color:#8fa0b8; text-transform:uppercase;">Up to</p>
 
               <!-- The number does the shouting -->
-              <p class="hero-number" style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:104px; line-height:0.92; color:#c9a558; letter-spacing:-3px;">50<span style="font-size:52px; letter-spacing:0;">%</span></p>
-              <p style="margin:8px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:700; letter-spacing:8px; color:#fdfaf3; text-transform:uppercase;">Off Everything</p>
+              <p class="hero-number" style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:98px; line-height:0.92; color:#c9a558; letter-spacing:-3px;">50<span style="font-size:48px; letter-spacing:0;">%</span></p>
+              <p style="margin:8px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:700; letter-spacing:8px; color:#fdfaf3; text-transform:uppercase;">Off</p>
 
               <!-- Hairline -->
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px auto 0;">
@@ -93,7 +144,7 @@
               </table>
 
               <p style="margin:22px 0 0; font-family:Georgia,'Times New Roman',serif; font-size:16px; font-style:italic; color:#c8d2e0; line-height:1.6;">
-                Every peptide. Every protocol.<br>No exclusions.
+                Five protocols. Three days.<br>Every price listed in full.
               </p>
             </td>
           </tr>
@@ -102,7 +153,7 @@
           <tr>
             <td align="center" style="background-color:#c9a558; padding:16px 24px;">
               <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; letter-spacing:3px; color:#1d3354; text-transform:uppercase; line-height:1.6;">
-                August 7 &ndash; 11 &nbsp;&middot;&nbsp; Five Days Only
+                August 7 &ndash; 9 &nbsp;&middot;&nbsp; Three Days Only
               </p>
             </td>
           </tr>
@@ -110,18 +161,85 @@
           <!-- ============ BODY COPY ============ -->
           <tr>
             <td class="px-pad" style="padding:38px 44px 8px; font-family:Georgia,'Times New Roman',serif; font-size:16px; line-height:1.8; color:#3a3a3a;">
-              <p style="margin:0 0 18px;">Once a year we take the price off the table entirely.</p>
-              <p style="margin:0 0 18px;">For the next three days, <strong style="color:#1d3354;">every product in the Peptide Lifestyle Program catalogue is 50% off</strong> &mdash; Weight Management, GLP-1 Agonists, Beauty &amp; Anti-Aging, Wellness &amp; Vitality, Bundles &amp; Kits, Accessories. Not a selected range. Not while-stocks-last on three items. All of it.</p>
-              <p style="margin:0 0 18px;">If you have been reading about a protocol and waiting for the right moment, this is the moment. If you are already on one, this is when you stock the next eight weeks at half of what you paid for the last eight.</p>
+              <p style="margin:0 0 18px;">For three days we are cutting the price on five of the protocols people ask us about most.</p>
+              <p style="margin:0 0 18px;">Every product is half price &mdash; no exclusions, no minimum, no code. The biggest saving is the <strong style="color:#1d3354;">Slim &amp; Glow Bundle at &#8369;3,749.50 off</strong>. The Tirzepatide 15mg drops to &#8369;1,999.50 and the 20mg to &#8369;2,249.50. Our five bestsellers are listed below, but the same 50% applies to everything in the shop.</p>
+              <p style="margin:0 0 18px;">If you have been reading about a protocol and waiting for the right moment, this is the moment. If you are already on one, this is when you stock the next eight weeks.</p>
               <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.7; color:#5a5a5a;">
                 <strong style="color:#1d3354;">No code required.</strong> Sale pricing is already live on every product page &mdash; what you see is what you pay.
               </p>
             </td>
           </tr>
 
+          <!-- ============ PRICE TABLE ============ -->
+          <tr>
+            <td class="px-pad" style="padding:34px 44px 0;">
+              <p style="margin:0 0 6px; font-family:Arial,Helvetica,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; color:#a8873f; text-transform:uppercase;">What's on Sale</p>
+              <p style="margin:0 0 18px; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:1.6; color:#8a8a8a;">Our five bestsellers &mdash; the same 50% applies to every other product too.</p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <tr>
+                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
+                    <a class="row-name" href="https://peptidelifestyleprogram.com/products/plp-slim-glow-bundle" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP Slim &amp; Glow Bundle</a>
+                    <span style="display:block; font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:1px; color:#a8873f; padding-top:4px;">50% OFF &middot; SAVE &#8369;3,749.50</span>
+                  </td>
+                  <td align="right" valign="top" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
+                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;7,499</span>
+                    <span class="row-price" style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;3,749.50</span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
+                    <a class="row-name" href="https://peptidelifestyleprogram.com/products/plp-slim-tirzepatide-30mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Slim Tirzepatide 30mg</a>
+                    <span style="display:block; font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:1px; color:#a8873f; padding-top:4px;">50% OFF &middot; SAVE &#8369;2,499.50</span>
+                  </td>
+                  <td align="right" valign="top" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
+                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;4,999</span>
+                    <span class="row-price" style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;2,499.50</span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
+                    <a class="row-name" href="https://peptidelifestyleprogram.com/products/plp-slim-tirzepatide-20mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Slim Tirzepatide 20mg</a>
+                    <span style="display:block; font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:1px; color:#a8873f; padding-top:4px;">50% OFF &middot; SAVE &#8369;2,249.50</span>
+                  </td>
+                  <td align="right" valign="top" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
+                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;4,499</span>
+                    <span class="row-price" style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;2,249.50</span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
+                    <a class="row-name" href="https://peptidelifestyleprogram.com/products/plp-slim-tirzepatide-15mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Slim Tirzepatide 15mg</a>
+                    <span style="display:block; font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:1px; color:#a8873f; padding-top:4px;">50% OFF &middot; SAVE &#8369;1,999.50</span>
+                  </td>
+                  <td align="right" valign="top" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
+                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;3,999</span>
+                    <span class="row-price" style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;1,999.50</span>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:14px 0;">
+                    <a class="row-name" href="https://peptidelifestyleprogram.com/products/laennec-placenta" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">Laennec Placenta</a>
+                    <span style="display:block; font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:1px; color:#a8873f; padding-top:4px;">50% OFF &middot; SAVE &#8369;275</span>
+                  </td>
+                  <td align="right" valign="top" style="padding:14px 0; white-space:nowrap;">
+                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;550</span>
+                    <span class="row-price" style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;275</span>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
           <!-- ============ PRIMARY CTA ============ -->
           <tr>
-            <td align="center" style="padding:34px 44px 8px;">
+            <td align="center" style="padding:34px 44px 0;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td align="center" style="background-color:#1d3354;">
@@ -129,83 +247,6 @@
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-
-          <!-- ============ HERO PRODUCT ============ -->
-          <tr>
-            <td class="px-pad" style="padding:38px 44px 0;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1d3354;">
-                <tr>
-                  <td style="padding:26px 28px;">
-                    <p style="margin:0 0 8px; font-family:Arial,Helvetica,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; color:#c9a558; text-transform:uppercase;">Most Asked About</p>
-                    <p style="margin:0 0 4px; font-family:Georgia,'Times New Roman',serif; font-size:25px; color:#fdfaf3; line-height:1.25;">PLP-Slim 2.0</p>
-                    <p style="margin:0 0 18px; font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:1.7; color:#8fa0b8;">
-                      Tirzepatide 30mg + Cagrilintide 5mg &mdash; the 35mg dual-action combination, once-weekly dosing.
-                    </p>
-                    <p style="margin:0 0 18px; font-family:Georgia,'Times New Roman',serif; line-height:1;">
-                      <span style="font-size:15px; color:#8fa0b8; text-decoration:line-through;">&#8369;9,499</span>
-                      <span style="font-size:34px; color:#c9a558; padding-left:10px;">&#8369;4,749</span>
-                    </p>
-                    <a href="https://peptidelifestyleprogram.com/products/plp-slim-2-0-tirzepatide-30mg-cagrilintide-5mg" style="font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; color:#c9a558; text-decoration:none; text-transform:uppercase; border-bottom:2px solid #c9a558; padding-bottom:3px;">View Product &rarr;</a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- ============ PRICE TABLE ============ -->
-          <tr>
-            <td class="px-pad" style="padding:34px 44px 0;">
-              <p style="margin:0 0 18px; font-family:Arial,Helvetica,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; color:#a8873f; text-transform:uppercase;">A Few of the Numbers</p>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-
-                <tr>
-                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
-                    <a href="https://peptidelifestyleprogram.com/products/plp-slim-tirzepatide-30mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Slim Tirzepatide 30mg</a>
-                  </td>
-                  <td align="right" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
-                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;4,999</span>
-                    <span style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;2,499</span>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
-                    <a href="https://peptidelifestyleprogram.com/products/plp-slim-tirzepatide-20mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Slim Tirzepatide 20mg</a>
-                  </td>
-                  <td align="right" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
-                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;4,499</span>
-                    <span style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;2,249</span>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style="padding:14px 0; border-bottom:1px solid #e3d9c5;">
-                    <a href="https://peptidelifestyleprogram.com/products/plp-slim-tirzepatide-15mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Slim Tirzepatide 15mg</a>
-                  </td>
-                  <td align="right" style="padding:14px 0; border-bottom:1px solid #e3d9c5; white-space:nowrap;">
-                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;3,999</span>
-                    <span style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;1,999</span>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td style="padding:14px 0;">
-                    <a href="https://peptidelifestyleprogram.com/products/plp-youth-nad-500mg" style="font-family:Georgia,'Times New Roman',serif; font-size:16px; color:#1d3354; text-decoration:none;">PLP-Youth NAD+ 500mg</a>
-                  </td>
-                  <td align="right" style="padding:14px 0; white-space:nowrap;">
-                    <span style="font-family:Arial,Helvetica,sans-serif; font-size:13px; color:#a0a0a0; text-decoration:line-through;">&#8369;3,499</span>
-                    <span style="font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#1d3354; padding-left:8px;">&#8369;1,749</span>
-                  </td>
-                </tr>
-
-              </table>
-
-              <p style="margin:16px 0 0; font-family:Arial,Helvetica,sans-serif; font-size:12px; font-style:italic; color:#8a8a8a; line-height:1.6;">
-                &hellip;and the same 50% applies to everything else in the catalogue.
-              </p>
             </td>
           </tr>
 
@@ -246,7 +287,7 @@
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e3d9c5; border-bottom:1px solid #e3d9c5;">
                 <tr>
                   <td align="center" style="padding:26px 20px;">
-                    <p style="margin:0 0 16px; font-family:Georgia,'Times New Roman',serif; font-size:18px; color:#1d3354; line-height:1.5;">Pricing returns to normal at midnight on <strong>August 9</strong>.</p>
+                    <p style="margin:0 0 16px; font-family:Georgia,'Times New Roman',serif; font-size:18px; color:#1d3354; line-height:1.5;">The 8.8 Sale ends <strong>August 9</strong>.</p>
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                       <tr>
                         <td align="center" style="background-color:#c9a558;">
@@ -278,7 +319,7 @@
                 Results vary by individual. Treatment suitability must be determined by a qualified healthcare provider. These products are not intended to diagnose, treat, cure, or prevent any disease.
               </p>
               <p style="margin:0 0 8px; font-family:Arial,Helvetica,sans-serif; font-size:11px; line-height:1.65; color:#8fa0b8;">
-                Sale pricing valid August 7&ndash;11, 2026. Applies to all catalogue products while supplies last. Cannot be combined with other active offers.
+                Sale pricing valid August 7&ndash;9, 2026 on the five products listed above, while supplies last. Discounts vary by product. Cannot be combined with other active offers.
               </p>
               <p style="margin:0; font-family:Arial,Helvetica,sans-serif; font-size:10px; letter-spacing:1px; color:#8fa0b8;">
                 &copy; 2026 Peptide Lifestyle Program &middot;
