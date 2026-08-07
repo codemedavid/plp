@@ -14,13 +14,13 @@ export const BUNDLE_2_DISCOUNT = 0.1;
 export const BUNDLE_3_PLUS_DISCOUNT = 0.15;
 
 // ─────────────────────────────────────────────────────
-// 8.8 sitewide promo — 50% off, Aug 7 -> Aug 11 PHT inclusive
+// 8.8 sitewide promo — 50% off, Aug 7 -> Aug 9 PHT inclusive
 //
 // The promo REPLACES the bundle-quantity schedule and any per-product sale
 // price rather than stacking with them, so the deepest a customer can go is
 // 50% off list. The window is half-open: active from START up to but not
-// including END, so Aug 11 is a full selling day and the promo expires on
-// its own at Aug 12 00:00 PHT with no deploy.
+// including END, so Aug 9 is a full selling day and the promo expires on
+// its own at Aug 10 00:00 PHT with no deploy.
 //
 // Free shipping is deliberately untouched — it keys off cart quantity
 // (qualifiesForFreeShipping), so it is a shipping perk, not a price discount.
@@ -28,7 +28,7 @@ export const BUNDLE_3_PLUS_DISCOUNT = 0.15;
 
 export const PROMO_88_RATE = 0.5;
 export const PROMO_88_START = new Date('2026-08-07T00:00:00+08:00');
-export const PROMO_88_END = new Date('2026-08-12T00:00:00+08:00');
+export const PROMO_88_END = new Date('2026-08-10T00:00:00+08:00');
 
 export const isPromo88Active = (now: Date = new Date()): boolean =>
   now.getTime() >= PROMO_88_START.getTime() && now.getTime() < PROMO_88_END.getTime();
