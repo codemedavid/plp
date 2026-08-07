@@ -207,9 +207,11 @@ describe('getBundleSavings (outside the 8.8 promo)', () => {
 
 // ─────────────────────────────────────────────────────
 // 8.8 sitewide promo — 50% off base price, Aug 7-11 PHT
-// Policy: the promo REPLACES bundle-quantity discounts and per-product
-// sale prices; it never stacks with them. Free shipping is a shipping
-// perk (cart quantity), not a price discount, so it still applies.
+// Policy: the promo REPLACES bundle-quantity discounts; it never stacks
+// with them. An ACTIVE admin sale price opts the SKU out of the promo
+// entirely, so the price merchandising set is the price customers see.
+// Free shipping is a shipping perk (cart quantity), not a price discount,
+// so it still applies.
 // ─────────────────────────────────────────────────────
 
 // Mirrors the live PLP-Slim (Tirzepatide 15mg) row: admin-pinned tiers that
@@ -232,6 +234,39 @@ const deepSaleProduct: Product = {
   id: 'prod-deep-sale',
   base_price: 4000,
   discount_price: 1200, // 70% off, deeper than the 50% promo
+  discount_active: true,
+};
+
+// Mirrors the live PLP-Slim (Tirzepatide 15mg) row after merchandising set a
+// sale price mid-promo. Half of base (1999.50) is deeper than the 2499 they
+// typed, so under a "cheapest always wins" rule their price stays invisible.
+const adminSaleProduct: Product = {
+  ...baseProduct,
+  id: 'prod-plp-slim-15-sale',
+  name: 'PLP-Slim (Tirzepatide 15mg)',
+  base_price: 3999,
+  discount_price: 2499,
+  discount_active: true,
+};
+
+// Mirrors the live PLP-Slim 2.0 row: a sale price is stored but switched OFF,
+// so it must not opt the SKU out of the promo.
+const inactiveSaleProduct: Product = {
+  ...baseProduct,
+  id: 'prod-plp-slim-2',
+  name: 'PLP-Slim 2.0',
+  base_price: 9499,
+  discount_price: 5499,
+  discount_active: false,
+};
+
+// Variation carrying its own active sale price, to prove the opt-out is
+// evaluated per chosen SKU rather than only at product level.
+const saleVariation: ProductVariation = {
+  ...variation,
+  id: 'var-sale',
+  price: 3000,
+  discount_price: 2100,
   discount_active: true,
 };
 
@@ -272,9 +307,31 @@ describe('getPromoUnitPrice', () => {
     expect(getPromoUnitPrice(baseProduct, variation, DURING_PROMO)).toBeCloseTo(3000 * 0.5);
   });
 
-  it('ignores a shallower per-product sale price and halves base instead', () => {
-    // discountedProduct: base 2500, sale 2000. Promo = 1250, deeper than the sale.
-    expect(getPromoUnitPrice(discountedProduct, undefined, DURING_PROMO)).toBeCloseTo(1250);
+  it('honours an active per-product sale price instead of halving base', () => {
+    // discountedProduct: base 2500, sale 2000. Half of base is 1250, but an
+    // active sale price opts the SKU out of the promo — merchandising wins.
+    expect(getPromoUnitPrice(discountedProduct, undefined, DURING_PROMO)).toBe(2000);
+  });
+
+  it('shows the admin sale price for a live PLP-Slim SKU during the promo', () => {
+    // The reported bug: admin set 2499, storefront rendered 1999.50 instead.
+    expect(getPromoUnitPrice(adminSaleProduct, undefined, DURING_PROMO)).toBe(2499);
+  });
+
+  it('still halves base when a stored sale price is switched off', () => {
+    // PLP-Slim 2.0: 5499 is stored but discount_active is false, so it is
+    // not a live price and must not opt the SKU out of the promo.
+    expect(getPromoUnitPrice(inactiveSaleProduct, undefined, DURING_PROMO)).toBeCloseTo(4749.5);
+  });
+
+  it('honours an active sale price set on the chosen variation', () => {
+    expect(getPromoUnitPrice(baseProduct, saleVariation, DURING_PROMO)).toBe(2100);
+  });
+
+  it('still halves the variation price when only the parent product is on sale', () => {
+    // The variation is the SKU being bought; the parent's sale price does not
+    // apply to it, so nothing opts this variation out of the promo.
+    expect(getPromoUnitPrice(discountedProduct, variation, DURING_PROMO)).toBeCloseTo(1500);
   });
 
   it('never raises a price above an already-deeper sale price', () => {
@@ -314,6 +371,21 @@ describe('getEffectiveUnitPrice (during the 8.8 promo)', () => {
       4999 * 0.5 + KIT_UPGRADE_PRICE
     );
   });
+
+  it('charges the admin sale price for a single bottle of an opted-out SKU', () => {
+    expect(getEffectiveUnitPrice(adminSaleProduct, undefined, 'vial_only', 1, DURING_PROMO)).toBe(2499);
+  });
+
+  it('resumes the bundle-quantity schedule for an opted-out SKU', () => {
+    // The promo skips this SKU entirely, so it prices exactly as it would
+    // outside the window: the quantity discount stacks on the sale price.
+    expect(getEffectiveUnitPrice(adminSaleProduct, undefined, 'vial_only', 2, DURING_PROMO)).toBeCloseTo(
+      2499 * 0.9
+    );
+    expect(getEffectiveUnitPrice(adminSaleProduct, undefined, 'vial_only', 3, DURING_PROMO)).toBeCloseTo(
+      2499 * 0.85
+    );
+  });
 });
 
 describe('getBundleSavings (during the 8.8 promo)', () => {
@@ -330,6 +402,16 @@ describe('getBundleSavings (during the 8.8 promo)', () => {
     expect(s.pct).toBe(50);
     expect(s.originalTotal).toBe(4999 * 3);
     expect(s.discountedTotal).toBeCloseTo(4999 * 3 * 0.5);
+  });
+
+  it('claims no extra saving on a single bottle of an opted-out SKU', () => {
+    // The sale price IS the regular price here, so there is nothing further
+    // to strike through — the PDP must not render a bogus 0% saving badge.
+    const s = getBundleSavings(adminSaleProduct, undefined, 'vial_only', 1, DURING_PROMO);
+    expect(s.discountedTotal).toBe(2499);
+    expect(s.originalTotal).toBe(2499);
+    expect(s.hasSavings).toBe(false);
+    expect(s.pct).toBe(0);
   });
 });
 
