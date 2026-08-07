@@ -334,6 +334,13 @@ describe('getPromoUnitPrice', () => {
     expect(getPromoUnitPrice(discountedProduct, variation, DURING_PROMO)).toBeCloseTo(1500);
   });
 
+  it('still halves base when the sale toggle is on but no price was typed', () => {
+    // Admin can flip discount_active without filling in discount_price. That
+    // is not a usable price, so it must not opt the SKU out of the promo.
+    const emptySale: Product = { ...baseProduct, discount_active: true, discount_price: null };
+    expect(getPromoUnitPrice(emptySale, undefined, DURING_PROMO)).toBeCloseTo(4999 * 0.5);
+  });
+
   it('never raises a price above an already-deeper sale price', () => {
     // base 4000 -> promo 2000, but the live sale price is 1200. Customer keeps 1200.
     expect(getPromoUnitPrice(deepSaleProduct, undefined, DURING_PROMO)).toBe(1200);
@@ -412,6 +419,40 @@ describe('getBundleSavings (during the 8.8 promo)', () => {
     expect(s.originalTotal).toBe(2499);
     expect(s.hasSavings).toBe(false);
     expect(s.pct).toBe(0);
+  });
+});
+
+// Pinned to the real PLP-Slim rows as they stood when the bug was reported,
+// so the storefront price for each is asserted end-to-end rather than only
+// through synthetic fixtures.
+describe('live PLP-Slim line during the 8.8 promo', () => {
+  const liveRows: ReadonlyArray<{
+    name: string;
+    base: number;
+    sale: number | null;
+    saleActive: boolean;
+    expected: number;
+  }> = [
+    { name: 'PLP-Slim (Tirzepatide 15mg)', base: 3999, sale: 2499, saleActive: true, expected: 2499 },
+    { name: 'PLP-Slim (Tirzepatide 20mg)', base: 4499, sale: 2999, saleActive: true, expected: 2999 },
+    { name: 'PLP-Slim Tirzepatide 30mg', base: 4999, sale: 3999, saleActive: true, expected: 3999 },
+    { name: 'PLP Slim & Glow Bundle', base: 7499, sale: 4899, saleActive: true, expected: 4899 },
+    // Sale price stored but switched off -> promo still applies.
+    { name: 'PLP-Slim 2.0', base: 9499, sale: 5499, saleActive: false, expected: 4749.5 },
+    // No sale price at all -> promo applies.
+    { name: 'PLP-Slim Booster Lipo-C with B12', base: 2499, sale: null, saleActive: false, expected: 1249.5 },
+  ];
+
+  it.each(liveRows)('prices $name at $expected', ({ name, base, sale, saleActive, expected }) => {
+    const row: Product = {
+      ...baseProduct,
+      id: `live-${name}`,
+      name,
+      base_price: base,
+      discount_price: sale,
+      discount_active: saleActive,
+    };
+    expect(getPromoUnitPrice(row, undefined, DURING_PROMO)).toBeCloseTo(expected);
   });
 });
 
