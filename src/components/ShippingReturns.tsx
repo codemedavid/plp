@@ -31,7 +31,7 @@ const ShippingReturns: React.FC = () => {
                         <h2 className="text-lg md:text-xl font-bold mb-3">Shipping</h2>
                         <ul className="list-disc pl-5 space-y-2 text-sm md:text-base text-gray-700">
                             <li>Orders are processed within 1–2 business days after payment confirmation.</li>
-                            <li>Once shipped, you will receive a tracking number via WhatsApp or email.</li>
+                            <li>Order confirmation and every status update — including your tracking number once shipped — are emailed to the address you used at checkout.</li>
                             <li>Estimated delivery within Metro Manila: 1–3 business days. Provincial: 3–7 business days.</li>
                             <li>Shipping rates are calculated at checkout based on your selected courier and location.</li>
                             <li>Peptide Lifestyle Program is not liable for courier delays caused by weather, holidays, or other unforeseen events.</li>

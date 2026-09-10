@@ -1,11 +1,12 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import Seo from './components/seo/Seo';
 import { organizationSchema, websiteSchema, productSchema, DEFAULT_TITLE, SITE_NAME } from './lib/seo';
 import { findProductBySlug, slugify } from './lib/slug';
 import { useIsAdmin } from './hooks/useIsAdmin';
 import NotFound from './pages/NotFound';
 import { useCart } from './hooks/useCart';
+import type { OrderPlacedSummary } from './lib/orderPlacedSummary';
 import Header from './components/Header';
 import SubNav from './components/SubNav';
 import Menu from './components/Menu';
@@ -33,6 +34,7 @@ const UserProfile = lazy(() => import('./components/UserProfile'));
 const ShippingReturns = lazy(() => import('./components/ShippingReturns'));
 const TermsConditions = lazy(() => import('./components/TermsConditions'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const OrderPlaced = lazy(() => import('./pages/OrderPlaced'));
 
 import { useMenu } from './hooks/useMenu';
 import { useReferralCapture } from './hooks/useReferralCapture';
@@ -41,6 +43,7 @@ import { useCartAbandonment } from './hooks/useCartAbandonment';
 import type { Product, ProductVariation, KitType } from './types';
 
 function MainApp() {
+    const navigate = useNavigate();
     const cart = useCart();
     const { menuItems, loading: menuLoading, error: menuError, refreshProducts } = useMenu();
     const { user } = useAuth();
@@ -86,6 +89,13 @@ function MainApp() {
         setCurrentView(view);
         // Scroll to top when changing views
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Checkout is done: drop the cart and hand the recap to the confirmation
+    // page. `replace` keeps the back button from returning to the payment step.
+    const handleOrderPlaced = (summary: OrderPlacedSummary) => {
+        cart.clearCart();
+        navigate('/order-placed', { state: summary, replace: true });
     };
 
     const handleCategoryClick = (categoryId: string) => {
@@ -162,6 +172,7 @@ function MainApp() {
                             }}
                             allProducts={menuItems}
                             addToCart={gatedAddToCart}
+                            onOrderPlaced={handleOrderPlaced}
                         />
                     )}
                 </Suspense>
@@ -237,6 +248,7 @@ function App() {
                     <Route path="/shipping-returns" element={<ShippingReturns />} />
                     <Route path="/terms" element={<TermsConditions />} />
                     <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/order-placed" element={<OrderPlaced />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Suspense>

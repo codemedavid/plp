@@ -21,6 +21,7 @@ import {
     POINTS_MIN_ORDER_TOTAL,
 } from '../lib/pointsRedemption';
 import Toast from './Toast';
+import type { OrderPlacedSummary } from '../lib/orderPlacedSummary';
 
 interface CheckoutProps {
     cartItems: CartItem[];
@@ -28,9 +29,11 @@ interface CheckoutProps {
     onBack: () => void;
     allProducts?: Product[];
     addToCart?: (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => void;
+    /** Called once the order is saved; the host clears the cart and routes to /order-placed. */
+    onOrderPlaced: (summary: OrderPlacedSummary) => void;
 }
 
-const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allProducts = [], addToCart }) => {
+const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allProducts = [], addToCart, onOrderPlaced }) => {
     const recommendations = useRecommendations({
         products: allProducts,
         cartItems,
@@ -40,7 +43,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     const { paymentMethods } = usePaymentMethods();
     const { locations: shippingLocations } = useShippingLocations();
     const { couriers } = useCouriers();
-    const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details');
+    const [step, setStep] = useState<'details' | 'payment'>('details');
 
     // Customer Details
     const [fullName, setFullName] = useState('');
@@ -58,12 +61,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
     // Payment
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-    const [contactMethod, setContactMethod] = useState<'whatsapp'>('whatsapp');
+    // No contact-method choice: confirmation and every status update go by email.
+    const contactMethod = 'email';
     const [notes, setNotes] = useState('');
 
-    const [contactOpened] = useState(false);
-
-    const [orderNumber, setOrderNumber] = useState<string>('');
     const [toast, setToast] = useState<{ message: string; variant: 'info' | 'error' | 'warning' | 'success' } | null>(null);
     const notify = (message: string, variant: 'info' | 'error' | 'warning' | 'success' = 'error') => setToast({ message, variant });
 
@@ -286,11 +287,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             return;
         }
 
-        if (!contactMethod) {
-            notify('Please select your preferred contact method.', 'warning');
-            return;
-        }
-
         if (!shippingLocation) {
             notify('Please select your shipping location.', 'warning');
             return;
@@ -368,7 +364,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                     payment_method_id: paymentMethod?.id || null,
                     payment_method_name: paymentMethod?.name || null,
                     payment_proof_url: paymentProofUrl,
-                    contact_method: contactMethod || null,
+                    contact_method: contactMethod,
                     notes: notes.trim() || null,
                     order_status: 'new',
                     payment_status: 'pending',
@@ -485,82 +481,30 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             // Track order placed event for PostHog email workflows
             posthog.capture('plp_order_placed', eventProps);
 
-            setOrderNumber(customOrderNumber);
-
-            // Order is already saved to the database — no manual send step needed.
-            setStep('confirmation');
+            // Order is saved and the confirmation email is triggered by the event
+            // above; hand the recap to the /order-placed page.
+            onOrderPlaced({
+                orderNumber: customOrderNumber,
+                email,
+                customerName: fullName,
+                items: savedItems.map(item => ({
+                    name: item.variation_name
+                        ? `${item.product_name} (${item.variation_name})`
+                        : item.product_name,
+                    quantity: item.quantity,
+                    total: item.total,
+                })),
+                subtotal: savedSubtotal,
+                shippingFee: orderData.shipping_fee || 0,
+                discount: orderData.discount_applied || 0,
+                pointsRedeemed: orderData.points_redeemed || 0,
+                total: orderData.total_price,
+            });
         } catch (error) {
             console.error('❌ Error placing order:', error);
             notify(`Failed to place order: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`, 'error');
         }
     };
-
-    if (step === 'confirmation') {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-white via-brand-50 to-white flex items-center justify-center px-4 py-12">
-                <div className="max-w-2xl w-full">
-                    <div className="bg-white rounded-2xl shadow-soft p-8 md:p-12 text-center border border-brand-100">
-                        <div className="bg-brand-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                            <ShieldCheck className="w-12 h-12 text-brand-600" />
-                        </div>
-                        <h1 className="font-heading text-3xl md:text-4xl font-bold text-charcoal-900 mb-4 tracking-tight">
-                            Thank you for ordering!
-                        </h1>
-                        <p className="text-gray-600 mb-6 text-base md:text-lg leading-relaxed">
-                            We're now sending your order to the admin. Please wait for the confirmation email in your Gmail inbox (check Spam / Promotions if you don't see it).
-                        </p>
-
-                        {/* Order ID Display */}
-                        {orderNumber && (
-                            <div className="bg-brand-50/20 border border-brand-100 rounded-lg p-4 mb-8">
-                                <p className="text-sm text-brand-700 mb-1 font-bold uppercase tracking-wider">Order Reference</p>
-                                <p className="text-2xl font-bold text-charcoal-900 font-mono">
-                                    {orderNumber}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-2">Use this reference for tracking and support</p>
-                            </div>
-                        )}
-
-                        <div className="bg-brand-50/20 rounded-lg p-6 mb-8 text-left border border-brand-100">
-                            <h3 className="font-bold text-charcoal-900 mb-4 flex items-center gap-2">
-                                <Heart className="w-5 h-5 text-brand-600" />
-                                Next Steps
-                            </h3>
-                            <ul className="space-y-3 text-sm text-gray-700">
-                                <li className="flex items-start gap-3">
-                                    <span className="font-bold text-brand-500">1.</span>
-                                    <span>Confirmation within 24 hours of payment receipt.</span>
-                                </li>
-                                <li className="flex items-start gap-3">
-                                    <span className="font-bold text-brand-500">2.</span>
-                                    <span>Research-grade packaging and secure handling.</span>
-                                </li>
-                                <li className="flex items-start gap-3">
-                                    <span className="font-bold text-brand-500">3.</span>
-                                    <span>Same-day shipping for verified payments before 11 AM.</span>
-                                </li>
-                                <li className="flex items-start gap-3">
-                                    <span className="font-bold text-brand-500">4.</span>
-                                    <span>Tracking details sent via your selected contact method after dispatch.</span>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                                window.location.href = '/';
-                            }}
-                            className="w-full btn-secondary py-3 flex items-center justify-center gap-2"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Return to Catalog
-                        </button>
-                    </div>
-                </div>
-            </div >
-        );
-    }
 
     // Payment Step
     if (step === 'payment') {
