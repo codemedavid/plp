@@ -190,3 +190,31 @@ describe('OrderDetailsView', () => {
     expect(screen.queryByText(/fee \(/i)).not.toBeInTheDocument();
   });
 });
+
+describe('OrderDetailsView price check', () => {
+  it('shows no price-check warning for unflagged orders', () => {
+    setup();
+    expect(screen.queryByText('Price check')).toBeNull();
+    expect(screen.queryByRole('note', { name: /price check/i })).toBeNull();
+  });
+
+  it('shows the badge and the client vs server explanation for flagged orders', () => {
+    setup({
+      pricing_mismatch: {
+        client_subtotal: 1000,
+        server_subtotal: 1200,
+        client_shipping_fee: 0,
+        server_shipping_fee: 150,
+        lines: [],
+        detected_at: '2026-11-18T03:00:00Z',
+      },
+    });
+    const note = screen.getByRole('note', { name: /price check/i });
+    expect(note).toHaveTextContent('₱1,000.00');
+    expect(note).toHaveTextContent('₱1,200.00');
+    expect(note).toHaveTextContent('₱0.00');
+    expect(note).toHaveTextContent('₱150.00');
+    // badge in the header + heading in the notice
+    expect(screen.getAllByText('Price check').length).toBeGreaterThanOrEqual(2);
+  });
+});

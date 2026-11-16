@@ -5,7 +5,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useReferral, type WithdrawalRow, type UserProfile as UserProfileRow, type UpdateProfileInput } from '../hooks/useReferral';
 import { useAddresses, type UserAddress, type AddressInput } from '../hooks/useAddresses';
 import { useImageUpload } from '../hooks/useImageUpload';
-import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 
 const REASON_LABEL: Record<string, string> = {
   referral_l1: 'Level 1 referral',
@@ -401,7 +400,7 @@ function AvatarUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const { uploadImage } = useImageUpload(IMAGEKIT_FOLDERS.avatars);
+  const { uploadImage } = useImageUpload('avatar');
 
   const handleFile = async (file: File) => {
     setErr(null);

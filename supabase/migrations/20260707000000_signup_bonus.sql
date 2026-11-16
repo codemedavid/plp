@@ -1,12 +1,17 @@
 -- ============================================================================
--- NOT APPLIED -- parked in pending/ on 2026-11-17 pending an owner decision.
+-- APPLIED to the live DB on 2026-11-17 via Supabase MCP apply_migration,
+-- remote version 20261116175059, name "signup_bonus" (owner-approved,
+-- going forward only; existing users were NOT back-filled).
+-- points_ledger: 7 rows / 0 signup_bonus before apply, 7 / 0 after apply.
 --
--- The storefront already advertises this bonus (WelcomePopup / AuthModal:
--- "Sign Up & Claim 100 Points", src/lib/rewards.ts SIGNUP_BONUS_POINTS = 100)
--- but nothing on the live DB awards it. Applying this file starts crediting
--- 100 points (= P100) to every account at the moment its email is confirmed.
--- It is NOT retroactive: users who confirmed before it is applied get nothing
--- unless back-filled separately.
+-- Matches the storefront copy (WelcomePopup / AuthModal: "Sign Up & Claim
+-- 100 Points", src/lib/rewards.ts SIGNUP_BONUS_POINTS = 100). Credits
+-- 100 points (= P100) to an account when its email becomes confirmed, or
+-- when it is created already confirmed (OAuth). NOT retroactive: users
+-- who confirmed before it was applied get nothing.
+--
+-- Turn off: UPDATE public.referral_config SET signup_bonus_enabled = false
+-- WHERE id = 1;  (amount: signup_bonus_points). No admin UI toggle yet.
 --
 -- Security-adapted vs the original repo file (verified in a rolled-back
 -- transaction on 2026-11-17, see report):

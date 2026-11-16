@@ -44,4 +44,6 @@ export interface Order {
   payment_fee?: number | null;
   payment_fee_pct?: number | null;
   order_number: string | null;
+  /** Set by place_order() when client vs server subtotal/shipping differed (see lib/pricingMismatch.ts). */
+  pricing_mismatch?: unknown;
 }

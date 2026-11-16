@@ -50,11 +50,13 @@
 ## Coverage & known gaps
 - Vitest coverage not separately collected (no `test:coverage` script); new logic is covered by tests 1–6.
 - Pre-existing failing `ResearchBlog.test.tsx` and pre-existing `tsc` errors in unrelated test files (`posthog-events`, `useCart`, `types`, `MetricCard`, …) are **not** introduced by this change and are out of scope.
-- **Not yet applied to production.** Migration `supabase/migrations/pending/20260707000000_signup_bonus.sql` is written and dry-run-verified but awaiting explicit approval to apply to the live DB.
+- **Applied to production 2026-11-17** (owner-approved, going forward only, no back-fill) as remote migration `20261116175059 signup_bonus`; file moved to `supabase/migrations/20260707000000_signup_bonus.sql`. Pre-apply re-test in a rolled-back transaction: unconfirmed insert 0 rows; confirm 1 row +100 `available` (balance 100); re-confirm / unrelated update / unconfirm-then-reconfirm still 1 row; 19 existing confirmed users touched (incl. `email_confirmed_at` in SET) 0 rows; setting off 0 rows; inserted-already-confirmed 1 row; direct `award_signup_bonus` as anon / authenticated / admin denied (42501). `points_ledger` 7 rows / 0 signup before and after apply.
+- **Turn off:** `UPDATE public.referral_config SET signup_bonus_enabled = false WHERE id = 1;` (no admin UI toggle).
+- **Copy caveat:** points are only redeemable on orders of at least ₱3,999 after discounts (`place_order`), which the "redeem at checkout on your first order" copy does not mention.
 
 ## Files changed
 - `src/lib/rewards.ts` (new)
 - `src/components/WelcomePopup.tsx`
 - `src/components/AuthModal.tsx`
 - `src/test/rewards.test.ts`, `src/test/WelcomePopup.test.tsx`, `src/test/AuthModal.test.tsx` (new)
-- `supabase/migrations/pending/20260707000000_signup_bonus.sql` (new — pending apply)
+- `supabase/migrations/20260707000000_signup_bonus.sql` (applied 2026-11-17)

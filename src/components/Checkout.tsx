@@ -6,7 +6,6 @@ import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useShippingLocations } from '../hooks/useShippingLocations';
 import { useCouriers } from '../hooks/useCouriers';
 import { useImageUpload } from '../hooks/useImageUpload';
-import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { useAuth } from '../hooks/useAuth';
 import { useReferral } from '../hooks/useReferral';
@@ -77,7 +76,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
     // Payment Proof
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
-    const { uploadImage, uploading: isUploadingProof } = useImageUpload(IMAGEKIT_FOLDERS.paymentProofs);
+    const { uploadImage, uploading: isUploadingProof } = useImageUpload('payment-proof');
 
     // Points redemption (1 pt = ₱1)
     const { user } = useAuth();

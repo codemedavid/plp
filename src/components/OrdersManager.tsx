@@ -3,6 +3,7 @@ import { ArrowLeft, Package, CheckCircle, XCircle, Clock, Truck, AlertCircle, Se
 import { supabase } from '../lib/supabase';
 import { useMenu } from '../hooks/useMenu';
 import OrderDetailsView from './orders/OrderDetailsView';
+import { PriceCheckBadge } from './orders/PriceCheck';
 import type { Order } from './orders/types';
 import { deriveItemsSubtotal } from '../lib/orderTotals';
 import { getPaymentFeeLabel } from '../lib/paymentFee';
@@ -681,6 +682,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onView, getStatusColor, ge
               }`}>
               {order.payment_status === 'paid' ? '✓ Paid' : 'Pending'}
             </span>
+            <PriceCheckBadge pricingMismatch={order.pricing_mismatch} />
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-xs md:text-sm">

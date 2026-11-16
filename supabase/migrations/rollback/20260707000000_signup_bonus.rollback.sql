@@ -1,4 +1,6 @@
--- ROLLBACK for pending/20260707000000_signup_bonus.sql (only if it was applied)
+-- ROLLBACK for 20260707000000_signup_bonus.sql (APPLIED 2026-11-17, remote
+-- version 20261116175059 "signup_bonus"). To just pause awards, prefer
+-- UPDATE public.referral_config SET signup_bonus_enabled = false WHERE id = 1;
 -- Stops new awards. Bonuses already credited stay in points_ledger
 -- (reason = 'signup_bonus').
 DROP TRIGGER IF EXISTS on_auth_user_signup_bonus ON auth.users;

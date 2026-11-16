@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { Home, Plus, Trash2, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
-import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 import HolidayPopupSettings from './holiday/HolidayPopupSettings';
 
 const SiteSettingsManager: React.FC = () => {
   const { siteSettings, loading, updateSiteSettings } = useSiteSettings();
-  const { uploadImage } = useImageUpload(IMAGEKIT_FOLDERS.logo);
-  const { uploadImage: uploadHeroImage, uploading: uploadingHero } = useImageUpload(IMAGEKIT_FOLDERS.hero);
+  const { uploadImage } = useImageUpload('logo');
+  const { uploadImage: uploadHeroImage, uploading: uploadingHero } = useImageUpload('hero');
 
   const [formData, setFormData] = useState({
     site_name: '',
@@ -114,7 +113,6 @@ const SiteSettingsManager: React.FC = () => {
       let logoUrl = logoPreview;
 
       if (logoFile) {
-        // useImageUpload uses the folder defined at hook level (default 'menu-images')
         const uploadedUrl = await uploadImage(logoFile);
         logoUrl = uploadedUrl;
       }

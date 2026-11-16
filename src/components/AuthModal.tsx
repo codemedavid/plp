@@ -4,6 +4,7 @@ import posthog from 'posthog-js';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { SIGNUP_BONUS_POINTS, signupBonusPesos } from '../lib/rewards';
+import { POINTS_MIN_ORDER_TOTAL } from '../lib/pointsRedemption';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -189,7 +190,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               <p className="text-xs text-navy-900 leading-snug">
                 Sign up and get{' '}
                 <span className="font-semibold">{SIGNUP_BONUS_POINTS} points</span> — worth{' '}
-                <span className="font-semibold">{signupBonusPesos()}</span> at checkout.
+                <span className="font-semibold">{signupBonusPesos()}</span> at checkout on orders of ₱{POINTS_MIN_ORDER_TOTAL.toLocaleString('en-PH')}+.
               </p>
             </div>
           )}

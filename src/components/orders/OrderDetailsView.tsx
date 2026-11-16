@@ -4,6 +4,7 @@ import { copyText, buildAddressText, buildBookingText } from './orderClipboard';
 import type { Order } from './types';
 import { getPaymentFeeLabel } from '../../lib/paymentFee';
 import { deriveItemsSubtotal } from '../../lib/orderTotals';
+import { PriceCheckBadge, PriceCheckNotice } from './PriceCheck';
 
 interface OrderDetailsViewProps {
   order: Order;
@@ -212,8 +213,15 @@ export default function OrderDetailsView({
               Order {order.order_number || order.id.slice(0, 8).toUpperCase()}
             </h1>
             <span className="text-[13px] text-[#7a8597] font-medium">Placed {formatPlaced(order.created_at)}</span>
+            <PriceCheckBadge pricingMismatch={order.pricing_mismatch} />
           </div>
         </div>
+
+        {order.pricing_mismatch != null && (
+          <div className="mb-6">
+            <PriceCheckNotice pricingMismatch={order.pricing_mismatch} />
+          </div>
+        )}
 
         {/* Layout grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">

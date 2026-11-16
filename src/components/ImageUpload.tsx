@@ -1,22 +1,24 @@
 import React, { useRef } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useImageUpload } from '../hooks/useImageUpload';
+import type { UploadPurpose } from '../lib/upload/policy';
 
 interface ImageUploadProps {
   currentImage?: string | null;
   onImageChange: (imageUrl: string | undefined) => void;
   className?: string;
-  folder?: string;
+  /** Decides the server-side folder and who may upload (admin purposes need an admin session). */
+  purpose: UploadPurpose;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
   currentImage,
   onImageChange,
   className = '',
-  folder = 'menu-images'
+  purpose
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadImage, deleteImage, uploading, uploadProgress } = useImageUpload(folder);
+  const { uploadImage, uploading, uploadProgress } = useImageUpload(purpose);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,17 +37,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     }
   };
 
-  const handleRemoveImage = async () => {
-    if (currentImage) {
-      try {
-        await deleteImage(currentImage);
-        onImageChange(undefined);
-      } catch (error) {
-        console.error('Error removing image:', error);
-        // Still remove from UI even if deletion fails
-        onImageChange(undefined);
-      }
-    }
+  // Only clears the reference; the file stays in ImageKit (deletion needs a server-side fileId call).
+  const handleRemoveImage = () => {
+    onImageChange(undefined);
   };
 
   const triggerFileSelect = () => {
@@ -100,7 +94,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               <ImageIcon className="h-16 w-16 text-sky-400 mb-4" />
               <p className="text-lg font-medium text-gray-700 mb-2">Click to upload product image</p>
               <p className="text-sm text-gray-500 mb-1">or drag and drop</p>
-              <p className="text-xs text-gray-400">All image formats (JPG, PNG, WebP, GIF, BMP, TIFF, SVG, HEIC) - max 10MB</p>
+              <p className="text-xs text-gray-400">JPG, PNG, WebP or GIF — large photos are resized automatically</p>
             </>
           )}
         </div>

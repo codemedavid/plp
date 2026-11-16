@@ -3,6 +3,7 @@ import { X, Share2, Sparkles, Gift } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useAuth } from '../hooks/useAuth';
 import { SIGNUP_BONUS_POINTS, signupBonusPesos } from '../lib/rewards';
+import { POINTS_MIN_ORDER_TOTAL } from '../lib/pointsRedemption';
 
 export default function WelcomePopup() {
   const { user } = useAuth();
@@ -107,7 +108,7 @@ export default function WelcomePopup() {
             <p className="text-sm text-charcoal-500 font-light leading-relaxed mb-8 max-w-xs mx-auto">
               Create your free account and we'll credit{' '}
               <span className="text-navy-900 font-medium">{SIGNUP_BONUS_POINTS} points</span> — worth{' '}
-              <span className="text-navy-900 font-medium">{signupBonusPesos()}</span> — to redeem at checkout on your first order.
+              <span className="text-navy-900 font-medium">{signupBonusPesos()}</span> — to redeem at checkout on any order of ₱{POINTS_MIN_ORDER_TOTAL.toLocaleString('en-PH')} or more.
             </p>
 
             <button

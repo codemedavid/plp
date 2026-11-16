@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard } from 'lucide-react';
 import { usePaymentMethods, PaymentMethod } from '../hooks/usePaymentMethods';
 import ImageUpload from './ImageUpload';
-import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 import {
   MAX_SURCHARGE_PCT,
   SURCHARGE_PCT_STEP,
@@ -244,7 +243,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
                       saved: newQrCodeUrl,
                     });
                   }}
-                  folder={IMAGEKIT_FOLDERS.paymentQr}
+                  purpose="payment-qr"
                 />
               </div>
 
