@@ -28,10 +28,90 @@
     <meta name="twitter:description"
         content="Premium peptide sets and protocols crafted to support your wellness journey." />
     <meta name="twitter:image" content="https://peptidelifestyleprogram.com/hero-plp-slim.jpg" />
+
+    <!-- Branded loader: shared by the pre-JS splash below and src/components/LoadingSpinner.tsx -->
+    <link rel="preload" as="image" href="/logo-plp-loader.png" fetchpriority="high" />
+    <style>
+        .plp-loader {
+            --plp-loader-bg: #FAF6EF;
+            --plp-loader-gold: #C9A876;
+            --plp-loader-gold-light: #DDC18A;
+            --plp-loader-track: rgba(201, 168, 118, 0.18);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.75rem;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: 0 16px;
+            background: radial-gradient(ellipse at 50% 40%, #FFFFFF 0%, var(--plp-loader-bg) 70%);
+            animation: plp-loader-in 400ms ease-out 120ms both;
+        }
+        .plp-loader__logo {
+            width: min(280px, 72vw);
+            height: auto;
+            animation: plp-loader-breathe 2.4s ease-in-out infinite;
+        }
+        .plp-loader__bar {
+            position: relative;
+            width: min(160px, 40vw);
+            height: 2px;
+            overflow: hidden;
+            border-radius: 2px;
+            background: var(--plp-loader-track);
+        }
+        .plp-loader__bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            width: 40%;
+            background: linear-gradient(90deg, transparent, var(--plp-loader-gold-light), var(--plp-loader-gold), transparent);
+            animation: plp-loader-sweep 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        }
+        .plp-loader__label {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+        @keyframes plp-loader-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes plp-loader-breathe {
+            0%, 100% { opacity: 0.7; transform: scale(0.985); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes plp-loader-sweep {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(250%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .plp-loader,
+            .plp-loader__logo,
+            .plp-loader__bar::after {
+                animation: none;
+            }
+            .plp-loader__bar::after {
+                transform: translateX(75%);
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <!-- Pre-JS branded splash; React replaces this on first render. Keep in sync with LoadingSpinner.tsx -->
+        <div class="plp-loader" role="status" aria-live="polite">
+            <img class="plp-loader__logo" src="/logo-plp-loader.png" alt="Peptide Lifestyle Program" width="480"
+                height="193" fetchpriority="high" />
+            <div class="plp-loader__bar" aria-hidden="true"></div>
+            <span class="plp-loader__label">Loading…</span>
+        </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
 </body>
 
