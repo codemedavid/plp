@@ -1,5 +1,6 @@
 -- ============================================================================
--- PHASE 2b (NOT YET APPLIED) -- lock down orders and promo_codes.
+-- PHASE 2b -- APPLIED to the live DB on 2026-11-17 (migration "phase2b_lock_orders_promo")
+-- after the new client code (commit 13ccb8c) went live. Locks down orders and promo_codes.
 --
 -- !! Apply ONLY after phase 2a is applied AND the new client code (which
 -- !! creates orders via place_order(), validates promos via

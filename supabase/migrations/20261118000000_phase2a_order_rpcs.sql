@@ -10,7 +10,7 @@
 -- Remaining deploy order:
 --   1. (done) apply THIS file
 --   2. deploy the new client code  (Checkout/OrderTracking call these RPCs)
---   3. apply pending/20261118000100_phase2b_lock_orders_promo.sql
+--   3. (done) apply 20261118000100_phase2b_lock_orders_promo.sql
 --
 -- Rollback: supabase/migrations/rollback/20261118000000_phase2a_order_rpcs.rollback.sql
 -- ============================================================================

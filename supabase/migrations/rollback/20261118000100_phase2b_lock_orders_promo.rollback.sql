@@ -1,4 +1,4 @@
--- ROLLBACK for pending/20261118000100_phase2b_lock_orders_promo.sql
+-- ROLLBACK for 20261118000100_phase2b_lock_orders_promo.sql
 -- WARNING: re-opens orders (customer PII) and promo_codes to anonymous users.
 ALTER TABLE public.orders DISABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS orders_select_own   ON public.orders;
