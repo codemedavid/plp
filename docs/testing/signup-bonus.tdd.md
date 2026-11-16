@@ -50,11 +50,11 @@
 ## Coverage & known gaps
 - Vitest coverage not separately collected (no `test:coverage` script); new logic is covered by tests 1–6.
 - Pre-existing failing `ResearchBlog.test.tsx` and pre-existing `tsc` errors in unrelated test files (`posthog-events`, `useCart`, `types`, `MetricCard`, …) are **not** introduced by this change and are out of scope.
-- **Not yet applied to production.** Migration `supabase/migrations/20260707000000_signup_bonus.sql` is written and dry-run-verified but awaiting explicit approval to apply to the live DB.
+- **Not yet applied to production.** Migration `supabase/migrations/pending/20260707000000_signup_bonus.sql` is written and dry-run-verified but awaiting explicit approval to apply to the live DB.
 
 ## Files changed
 - `src/lib/rewards.ts` (new)
 - `src/components/WelcomePopup.tsx`
 - `src/components/AuthModal.tsx`
 - `src/test/rewards.test.ts`, `src/test/WelcomePopup.test.tsx`, `src/test/AuthModal.test.tsx` (new)
-- `supabase/migrations/20260707000000_signup_bonus.sql` (new — pending apply)
+- `supabase/migrations/pending/20260707000000_signup_bonus.sql` (new — pending apply)

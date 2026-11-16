@@ -9,7 +9,7 @@
 3. As an admin, I see a **Pending Approvals** queue of every user with pending points program-wide and approve from there.
 
 ## What was built
-- **DB:** `supabase/migrations/20260707000000_admin_approve_pending_points.sql` — `admin_approve_pending_points(p_user_id uuid, p_ledger_id uuid default null)`, `SECURITY DEFINER`, gated by existing `is_admin()`, flips `points_ledger` rows `pending → available` and stamps `available_at = now()`. Mirrors `award_review_points`.
+- **DB:** `supabase/migrations/20261118001000_admin_approve_pending_points.sql` (applied 2026-11-17; originally 20260707000000) — `admin_approve_pending_points(p_user_id uuid, p_ledger_id uuid default null)`, `SECURITY DEFINER`, gated by existing `is_admin()`, flips `points_ledger` rows `pending → available` and stamps `available_at = now()`. Mirrors `award_review_points`.
 - **Util:** `src/utils/pendingApprovals.ts` — pure `groupPendingByUser()`.
 - **UI:** `src/components/PendingApprovalsTab.tsx` (new admin queue) wired as a "Pending Approvals" tab in `ReferralManager.tsx`; per-entry + "Approve all pending" controls added to the points-history modal in `UserLookupManager.tsx`.
 

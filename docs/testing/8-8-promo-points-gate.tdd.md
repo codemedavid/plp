@@ -94,7 +94,7 @@ now follows the cap.
 
 ### Task 5 — Server-side enforcement (`supabase/migrations/`)
 
-`20260807000000_points_min_order.sql` adds a `BEFORE INSERT` trigger enforcing
+`supabase/migrations/pending/20260807000000_points_min_order.sql` (NOT applied -- place_order enforces the same rules; see file header) would add a `BEFORE INSERT` trigger enforcing
 the threshold and, closing a **pre-existing security hole**, rejecting
 redemptions exceeding the customer's balance — `debit_points_for_order()`
 previously wrote a ledger debit straight from `orders.points_redeemed` with no

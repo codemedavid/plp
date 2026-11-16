@@ -1,4 +1,8 @@
 -- ============================================================================
+-- STATUS 2026-11-17: verified identical to live pg_get_functiondef; the live
+-- function came from migrations auto_debit_points_on_order_insert /
+-- harden_debit_points_for_order. Re-running is a harmless no-op.
+--
 -- Check in the drifted points-debit trigger.
 --
 -- debit_points_for_order() / trg_debit_points_for_order exist in the live
@@ -12,7 +16,8 @@
 -- lets a fresh environment come up matching prod.
 --
 -- Validation of the redeemed amount lives in the companion migration
--- 20260807000000_points_min_order.sql, which runs BEFORE INSERT and so
+-- pending/20260807000000_points_min_order.sql (NOT applied; place_order now
+-- enforces those rules), which would run BEFORE INSERT and so
 -- executes ahead of this trigger.
 -- ============================================================================
 

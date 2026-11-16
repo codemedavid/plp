@@ -1,4 +1,20 @@
 -- ============================================================================
+-- NOT APPLIED -- parked in pending/ on 2026-11-17. Do not apply as-is.
+--
+-- Every rule in this trigger is already enforced by public.place_order()
+-- (phase 2a, 20261118000000_phase2a_order_rpcs.sql), which is now the only
+-- non-admin way to create an order (phase 2b removed client INSERT on orders):
+--   * points need a signed-in customer            -> place_order: v_uid IS NULL check
+--   * sum(order_items.total) - discount >= 3999    -> place_order: c_points_min_order
+--   * points_redeemed <= available balance         -> place_order: sum(delta) where status='available'
+--   * points_redeemed <= subtotal - discount       -> place_order: "more points than the order value"
+-- Adding this BEFORE INSERT trigger on orders would duplicate that logic in a
+-- second place that place_order's owner would have to keep in step. If
+-- defence-in-depth against admin-side inserts is wanted later, re-derive it
+-- from the then-current place_order rather than applying this file.
+-- ============================================================================
+
+-- ============================================================================
 -- Points redemption: server-side minimum-order gate + balance validation
 --
 -- Two problems this closes:
