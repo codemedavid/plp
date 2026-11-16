@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, ArrowLeft, TrendingUp, Package, Users, FolderOpen, CreditCard, Sparkles, Layers, Shield, RefreshCw, Warehouse, ShoppingCart, HelpCircle, MapPin, Tag, Truck, ChevronDown, BarChart3, MessageSquare, Image as ImageIcon } from 'lucide-react';
 import type { Product, BundleTier } from '../types';
+import { useNavigate } from 'react-router-dom';
 import { useMenu } from '../hooks/useMenu';
+import { useAuth } from '../hooks/useAuth';
+import AdminGate from './admin/AdminGate';
 import { useCategories } from '../hooks/useCategories';
 import ImageUpload from './ImageUpload';
 import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
@@ -72,12 +75,9 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   );
 };
 
-const AdminDashboard: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('peptide_admin_auth') === 'true';
-  });
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+const AdminDashboardContent: React.FC = () => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const { products, loading, addProduct, updateProduct, deleteProduct, refreshProducts } = useMenu();
   const { categories } = useCategories();
   const [currentView, setCurrentView] = useState<'dashboard' | 'products' | 'add' | 'edit' | 'categories' | 'payments' | 'inventory' | 'orders' | 'shipping' | 'faq' | 'settings' | 'promo-codes' | 'couriers' | 'protocols' | 'referrals' | 'users' | 'analytics' | 'reviews'>('dashboard');
@@ -451,22 +451,11 @@ const AdminDashboard: React.FC = () => {
     count: products.filter(p => p.category === cat.id).length
   }));
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'Plp@Admin!123') {
-      setIsAuthenticated(true);
-      localStorage.setItem('peptide_admin_auth', 'true');
-      setLoginError('');
-    } else {
-      setLoginError('Invalid password');
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('peptide_admin_auth');
-    setPassword('');
-    setCurrentView('dashboard');
+  // Admin access comes from the signed-in Supabase user's role (AdminGate /
+  // AdminRoute + is_admin() RLS). Logging out ends that Supabase session.
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/', { replace: true });
   };
 
   const handleRefresh = async () => {
@@ -474,45 +463,6 @@ const AdminDashboard: React.FC = () => {
     await refreshProducts();
     setTimeout(() => setIsRefreshing(false), 500);
   };
-
-  // Login Screen
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-md border border-gray-200">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Admin Access</h1>
-            <p className="text-sm text-gray-400">
-              Enter password to continue
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-navy-900 focus:border-transparent transition-colors placeholder-gray-400"
-                placeholder="Enter admin password"
-                required
-              />
-              {loginError && (
-                <p className="text-red-500 text-sm mt-2 flex items-center gap-1">
-                  ❌ {loginError}
-                </p>
-              )}
-            </div>
-
-            <button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg">
-              Access Dashboard
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -2260,5 +2210,13 @@ const AdminDashboard: React.FC = () => {
     </>
   );
 };
+
+// Gate the whole dashboard (and its data hooks) on the signed-in user's admin
+// role. There is intentionally no client-side shared password.
+const AdminDashboard: React.FC = () => (
+  <AdminGate>
+    <AdminDashboardContent />
+  </AdminGate>
+);
 
 export default AdminDashboard;

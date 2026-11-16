@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPrice, formatPriceWithDecimals, CURRENCY_SYMBOL, CURRENCY_CODE } from '../utils/currency';
+import { formatPrice, formatPriceExact, formatPriceWithDecimals, CURRENCY_SYMBOL, CURRENCY_CODE } from '../utils/currency';
 
 describe('Currency Utilities', () => {
   describe('formatPrice', () => {
@@ -57,4 +57,20 @@ describe('Currency Utilities', () => {
       expect(CURRENCY_CODE).toBe('PHP');
     });
   });
+});
+
+
+describe('formatPriceExact', () => {
+    it('shows whole pesos without decimals', () => {
+        expect(formatPriceExact(1150)).toBe('₱1,150');
+    });
+
+    it('shows centavos when present (e.g. a 3% payment fee)', () => {
+        expect(formatPriceExact(34.5)).toBe('₱34.50');
+        expect(formatPriceExact(1184.5)).toBe('₱1,184.50');
+    });
+
+    it('never shows more than two decimals', () => {
+        expect(formatPriceExact(37.0371)).toBe('₱37.04');
+    });
 });

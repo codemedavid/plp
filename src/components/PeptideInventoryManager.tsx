@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Package, TrendingUp, AlertTriangle, Search, Edit, Trash2, Plus, Download, RefreshCw, Layers } from 'lucide-react';
+import { ArrowLeft, Package, TrendingUp, AlertTriangle, Search, Edit, Trash2, RefreshCw } from 'lucide-react';
 import type { Product } from '../types';
 import { useMenu } from '../hooks/useMenu';
 import { useCategories } from '../hooks/useCategories';

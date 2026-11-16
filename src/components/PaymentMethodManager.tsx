@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard } from 'lucide-react';
 import { usePaymentMethods, PaymentMethod } from '../hooks/usePaymentMethods';
 import ImageUpload from './ImageUpload';
 import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
+import {
+  MAX_SURCHARGE_PCT,
+  SURCHARGE_PCT_STEP,
+  formatSurchargePct,
+  normalizeSurchargePct,
+  validateSurchargePctInput,
+} from '../lib/paymentFee';
+
+const describeFee = (pct: number): string =>
+  normalizeSurchargePct(pct) > 0 ? `Fee: ${formatSurchargePct(pct)}%` : 'No fee';
 
 interface PaymentMethodManagerProps {
   onBack: () => void;
@@ -19,8 +29,10 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
     account_name: '',
     qr_code_url: '',
     active: true,
-    sort_order: 0
+    sort_order: 0,
+    surcharge_pct: '0'
   });
+  const [feeError, setFeeError] = useState<string | null>(null);
 
   React.useEffect(() => {
     refetchAll();
@@ -35,8 +47,10 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
       account_name: '',
       qr_code_url: '',
       active: true,
-      sort_order: nextSortOrder
+      sort_order: nextSortOrder,
+      surcharge_pct: '0'
     });
+    setFeeError(null);
     setCurrentView('add');
   };
 
@@ -49,8 +63,10 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
       account_name: method.account_name,
       qr_code_url: method.qr_code_url,
       active: method.active,
-      sort_order: method.sort_order
+      sort_order: method.sort_order,
+      surcharge_pct: formatSurchargePct(method.surcharge_pct)
     });
+    setFeeError(null);
     setCurrentView('edit');
   };
 
@@ -70,6 +86,13 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
       return;
     }
 
+    const fee = validateSurchargePctInput(formData.surcharge_pct);
+    if (!fee.ok) {
+      setFeeError(fee.error);
+      return;
+    }
+    setFeeError(null);
+
     // QR code is optional - if missing, a placeholder will be used
     // (Database requires NOT NULL, so we use a placeholder image)
 
@@ -82,6 +105,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
         ...formData,
         id: methodId,
         qr_code_url: formData.qr_code_url?.trim() || '', // Normalize qr_code_url
+        surcharge_pct: fee.value,
       };
 
       console.log('💾 Saving payment method:', {
@@ -225,6 +249,33 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
               </div>
 
               <div>
+                <label htmlFor="payment-fee-pct" className="block text-xs sm:text-sm font-medium text-gray-900 mb-1.5 sm:mb-2">Payment fee (%)</label>
+                <input
+                  id="payment-fee-pct"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={MAX_SURCHARGE_PCT}
+                  step={SURCHARGE_PCT_STEP}
+                  value={formData.surcharge_pct}
+                  onChange={(e) => {
+                    setFeeError(null);
+                    setFormData({ ...formData, surcharge_pct: e.target.value });
+                  }}
+                  aria-describedby="payment-fee-help"
+                  aria-invalid={feeError ? true : undefined}
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-gray-900 transition-colors text-gray-900 ${feeError ? 'border-red-400' : 'border-gray-200'}`}
+                  placeholder="0"
+                />
+                <p id="payment-fee-help" className="text-xs text-gray-500 mt-1">
+                  0 = no fee. Added on top of the order total at checkout when this method is chosen (max {MAX_SURCHARGE_PCT}%, steps of {SURCHARGE_PCT_STEP}).
+                </p>
+                {feeError && (
+                  <p role="alert" className="text-xs text-red-600 mt-1">{feeError}</p>
+                )}
+              </div>
+
+              <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-1.5 sm:mb-2">Sort Order</label>
                 <input
                   type="number"
@@ -326,6 +377,9 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
                         <h3 className="font-bold text-sm sm:text-base text-gray-900 mb-1">{method.name}</h3>
                         <p className="text-xs sm:text-sm text-gray-600 truncate">{method.account_number}</p>
                         <p className="text-xs sm:text-sm text-gray-500 truncate">Account: {method.account_name}</p>
+                        <p className={`text-xs mt-1 font-medium ${normalizeSurchargePct(method.surcharge_pct) > 0 ? 'text-amber-700' : 'text-gray-500'}`}>
+                          {describeFee(method.surcharge_pct)}
+                        </p>
                         <p className="text-xs text-gray-400 mt-1">ID: {method.id} • Order: #{method.sort_order}</p>
                       </div>
                     </div>

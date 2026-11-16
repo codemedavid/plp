@@ -61,9 +61,7 @@ describe('downloadCSV', () => {
   it('creates and clicks an anchor with the filename', () => {
     const createObjectURL = vi.fn(() => 'blob:fake');
     const revokeObjectURL = vi.fn();
-    // @ts-expect-error stub
     URL.createObjectURL = createObjectURL;
-    // @ts-expect-error stub
     URL.revokeObjectURL = revokeObjectURL;
 
     const clickSpy = vi.fn();

@@ -46,6 +46,7 @@ const VariationManager: React.FC<VariationManagerProps> = ({ product, onClose, o
         name: newVariation.name,
         quantity_mg: newVariation.quantity_mg,
         price: newVariation.price,
+        cost: null,
         discount_price: newVariation.discount_price,
         discount_active: newVariation.discount_active,
         stock_quantity: newVariation.stock_quantity

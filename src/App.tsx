@@ -8,16 +8,17 @@ import NotFound from './pages/NotFound';
 import { useCart } from './hooks/useCart';
 import type { OrderPlacedSummary } from './lib/orderPlacedSummary';
 import Header from './components/Header';
-import SubNav from './components/SubNav';
 import Menu from './components/Menu';
 import FloatingCartButton from './components/FloatingCartButton';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
+import { HolidayLights } from './components/holiday/HolidayDecor';
+import { isHolidaySaleActive } from './lib/holidaySeason';
 
 // Lazy load non-critical and conditionally rendered components
 const Cart = lazy(() => import('./components/Cart'));
 const Checkout = lazy(() => import('./components/Checkout'));
-const WelcomePopup = lazy(() => import('./components/WelcomePopup'));
+const StorefrontPopup = lazy(() => import('./components/holiday/StorefrontPopup'));
 const PromoBanner = lazy(() => import('./components/PromoBanner'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
 const ResetPasswordModal = lazy(() => import('./components/ResetPasswordModal'));
@@ -52,9 +53,10 @@ function MainApp() {
     const [currentView, setCurrentView] = useState<'menu' | 'checkout'>('menu');
     const [cartOpen, setCartOpen] = useState(false);
     const [authOpen, setAuthOpen] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [selectedCategory] = useState<string>('all');
     const { slug: productSlug } = useParams<{ slug: string }>();
     const activeProduct = productSlug ? findProductBySlug(menuItems, productSlug) : undefined;
+    const isHolidaySeason = isHolidaySaleActive();
 
     useEffect(() => {
         const handler = () => setAuthOpen(true);
@@ -76,12 +78,9 @@ function MainApp() {
         }
     }, []);
 
-    // Sign-in required before adding to cart
-    const gatedAddToCart = (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => {
-        if (!user) {
-            setAuthOpen(true);
-            return;
-        }
+    // Guests can shop and check out without an account; signing in is optional
+    // and only adds perks (points, saved addresses) at checkout.
+    const handleAddToCart = (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => {
         cart.addToCart(product, variation, quantity, kitType);
     };
 
@@ -96,10 +95,6 @@ function MainApp() {
     const handleOrderPlaced = (summary: OrderPlacedSummary) => {
         cart.clearCart();
         navigate('/order-placed', { state: summary, replace: true });
-    };
-
-    const handleCategoryClick = (categoryId: string) => {
-        setSelectedCategory(categoryId);
     };
 
     // Filter products based on selected category
@@ -127,8 +122,11 @@ function MainApp() {
             ) : (
                 <Seo title={DEFAULT_TITLE} path="/" jsonLd={[organizationSchema(), websiteSchema()]} />
             )}
+            {/* One popup at a time: the holiday greeting (admin-editable in Site
+                Settings) replaces the welcome popup while it is on and inside its
+                window; otherwise the welcome popup shows. */}
             <Suspense fallback={null}>
-                <WelcomePopup />
+                <StorefrontPopup />
             </Suspense>
             <Header
                 cartItemsCount={cart.getTotalItems()}
@@ -136,6 +134,7 @@ function MainApp() {
                 onMenuClick={() => handleViewChange('menu')}
                 onAccountClick={() => setAuthOpen(true)}
             />
+            {isHolidaySeason && <HolidayLights />}
             <Suspense fallback={null}>
                 <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
             </Suspense>
@@ -143,17 +142,12 @@ function MainApp() {
                 <PromoBanner />
             </Suspense>
 
-            {/* SubNav hidden in new design — categories accessible via Products nav */}
-            {false && currentView === 'menu' && (
-                <SubNav selectedCategory={selectedCategory} onCategoryClick={handleCategoryClick} />
-            )}
-
             <main className="flex-grow">
                 <Suspense fallback={<LoadingSpinner />}>
                     {currentView === 'menu' && (
                         <Menu
                             menuItems={filteredProducts}
-                            addToCart={gatedAddToCart}
+                            addToCart={handleAddToCart}
                             cartItems={cart.cartItems}
                             updateQuantity={cart.updateQuantity}
                             loading={menuLoading}
@@ -171,7 +165,7 @@ function MainApp() {
                                 setCartOpen(true);
                             }}
                             allProducts={menuItems}
-                            addToCart={gatedAddToCart}
+                            addToCart={handleAddToCart}
                             onOrderPlaced={handleOrderPlaced}
                         />
                     )}
@@ -193,7 +187,7 @@ function MainApp() {
                         handleViewChange('checkout');
                     }}
                     allProducts={menuItems}
-                    addToCart={gatedAddToCart}
+                    addToCart={handleAddToCart}
                 />
             </Suspense>
 

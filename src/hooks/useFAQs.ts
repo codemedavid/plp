@@ -76,7 +76,7 @@ const defaultFAQs: FAQItem[] = [
 export const useFAQs = () => {
     const [faqs, setFaqs] = useState<FAQItem[]>(defaultFAQs);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
 
     const fetchFAQs = async () => {
         try {

@@ -36,3 +36,29 @@ describe('PromoBanner 8.8 tagline', () => {
     expect(screen.queryByText(/^50% off everything/i)).not.toBeInTheDocument();
   });
 });
+
+describe('PromoBanner ber-months slide', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('leads with the ber-months sale while it runs', () => {
+    vi.setSystemTime(new Date('2026-11-20T12:00:00+08:00'));
+    render(<PromoBanner />);
+
+    expect(screen.getByText(/up to 55% off/i)).toBeInTheDocument();
+    expect(screen.getByText(/till the year ends/i)).toBeInTheDocument();
+  });
+
+  it('drops the ber-months slide after New Year', () => {
+    vi.setSystemTime(new Date('2027-01-02T12:00:00+08:00'));
+    render(<PromoBanner />);
+
+    expect(screen.queryByText(/till the year ends/i)).not.toBeInTheDocument();
+  });
+});

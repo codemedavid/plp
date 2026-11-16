@@ -1,4 +1,13 @@
-import { MenuItem } from '../types';
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number;
+  category: string;
+  popular?: boolean;
+  image: string;
+  variations?: unknown[];
+}
 
 export const menuData: MenuItem[] = [
   // Dim Sum

@@ -19,7 +19,7 @@ const defaultLocations: ShippingLocation[] = [
 export const useShippingLocations = () => {
     const [locations, setLocations] = useState<ShippingLocation[]>(defaultLocations);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
 
     const fetchLocations = async () => {
         try {

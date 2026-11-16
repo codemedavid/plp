@@ -7,7 +7,7 @@ interface FAQManagerProps {
 }
 
 const FAQManager: React.FC<FAQManagerProps> = ({ onBack }) => {
-    const { faqs, loading, addFAQ, updateFAQ, deleteFAQ, refetch } = useFAQsAdmin();
+    const { faqs, loading, addFAQ, updateFAQ, deleteFAQ } = useFAQsAdmin();
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isAdding, setIsAdding] = useState(false);
     const [formData, setFormData] = useState({

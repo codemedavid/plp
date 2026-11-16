@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { SiteSettings } from '../types';
+import { readHolidayPopupSettings } from '../lib/holidayPopupSettings';
 
 export const useSiteSettings = () => {
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
@@ -64,7 +65,8 @@ export const useSiteSettings = () => {
         hero_assessment_slide_position:
           settingsData.find(s => s.id === 'hero_assessment_slide_position')?.value === 'first'
             ? 'first'
-            : 'last'
+            : 'last',
+        ...readHolidayPopupSettings(settingsData)
       };
 
       setSiteSettings(settings);

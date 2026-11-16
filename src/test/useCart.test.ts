@@ -43,6 +43,17 @@ const mockProduct: Product = {
   safety_sheet_url: null,
   created_at: '2024-01-01',
   updated_at: '2024-01-01',
+  cost: 0,
+  description_font_family: null,
+  description_font_size: null,
+  inclusions_font_family: null,
+  inclusions_font_size: null,
+  is_new: false,
+  highlighted: false,
+  coa_url: null,
+  coa_links: [],
+  paired_product_ids: [],
+  bundle_tiers: [],
 };
 
 const mockProductNoDiscount: Product = {
@@ -52,6 +63,17 @@ const mockProductNoDiscount: Product = {
   discount_price: null,
   discount_active: false,
   inclusions: null,
+  cost: 0,
+  description_font_family: null,
+  description_font_size: null,
+  inclusions_font_family: null,
+  inclusions_font_size: null,
+  is_new: false,
+  highlighted: false,
+  coa_url: null,
+  coa_links: [],
+  paired_product_ids: [],
+  bundle_tiers: [],
 };
 
 const mockVariation: ProductVariation = {
@@ -66,6 +88,7 @@ const mockVariation: ProductVariation = {
   discount_active: true,
   stock_quantity: 5,
   created_at: '2024-01-01',
+  cost: null,
 };
 
 const mockVariationNoDiscount: ProductVariation = {
@@ -77,6 +100,7 @@ const mockVariationNoDiscount: ProductVariation = {
   discount_price: null,
   discount_active: false,
   stock_quantity: 3,
+  cost: null,
 };
 
 const mockOutOfStockVariation: ProductVariation = {
@@ -88,6 +112,7 @@ const mockOutOfStockVariation: ProductVariation = {
   discount_price: null,
   discount_active: false,
   stock_quantity: 0,
+  cost: null,
 };
 
 // The 8.8 promo (Aug 7-9 PHT) halves every price, so cart totals depend on the

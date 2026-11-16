@@ -1,9 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 
 const downloadCSVMock = vi.fn();
-const toCSVMock = vi.fn(() => 'a,b\n1,2');
+const toCSVMock = vi.fn((..._args: unknown[]) => 'a,b\n1,2');
 
 vi.mock('../components/analytics/csv', () => ({
   downloadCSV: (...args: unknown[]) => downloadCSVMock(...args),

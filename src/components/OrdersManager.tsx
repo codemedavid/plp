@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { useMenu } from '../hooks/useMenu';
 import OrderDetailsView from './orders/OrderDetailsView';
 import type { Order } from './orders/types';
+import { deriveItemsSubtotal } from '../lib/orderTotals';
+import { getPaymentFeeLabel } from '../lib/paymentFee';
 
 interface OrdersManagerProps {
   onBack: () => void;
@@ -30,8 +32,12 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
     const shippingFee = order.shipping_fee || 0;
     const discount = order.discount_applied || 0;
     const points = order.points_redeemed || 0;
+    const paymentFee = Number(order.payment_fee) || 0;
     const total = order.total_price;
-    const subtotal = total - shippingFee + discount + points;
+    const subtotal = deriveItemsSubtotal({ total, shippingFee, discount, pointsRedeemed: points, paymentFee });
+    const paymentFeeLabel = paymentFee > 0
+      ? getPaymentFeeLabel(order.payment_method_name, Number(order.payment_fee_pct) || 0)
+      : '';
 
     const itemsSummary = order.order_items.map(item => {
       const name = item.variation_name
@@ -64,6 +70,8 @@ const OrdersManager: React.FC<OrdersManagerProps> = ({ onBack }) => {
             subtotal: String(subtotal),
             shipping_fee: String(shippingFee),
             discount: String(discount),
+            payment_fee: String(paymentFee),
+            payment_fee_label: paymentFeeLabel,
             payment_method: String(order.payment_method_name || 'N/A'),
             contact_method: String(order.contact_method || 'N/A'),
             promo_code: String(order.promo_code || 'None'),

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useCouriers } from '../../hooks/useCouriers';
 import { copyText, buildAddressText, buildBookingText } from './orderClipboard';
 import type { Order } from './types';
+import { getPaymentFeeLabel } from '../../lib/paymentFee';
+import { deriveItemsSubtotal } from '../../lib/orderTotals';
 
 interface OrderDetailsViewProps {
   order: Order;
@@ -157,9 +159,17 @@ export default function OrderDetailsView({
   const shippingFee = order.shipping_fee || 0;
   const discount = order.discount_applied || 0;
   const points = order.points_redeemed || 0;
-  // total_price is stored as the final charged amount (items − discount − points + shipping),
-  // so derive the items subtotal by removing shipping and adding back discount/points.
-  const subtotal = order.total_price - shippingFee + discount + points;
+  const paymentFee = Number(order.payment_fee) || 0;
+  const paymentFeeLabel = getPaymentFeeLabel(order.payment_method_name, Number(order.payment_fee_pct) || 0);
+  // total_price is stored as the final charged amount
+  // (items − discount − points + shipping + payment fee), so back those out.
+  const subtotal = deriveItemsSubtotal({
+    total: order.total_price,
+    shippingFee,
+    discount,
+    pointsRedeemed: points,
+    paymentFee,
+  });
   const finalTotal = order.total_price;
   const isPaid = order.payment_status === 'paid';
 
@@ -487,6 +497,12 @@ export default function OrderDetailsView({
                   <span>Shipping Fee</span>
                   <span className="font-semibold text-[#1f2937]">{peso(shippingFee)}</span>
                 </div>
+                {paymentFee > 0 && (
+                  <div className="flex justify-between text-[#46505f]">
+                    <span>{paymentFeeLabel}</span>
+                    <span className="font-semibold text-[#1f2937]">{peso(paymentFee)}</span>
+                  </div>
+                )}
               </div>
               <div className="flex justify-between items-center mt-3.5 pt-3.5 border-t border-[#eef1f6]">
                 <span className="text-[15px] font-bold text-[#111827]">Total</span>

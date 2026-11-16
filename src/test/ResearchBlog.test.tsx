@@ -16,7 +16,7 @@ describe('ResearchBlog index', () => {
   it('renders the library hero heading', () => {
     renderBlog();
     expect(
-      screen.getByRole('heading', { level: 1, name: /peptide research/i }),
+      screen.getByRole('heading', { level: 1, name: /science behind every protocol/i }),
     ).toBeInTheDocument();
   });
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { isPromo88Active } from '../lib/bundlePricing';
+import { HOLIDAY_SALE_HEADLINE_PCT, isHolidaySaleActive } from '../lib/holidaySeason';
 import { X, ArrowRight, Send, type LucideIcon } from 'lucide-react';
 import posthog from 'posthog-js';
 
@@ -20,6 +21,20 @@ type BannerSlide = {
 };
 
 const ALL_SLIDES: BannerSlide[] = [
+  {
+    id: 'holiday',
+    eyebrow: 'Ber Months Sale',
+    message: (
+      <>
+        <span className="text-gold-400 font-medium">Up to {HOLIDAY_SALE_HEADLINE_PCT}% off</span> till the year ends
+      </>
+    ),
+    cta: {
+      label: 'Shop Now',
+      href: '/#products',
+      event: 'plp_promo_banner_holiday_sale_click',
+    },
+  },
   {
     id: 'promo-88',
     eyebrow: '8.8 Sale',
@@ -90,7 +105,12 @@ export default function PromoBanner() {
   // The 8.8 slide only rides along while the sale is actually running, so the
   // banner stops advertising 50% off the moment the window closes.
   const SLIDES = useMemo(
-    () => ALL_SLIDES.filter((slide) => slide.id !== 'promo-88' || isPromo88Active()),
+    () =>
+      ALL_SLIDES.filter((slide) => {
+        if (slide.id === 'promo-88') return isPromo88Active();
+        if (slide.id === 'holiday') return isHolidaySaleActive();
+        return true;
+      }),
     []
   );
 
@@ -103,7 +123,7 @@ export default function PromoBanner() {
     }, ROTATE_INTERVAL_MS);
 
     return () => clearInterval(id);
-  }, [dismissed, paused]);
+  }, [dismissed, paused, SLIDES.length]);
 
   const handleCtaClick = (event: string) => {
     posthog.capture(event);

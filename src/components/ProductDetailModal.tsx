@@ -22,7 +22,7 @@ import { CoaButton } from './ui/CoaButton';
 interface ProductDetailModalProps {
   product: Product;
   onClose: () => void;
-  onAddToCart: (product: Product, variation: ProductVariation | undefined, quantity: number, kitType?: KitType) => void;
+  onAddToCart: (product: Product, variation?: ProductVariation, quantity?: number, kitType?: KitType) => void;
   allProducts?: Product[];
   onProductSelect?: (product: Product) => void;
 }

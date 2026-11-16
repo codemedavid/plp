@@ -71,7 +71,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, loading, e
         />
 
         {/* ── Premium Peptide Solutions ── */}
-        <section ref={productsRef} className="bg-cream-light py-20 md:py-24">
+        <section id="products" ref={productsRef} className="scroll-mt-20 bg-cream-light py-20 md:py-24">
           <div className="container mx-auto px-4 md:px-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
               <div>

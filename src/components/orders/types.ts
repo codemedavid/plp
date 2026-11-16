@@ -40,5 +40,8 @@ export interface Order {
   promo_code: string | null;
   discount_applied: number | null;
   points_redeemed: number | null;
+  /** Payment-method surcharge included in total_price (column added in phase 2a; absent on older rows). */
+  payment_fee?: number | null;
+  payment_fee_pct?: number | null;
   order_number: string | null;
 }

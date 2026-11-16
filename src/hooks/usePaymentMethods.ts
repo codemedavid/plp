@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { normalizeSurchargePct } from '../lib/paymentFee';
 
 export interface PaymentMethod {
   id: string;
@@ -9,9 +10,15 @@ export interface PaymentMethod {
   qr_code_url: string;
   active: boolean;
   sort_order: number;
+  /** Percent fee added at checkout when this method is chosen (0-10, 0 = no fee). */
+  surcharge_pct: number;
   created_at: string;
   updated_at: string;
 }
+
+// PostgREST may serialise numeric(5,2) as a string; normalise once on read.
+const normalizeMethods = (rows: PaymentMethod[] | null): PaymentMethod[] =>
+  (rows || []).map((row) => ({ ...row, surcharge_pct: normalizeSurchargePct(row.surcharge_pct) }));
 
 export const usePaymentMethods = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -30,7 +37,7 @@ export const usePaymentMethods = () => {
 
       if (fetchError) throw fetchError;
 
-      setPaymentMethods(data || []);
+      setPaymentMethods(normalizeMethods(data));
       setError(null);
     } catch (err) {
       console.error('Error fetching payment methods:', err);
@@ -51,7 +58,7 @@ export const usePaymentMethods = () => {
 
       if (fetchError) throw fetchError;
 
-      setPaymentMethods(data || []);
+      setPaymentMethods(normalizeMethods(data));
       setError(null);
     } catch (err) {
       console.error('Error fetching all payment methods:', err);
@@ -88,7 +95,8 @@ export const usePaymentMethods = () => {
           account_name: method.account_name,
           qr_code_url: qrCodeUrl, // Always explicitly set (never empty)
           active: method.active,
-          sort_order: method.sort_order
+          sort_order: method.sort_order,
+          surcharge_pct: normalizeSurchargePct(method.surcharge_pct)
         })
         .select('*, qr_code_url') // Explicitly include qr_code_url in response
         .single();
@@ -136,6 +144,7 @@ export const usePaymentMethods = () => {
       if (updates.account_name !== undefined) updatePayload.account_name = updates.account_name;
       if (updates.active !== undefined) updatePayload.active = updates.active;
       if (updates.sort_order !== undefined) updatePayload.sort_order = updates.sort_order;
+      if (updates.surcharge_pct !== undefined) updatePayload.surcharge_pct = normalizeSurchargePct(updates.surcharge_pct);
       
       // ALWAYS explicitly handle qr_code_url if it's in updates
       // Normalize: undefined/null/empty → placeholder URL (database requires NOT NULL)

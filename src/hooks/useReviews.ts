@@ -26,7 +26,7 @@ export type NewReview = Omit<Review, 'id' | 'product_ids' | 'created_at' | 'upda
 // each review. Map them into a flat product_ids array and drop the nested key so
 // the result matches the Review shape.
 const mapReviewRow = (row: Record<string, unknown>): Review => {
-    const { review_products: _reviewProducts, ...rest } = row as Review & {
+    const { review_products: _reviewProducts, ...rest } = row as unknown as Review & {
         review_products?: { product_id: string }[] | null;
     };
     return { ...(rest as Review), product_ids: extractProductIds(row) };

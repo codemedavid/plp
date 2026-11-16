@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowRight, Inbox, PackageCheck, ShieldCheck } from 'lucide-react';
 import type { OrderPlacedSummary } from '../../lib/orderPlacedSummary';
-import { formatPrice } from '../../utils/currency';
+import { formatPrice, formatPriceExact } from '../../utils/currency';
 
 interface OrderPlacedPanelProps {
     /** Null when the page is opened directly, refreshed, or shared. */
@@ -149,9 +149,15 @@ const OrderPlacedPanel: React.FC<OrderPlacedPanelProps> = ({ summary }) => {
                                     <dd className="text-gold-700 tabular-nums">{`-${formatPrice(summary.pointsRedeemed)}`}</dd>
                                 </div>
                             )}
+                            {summary.paymentFee > 0 && (
+                                <div className="flex items-baseline justify-between gap-4">
+                                    <dt className="text-charcoal-500 font-light">{summary.paymentFeeLabel || 'Payment fee'}</dt>
+                                    <dd className="text-navy-900 tabular-nums">{formatPriceExact(summary.paymentFee)}</dd>
+                                </div>
+                            )}
                             <div className="flex items-baseline justify-between gap-4 border-t border-gold-200/70 pt-4 mt-4">
                                 <dt className="text-[11px] uppercase tracking-[0.22em] text-navy-900 font-semibold">Total</dt>
-                                <dd className="font-heading text-2xl text-navy-900 tabular-nums">{formatPrice(summary.total)}</dd>
+                                <dd className="font-heading text-2xl text-navy-900 tabular-nums">{formatPriceExact(summary.total)}</dd>
                             </div>
                         </dl>
                     </section>

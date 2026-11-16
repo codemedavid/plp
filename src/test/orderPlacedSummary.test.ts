@@ -11,6 +11,8 @@ describe('parseOrderPlacedSummary', () => {
     shippingFee: 150,
     discount: 500,
     pointsRedeemed: 0,
+    paymentFee: 0,
+    paymentFeeLabel: '',
     total: 4650,
   };
 
@@ -44,8 +46,22 @@ describe('parseOrderPlacedSummary', () => {
       shippingFee: 0,
       discount: 0,
       pointsRedeemed: 0,
+      paymentFee: 0,
+      paymentFeeLabel: '',
       total: 0,
     });
+  });
+
+  it('keeps the payment fee and its label for the recap', () => {
+    const parsed = parseOrderPlacedSummary({
+      ...validState,
+      paymentFee: 34.5,
+      paymentFeeLabel: 'QRPh fee (3%)',
+      total: 1184.5,
+    });
+    expect(parsed?.paymentFee).toBe(34.5);
+    expect(parsed?.paymentFeeLabel).toBe('QRPh fee (3%)');
+    expect(parsed?.total).toBe(1184.5);
   });
 
   it('drops malformed line items instead of rendering broken rows', () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Supabase RPC mock: capture the call and return a queued response.
-const rpcMock = vi.fn(() => Promise.resolve({ data: null, error: null }));
+const rpcMock = vi.fn((..._args: unknown[]) => Promise.resolve<{ data: unknown; error: { message: string } | null }>({ data: null, error: null }));
 vi.mock('../lib/supabase', () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpcMock(...args),

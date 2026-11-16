@@ -78,9 +78,11 @@ export interface ProductVariation {
   quantity_mg: number;
   price: number;
   cost: number | null;
-  // Pen type pricing - null means not available for this product
-  disposable_pen_price: number | null;
-  reusable_pen_price: number | null;
+  // Pen type pricing - null means not available for this product.
+  // Optional: these columns do not exist on product_variations in the live DB,
+  // so inserts must not send them (PostgREST rejects unknown columns).
+  disposable_pen_price?: number | null;
+  reusable_pen_price?: number | null;
   discount_price: number | null;
   discount_active: boolean;
   stock_quantity: number;
@@ -137,6 +139,22 @@ export interface SiteSettings {
   hero_show_assessment_slide?: boolean;
   /** Whether the assessment slide is the primary (first) slide or the last one. */
   hero_assessment_slide_position?: 'first' | 'last';
+  // Holiday popup — raw stored values. Empty text / unreadable dates fall back
+  // to the shipped copy and code window (see lib/holidayPopupSettings).
+  holiday_popup_enabled?: boolean;
+  holiday_popup_eyebrow?: string;
+  holiday_popup_title?: string;
+  holiday_popup_message?: string;
+  holiday_popup_offer?: string;
+  /** Payment news line (e.g. QRPh) shown above the Shop button. */
+  holiday_popup_payment_note?: string;
+  /** Missing row = on. The way to hide the note, since blank text uses the default. */
+  holiday_popup_payment_note_enabled?: boolean;
+  holiday_popup_button_label?: string;
+  /** ISO 8601 instant; empty means the code default. */
+  holiday_popup_start?: string;
+  /** ISO 8601 instant (exclusive); empty means the code default. */
+  holiday_popup_end?: string;
 }
 
 // Pen Type Options (for injectable products)

@@ -169,4 +169,24 @@ describe('OrderDetailsView', () => {
     expect(screen.getByText(/SAVE10/)).toBeInTheDocument();
     expect(screen.getByText(/points/i)).toBeInTheDocument();
   });
+
+  it('shows the payment fee and backs it out of the subtotal', () => {
+    // 1200 items + 200 shipping = 1400 payable; 3% QRPh fee = 42 -> stored total 1442.
+    setup({
+      shipping_fee: 200,
+      total_price: 1442,
+      payment_fee: 42,
+      payment_fee_pct: 3,
+      payment_method_name: 'QRPh',
+    });
+    expect(screen.getByText('QRPh fee (3%)')).toBeInTheDocument();
+    expect(screen.getAllByText(/₱42\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/₱1,200\.00/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/₱1,442\.00/).length).toBeGreaterThan(0);
+  });
+
+  it('has no fee row for orders without a fee', () => {
+    setup();
+    expect(screen.queryByText(/fee \(/i)).not.toBeInTheDocument();
+  });
 });

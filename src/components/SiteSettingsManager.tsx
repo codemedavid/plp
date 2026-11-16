@@ -3,6 +3,7 @@ import { Home, Plus, Trash2, ChevronLeft, ChevronRight, Star } from 'lucide-reac
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
+import HolidayPopupSettings from './holiday/HolidayPopupSettings';
 
 const SiteSettingsManager: React.FC = () => {
   const { siteSettings, loading, updateSiteSettings } = useSiteSettings();
@@ -410,6 +411,8 @@ const SiteSettingsManager: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <HolidayPopupSettings />
     </div>
   );
 };

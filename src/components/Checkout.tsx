@@ -5,7 +5,6 @@ import type { CartItem, Product, ProductVariation, KitType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useShippingLocations } from '../hooks/useShippingLocations';
 import { useCouriers } from '../hooks/useCouriers';
-import { supabase } from '../lib/supabase';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { IMAGEKIT_FOLDERS } from '../lib/imagekitFolders';
 import { useRecommendations } from '../hooks/useRecommendations';
@@ -22,6 +21,10 @@ import {
 } from '../lib/pointsRedemption';
 import Toast from './Toast';
 import type { OrderPlacedSummary } from '../lib/orderPlacedSummary';
+import { placeOrder, validatePromoCode, type AppliedPromo } from '../lib/orderApi';
+import { computeCheckoutTotals, computePromoDiscount } from '../lib/orderTotals';
+import { formatSurchargePct, getPaymentFeeLabel } from '../lib/paymentFee';
+import CheckoutTotals from './checkout/CheckoutTotals';
 
 interface CheckoutProps {
     cartItems: CartItem[];
@@ -90,8 +93,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
 
     // Promo Code State
     const [promoCode, setPromoCode] = useState('');
-    const [appliedPromo, setAppliedPromo] = useState<any>(null);
-    const [discountAmount, setDiscountAmount] = useState(0);
+    const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
     const [isApplyingPromo, setIsApplyingPromo] = useState(false);
     const [promoError, setPromoError] = useState('');
     const [promoSuccess, setPromoSuccess] = useState('');
@@ -148,6 +150,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     // Points gate: redemption needs a post-promo, post-promo-code subtotal of at
     // least POINTS_MIN_ORDER_TOTAL. Shipping is deliberately excluded from the
     // basis so a delivery fee cannot be used to reach the threshold.
+    // Derived from the validated promo terms so it tracks the cart exactly as
+    // place_order() will recompute it server-side.
+    const discountAmount = computePromoDiscount(appliedPromo, totalPrice);
     const pointsGateBasis = totalPrice - discountAmount;
     const maxRedeemable = getMaxRedeemablePoints(pointsBalance, pointsGateBasis);
     const pointsGateShortfall = getPointsGateShortfall(pointsGateBasis);
@@ -162,14 +167,25 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
     }, [maxRedeemable]);
 
     // Calculate final total (Subtotal + Shipping - Discount - Points)
-    const finalTotal = Math.max(0, totalPrice + shippingFee - discountAmount - effectivePointsRedeemed);
+    // Fee for the selected payment method (e.g. QRPh 3%) on the amount actually
+    // paid: items + shipping - discount - points. The server recomputes it from
+    // payment_methods.surcharge_pct; this is the live preview.
+    const selectedMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod) ?? null;
+    const surchargePct = selectedMethod?.surcharge_pct ?? 0;
+    const { paymentFee, total: finalTotal } = computeCheckoutTotals({
+        subtotal: totalPrice,
+        shippingFee,
+        discount: discountAmount,
+        pointsRedeemed: effectivePointsRedeemed,
+        surchargePct,
+    });
 
-    // Handle Promo Code Application
+    // Handle Promo Code Application. Validation runs server-side
+    // (validate_promo_code) so the promo_codes table never has to be readable.
     const handleApplyPromoCode = async () => {
         setPromoError('');
         setPromoSuccess('');
         setAppliedPromo(null);
-        setDiscountAmount(0);
 
         const code = promoCode.trim().toUpperCase();
         if (!code) {
@@ -178,67 +194,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
         }
 
         setIsApplyingPromo(true);
-
         try {
-            const { data: promo, error } = await supabase
-                .from('promo_codes')
-                .select('*')
-                .eq('code', code)
-                .eq('active', true)
-                .single();
-
-            if (error || !promo) {
-                setPromoError('Invalid or inactive promo code');
-                setIsApplyingPromo(false);
+            const result = await validatePromoCode(code, totalPrice);
+            if (!result.ok) {
+                setPromoError(result.error);
                 return;
             }
-
-            // Check date validity
-            const now = new Date();
-            if (promo.start_date && new Date(promo.start_date) > now) {
-                setPromoError('Promo code is not yet valid');
-                setIsApplyingPromo(false);
-                return;
-            }
-            if (promo.end_date && new Date(promo.end_date) < now) {
-                setPromoError('Promo code has expired');
-                setIsApplyingPromo(false);
-                return;
-            }
-
-            // Check usage limits
-            if (promo.usage_limit && promo.usage_count >= promo.usage_limit) {
-                setPromoError('Promo code usage limit reached');
-                setIsApplyingPromo(false);
-                return;
-            }
-
-            // Check minimum purchase
-            if (totalPrice < promo.min_purchase_amount) {
-                setPromoError(`Minimum purchase of ₱${promo.min_purchase_amount} required`);
-                setIsApplyingPromo(false);
-                return;
-            }
-
-            // Calculate discount
-            let discount = 0;
-            if (promo.discount_type === 'percentage') {
-                discount = (totalPrice * promo.discount_value) / 100;
-                if (promo.max_discount_amount) {
-                    discount = Math.min(discount, promo.max_discount_amount);
-                }
-            } else {
-                discount = promo.discount_value;
-            }
-
-            discount = Math.min(discount, totalPrice);
-
-            setDiscountAmount(discount);
-            setAppliedPromo(promo);
+            const discount = computePromoDiscount(result.promo, totalPrice);
+            setAppliedPromo(result.promo);
             setPromoSuccess(`Promo code applied! You saved ₱${discount.toLocaleString()}`);
-        } catch (err) {
-            console.error('Error applying promo:', err);
-            setPromoError('Failed to apply promo code');
         } finally {
             setIsApplyingPromo(false);
         }
@@ -297,7 +261,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             return;
         }
 
-        const paymentMethod = paymentMethods.find(pm => pm.id === selectedPaymentMethod);
+        const paymentMethod = selectedMethod;
+        if (!paymentMethod) {
+            notify('Please choose a payment method.', 'warning');
+            return;
+        }
 
         try {
             // Identify customer early so PostHog has time to process before capture
@@ -340,89 +308,43 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                 };
             });
 
-            // Generate order number before saving
-            const randomDigits = Math.floor(Math.random() * 9000 + 1000); // 1000-9999
-            const customOrderNumber = `PLP-${randomDigits}`;
+            // Create the order server-side. place_order() re-validates the promo,
+            // points and payment method, adds the method's surcharge, claims the
+            // promo use and inserts the row in one transaction -- so there is no
+            // client-side cleanup (orders.delete) if a step fails.
+            const placed = await placeOrder({
+                customer_name: fullName,
+                customer_email: email,
+                customer_phone: phone,
+                shipping_address: address,
+                shipping_barangay: barangay,
+                shipping_city: city,
+                shipping_state: state,
+                shipping_zip_code: zipCode,
+                order_items: orderItems,
+                shipping_fee: shippingFee,
+                courier_id: selectedCourierId || null,
+                shipping_location: shippingLocation,
+                payment_method_id: paymentMethod.id,
+                payment_proof_url: paymentProofUrl,
+                contact_method: contactMethod,
+                notes: notes.trim() || null,
+                promo_code: appliedPromo?.code || null,
+                points_redeemed: effectivePointsRedeemed,
+            });
 
-            // Save order to database
-            const { data: orderData, error: orderError } = await supabase
-                .from('orders')
-                .insert([{
-                    customer_name: fullName,
-                    customer_email: email,
-                    customer_phone: phone,
-                    shipping_address: address,
-                    shipping_barangay: barangay,
-                    shipping_city: city,
-                    shipping_state: state,
-                    shipping_zip_code: zipCode,
-                    order_items: orderItems,
-                    total_price: finalTotal, // Subtotal + shipping - discount
-                    shipping_fee: shippingFee,
-                    courier_id: selectedCourierId || null,
-                    shipping_location: shippingLocation,
-                    payment_method_id: paymentMethod?.id || null,
-                    payment_method_name: paymentMethod?.name || null,
-                    payment_proof_url: paymentProofUrl,
-                    contact_method: contactMethod,
-                    notes: notes.trim() || null,
-                    order_status: 'new',
-                    payment_status: 'pending',
-                    promo_code_id: appliedPromo?.id || null,
-                    promo_code: appliedPromo?.code || null,
-                    discount_applied: discountAmount,
-                    order_number: customOrderNumber,
-                    user_id: user?.id || null,
-                    points_redeemed: effectivePointsRedeemed
-                }])
-                .select()
-                .single();
-
-            if (orderError) {
-                console.error('❌ Error saving order:', orderError);
-
-                let errorMessage = orderError.message;
-                if (orderError.message?.includes('Could not find the table') ||
-                    orderError.message?.includes('relation "public.orders" does not exist') ||
-                    orderError.message?.includes('schema cache')) {
-                    errorMessage = `The orders table doesn't exist in the database. Please run the migration.`;
-                }
-
-                notify(`Failed to save order: ${errorMessage}. Please contact support if this issue persists.`, 'error');
+            if (!placed.ok) {
+                console.error('Error saving order:', placed.error);
+                notify(`Failed to place order: ${placed.error}. Please contact support if this issue persists.`, 'error');
                 return;
             }
-
-            // Update promo code usage atomically via RPC FIRST (race-safe; returns null if limit hit).
-            // Running this before the points-redemption ledger insert avoids leaving an
-            // orphan ledger row pointing at a deleted order if the promo RPC fails or the
-            // limit has been hit.
-            if (appliedPromo) {
-                const { data: promoRpcData, error: promoUpdateError } = await supabase.rpc(
-                    'increment_promo_usage',
-                    { promo_id: appliedPromo.id }
-                );
-
-                if (promoUpdateError) {
-                    console.error('Failed to update promo usage count:', promoUpdateError);
-                    await supabase.from('orders').delete().eq('id', orderData.id);
-                    notify(`Failed to apply promo code: ${promoUpdateError.message}. Order was not placed.`, 'error');
-                    return;
-                }
-                if (!promoRpcData) {
-                    // null = limit reached; abort order
-                    await supabase.from('orders').delete().eq('id', orderData.id);
-                    notify('Promo code usage limit reached. Please remove the promo and try again.', 'error');
-                    return;
-                }
-            }
+            const orderData = placed.order;
 
             // Points redemption debit is written server-side by the
             // trg_debit_points_for_order trigger on orders, atomic with the insert.
             if (user && effectivePointsRedeemed > 0) {
                 refreshReferral();
             }
-
-            console.log('✅ Order saved to database:', orderData);
 
             // Save address to user's address book if requested
             if (user && saveAddressForNextTime && !selectedAddressId) {
@@ -441,7 +363,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             }
 
             // Build items summary from saved order data (source of truth)
-            const savedItems = orderData.order_items as Array<{ product_name: string; variation_name: string | null; quantity: number; price: number; total: number }>;
+            const savedItems = orderData.items;
             const itemsSummary = savedItems.map(item => {
                 const name = item.variation_name
                     ? `${item.product_name} (${item.variation_name})`
@@ -449,22 +371,26 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                 return `${name} x${item.quantity} - P${item.total.toLocaleString('en-PH', { minimumFractionDigits: 0 })}`;
             }).join('\n');
 
-            // Calculate subtotal from saved order items
-            const savedSubtotal = savedItems.reduce((sum, item) => sum + item.total, 0);
+            const savedSubtotal = orderData.subtotal;
+            const savedFeeLabel = orderData.paymentFee > 0
+                ? getPaymentFeeLabel(orderData.paymentMethodName, orderData.paymentFeePct)
+                : '';
 
             // Build all event properties first
             const eventProps = {
                 email: email,
                 customer_email: email,
                 customer_name: fullName,
-                order_number: String(orderData.order_number),
-                total_price: String(orderData.total_price),
+                order_number: String(orderData.orderNumber),
+                total_price: String(orderData.total),
                 subtotal: String(savedSubtotal),
-                shipping_fee: String(orderData.shipping_fee || 0),
-                discount: String(orderData.discount_applied || 0),
-                payment_method: String(orderData.payment_method_name || 'N/A'),
-                contact_method: String(orderData.contact_method || 'N/A'),
-                promo_code: String(orderData.promo_code || 'None'),
+                shipping_fee: String(orderData.shippingFee),
+                discount: String(orderData.discount),
+                payment_fee: String(orderData.paymentFee),
+                payment_fee_label: savedFeeLabel,
+                payment_method: String(orderData.paymentMethodName || 'N/A'),
+                contact_method: String(orderData.contactMethod || 'N/A'),
+                promo_code: String(orderData.promoCode || 'None'),
                 item_count: savedItems.length,
                 items_summary: itemsSummary,
                 // Persist on the person record so PostHog email destinations
@@ -484,7 +410,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
             // Order is saved and the confirmation email is triggered by the event
             // above; hand the recap to the /order-placed page.
             onOrderPlaced({
-                orderNumber: customOrderNumber,
+                orderNumber: orderData.orderNumber,
                 email,
                 customerName: fullName,
                 items: savedItems.map(item => ({
@@ -495,10 +421,12 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                     total: item.total,
                 })),
                 subtotal: savedSubtotal,
-                shippingFee: orderData.shipping_fee || 0,
-                discount: orderData.discount_applied || 0,
-                pointsRedeemed: orderData.points_redeemed || 0,
-                total: orderData.total_price,
+                shippingFee: orderData.shippingFee,
+                discount: orderData.discount,
+                pointsRedeemed: orderData.pointsRedeemed,
+                paymentFee: orderData.paymentFee,
+                paymentFeeLabel: savedFeeLabel,
+                total: orderData.total,
             });
         } catch (error) {
             console.error('❌ Error placing order:', error);
@@ -555,6 +483,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                                         <div className="flex justify-between items-start">
                                                             <div>
                                                                 <p className="font-bold text-charcoal-900">{method.name}</p>
+                                                                {method.surcharge_pct > 0 && (
+                                                                    <p className="text-xs font-medium text-amber-700 mt-0.5">
+                                                                        +{formatSurchargePct(method.surcharge_pct)}% payment fee
+                                                                    </p>
+                                                                )}
                                                                 <p className="text-sm text-gray-600 font-mono mt-1">{method.account_number}</p>
                                                                 {method.account_name && (
                                                                     <p className="text-xs text-gray-500 mt-0.5">Account Name: {method.account_name}</p>
@@ -740,36 +673,17 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                         );
                                     })}
                                 </div>
-                                <div className="border-t border-gray-100 pt-3 space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Subtotal</span>
-                                        <span>₱{totalPrice.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Shipping</span>
-                                        {hasFreeShipping ? (
-                                            <span className="font-bold text-emerald-600">FREE</span>
-                                        ) : (
-                                            <span>₱{shippingFee.toLocaleString()}</span>
-                                        )}
-                                    </div>
-                                    {discountAmount > 0 && (
-                                        <div className="flex justify-between text-brand-600 font-medium">
-                                            <span>Discount</span>
-                                            <span>-₱{discountAmount.toLocaleString()}</span>
-                                        </div>
-                                    )}
-                                    {effectivePointsRedeemed > 0 && (
-                                        <div className="flex justify-between text-emerald-700 font-medium">
-                                            <span>Points</span>
-                                            <span>-₱{effectivePointsRedeemed.toLocaleString()}</span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between font-bold text-charcoal-900 text-lg pt-2">
-                                        <span>Total</span>
-                                        <span>₱{finalTotal.toLocaleString()}</span>
-                                    </div>
-                                </div>
+                                <CheckoutTotals
+                                    subtotal={totalPrice}
+                                    shippingFee={shippingFee}
+                                    isFreeShipping={hasFreeShipping}
+                                    discount={discountAmount}
+                                    pointsRedeemed={effectivePointsRedeemed}
+                                    paymentMethodName={selectedMethod?.name ?? null}
+                                    surchargePct={surchargePct}
+                                    paymentFee={paymentFee}
+                                    total={finalTotal}
+                                />
                             </div>
                         </div>
 
@@ -1163,7 +1077,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, allP
                                         type="button"
                                         onClick={() => {
                                             setAppliedPromo(null);
-                                            setDiscountAmount(0);
                                             setPromoCode('');
                                             setPromoSuccess('');
                                         }}

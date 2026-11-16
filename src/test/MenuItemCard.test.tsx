@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import MenuItemCard from '../components/MenuItemCard';
 import type { Product, ProductVariation } from '../types';
 
@@ -31,6 +30,17 @@ const baseProduct: Product = {
   safety_sheet_url: null,
   created_at: '2024-01-01',
   updated_at: '2024-01-01',
+  cost: 0,
+  description_font_family: null,
+  description_font_size: null,
+  inclusions_font_family: null,
+  inclusions_font_size: null,
+  is_new: false,
+  highlighted: false,
+  coa_url: null,
+  coa_links: [],
+  paired_product_ids: [],
+  bundle_tiers: [],
 };
 
 const variation5mg: ProductVariation = {
@@ -45,6 +55,7 @@ const variation5mg: ProductVariation = {
   discount_active: true,
   stock_quantity: 5,
   created_at: '2024-01-01',
+  cost: null,
 };
 
 const variation10mg: ProductVariation = {
@@ -59,6 +70,7 @@ const variation10mg: ProductVariation = {
   discount_active: false,
   stock_quantity: 3,
   created_at: '2024-01-01',
+  cost: null,
 };
 
 beforeEach(() => {

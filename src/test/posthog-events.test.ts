@@ -70,6 +70,17 @@ const mockProduct: Product = {
   safety_sheet_url: null,
   created_at: '2024-01-01',
   updated_at: '2024-01-01',
+  cost: 0,
+  description_font_family: null,
+  description_font_size: null,
+  inclusions_font_family: null,
+  inclusions_font_size: null,
+  is_new: false,
+  highlighted: false,
+  coa_url: null,
+  coa_links: [],
+  paired_product_ids: [],
+  bundle_tiers: [],
 };
 
 const mockVariation: ProductVariation = {
@@ -84,20 +95,7 @@ const mockVariation: ProductVariation = {
   discount_active: true,
   stock_quantity: 5,
   created_at: '2024-01-01',
-};
-
-const mockVariationNoDiscount: ProductVariation = {
-  id: 'var-2',
-  product_id: 'prod-1',
-  name: '10mg',
-  quantity_mg: 10,
-  price: 5000,
-  disposable_pen_price: null,
-  reusable_pen_price: null,
-  discount_price: null,
-  discount_active: false,
-  stock_quantity: 3,
-  created_at: '2024-01-01',
+  cost: null,
 };
 
 const testEmail = 'mitwinter825@gmail.com';
@@ -116,7 +114,7 @@ describe('PostHog Event: plp_add_to_cart', () => {
     const product = mockProduct;
     const variation = mockVariation;
     const quantity = 1;
-    const kitType = 'vial_only' as const;
+    const kitType = 'vial_only' as 'vial_only' | 'complete_kit';
 
     // Calculate price the same way the fixed code does
     const basePrice = variation
@@ -161,7 +159,7 @@ describe('PostHog Event: plp_add_to_cart', () => {
 
     const product = mockProduct;
     const variation = mockVariation;
-    const kitType = 'vial_only' as const;
+    const kitType = 'vial_only' as 'vial_only' | 'complete_kit';
 
     const basePrice = variation
       ? (variation.discount_active && variation.discount_price != null ? variation.discount_price : variation.price)

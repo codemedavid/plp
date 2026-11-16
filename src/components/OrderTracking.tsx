@@ -9,28 +9,12 @@ import { useAuth } from '../hooks/useAuth';
 import WriteReviewModal from './WriteReviewModal';
 import { getReviewsForOrder, REVIEW_REWARD_POINTS } from '../hooks/useReviews';
 import { cleanText } from '../lib/cleanText';
+import { trackOrder, type TrackedOrder } from '../lib/orderApi';
+import { deriveItemsSubtotal } from '../lib/orderTotals';
+import { getPaymentFeeLabel } from '../lib/paymentFee';
+import { formatPriceExact } from '../utils/currency';
 
-interface TrackingOrder {
-    id: string;
-    order_number: string | null;
-    order_status: string;
-    payment_status: string;
-    tracking_number: string | null;
-    shipping_provider: string | null;
-    shipping_note: string | null;
-    total_price: number;
-    shipping_fee: number;
-    order_items: {
-        product_id?: string;
-        product_name: string;
-        quantity: number;
-    }[];
-    customer_name?: string;
-    created_at: string;
-    promo_code: string | null;
-    discount_applied: number | null;
-    points_redeemed: number | null;
-}
+type TrackingOrder = TrackedOrder;
 
 const STEPS = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
 
@@ -38,6 +22,7 @@ const OrderTracking: React.FC = () => {
     const { cartItems } = useCart();
     const { user } = useAuth();
     const [orderId, setOrderId] = useState('');
+    const [contact, setContact] = useState('');
     const [order, setOrder] = useState<TrackingOrder | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -57,7 +42,7 @@ const OrderTracking: React.FC = () => {
             setMyOrdersLoading(true);
             const { data, error } = await supabase
                 .from('orders')
-                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied, points_redeemed, customer_name')
+                .select('id, order_number, order_status, payment_status, tracking_number, shipping_provider, shipping_note, total_price, shipping_fee, order_items, created_at, promo_code, discount_applied, points_redeemed, payment_fee, payment_fee_pct, payment_method_name, customer_name')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false });
             if (cancelled) return;
@@ -129,9 +114,11 @@ const OrderTracking: React.FC = () => {
         }
     };
 
+    // Guest lookup needs the order reference AND the email or phone used at
+    // checkout (track_order RPC) -- an order number alone is guessable.
     const handleTrack = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!orderId.trim()) return;
+        if (!orderId.trim() || !contact.trim()) return;
 
         setLoading(true);
         setError(null);
@@ -139,20 +126,15 @@ const OrderTracking: React.FC = () => {
         setHasSearched(true);
 
         try {
-            const { data, error } = await supabase.rpc('get_order_details', {
-                order_id_input: orderId.trim(),
-            });
-
-            if (error) throw error;
-
-            if (data && Array.isArray(data) && data.length > 0) {
-                setOrder(data[0] as TrackingOrder);
+            const result = await trackOrder(orderId, contact);
+            if (!result.ok) {
+                console.error('Error fetching order:', result.error);
+                setError('An error occurred while fetching your order. Please try again.');
+            } else if (result.order) {
+                setOrder(result.order);
             } else {
-                setError('Order not found. Please check your order number and try again.');
+                setError('Order not found. Please check your order number and the email or phone you used at checkout.');
             }
-        } catch (err) {
-            console.error('Error fetching order:', err);
-            setError('An error occurred while fetching your order. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -223,12 +205,14 @@ const OrderTracking: React.FC = () => {
             <main className="container mx-auto px-4 md:px-8 py-12 max-w-4xl">
                 {/* Search */}
                 <form onSubmit={handleTrack} className="bg-white border border-gold-200 p-6 md:p-8 mb-8">
-                    <label className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">Order Number</label>
                     <div className="flex flex-col md:flex-row gap-3">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-charcoal-400 w-4 h-4" strokeWidth={1.8} />
+                            <label htmlFor="track-order-ref" className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">Order Number</label>
+                            <Search className="absolute left-4 bottom-[1.15rem] text-charcoal-400 w-4 h-4" strokeWidth={1.8} />
                             <input
+                                id="track-order-ref"
                                 type="text"
+                                autoComplete="off"
                                 value={orderId}
                                 onChange={(e) => setOrderId(e.target.value)}
                                 placeholder="e.g. PLP-1234"
@@ -236,10 +220,23 @@ const OrderTracking: React.FC = () => {
                                 style={{ borderRadius: '2px' }}
                             />
                         </div>
+                        <div className="flex-1">
+                            <label htmlFor="track-order-contact" className="block text-[11px] uppercase tracking-[0.32em] text-gold-600 mb-3">Email or phone used at checkout</label>
+                            <input
+                                id="track-order-contact"
+                                type="text"
+                                autoComplete="email"
+                                value={contact}
+                                onChange={(e) => setContact(e.target.value)}
+                                placeholder="you@example.com or 0917…"
+                                className="w-full px-4 py-4 border border-gold-200 bg-cream-light/60 focus:bg-white focus:border-gold-500 outline-none transition-all text-navy-900 placeholder:text-charcoal-400"
+                                style={{ borderRadius: '2px' }}
+                            />
+                        </div>
                         <button
                             type="submit"
-                            disabled={loading || !orderId.trim()}
-                            className="group inline-flex items-center justify-between gap-6 px-7 py-4 bg-navy-900 text-white text-xs font-semibold tracking-[0.22em] uppercase hover:bg-navy-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            disabled={loading || !orderId.trim() || !contact.trim()}
+                            className="group md:self-end inline-flex items-center justify-between gap-6 px-7 py-4 bg-navy-900 text-white text-xs font-semibold tracking-[0.22em] uppercase hover:bg-navy-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             style={{ borderRadius: '2px' }}
                         >
                             {loading ? (
@@ -487,29 +484,41 @@ const OrderTracking: React.FC = () => {
                                 <div className="flex justify-between items-center pt-3 border-t border-gold-200 text-sm font-light">
                                     <span className="text-charcoal-500">Subtotal</span>
                                     <span className="text-navy-900 font-mono">
-                                        ₱{(order.total_price - (order.shipping_fee || 0) + (order.discount_applied || 0) + (order.points_redeemed || 0)).toLocaleString()}
+                                        {formatPriceExact(deriveItemsSubtotal({
+                                            total: order.total_price,
+                                            shippingFee: order.shipping_fee,
+                                            discount: order.discount_applied,
+                                            pointsRedeemed: order.points_redeemed,
+                                            paymentFee: order.payment_fee ?? 0,
+                                        }))}
                                     </span>
                                 </div>
-                                {order.discount_applied && order.discount_applied > 0 && (
+                                {(order.discount_applied ?? 0) > 0 && (
                                     <div className="flex justify-between items-center text-sm font-light">
                                         <span className="text-charcoal-500">Discount {order.promo_code ? `(${order.promo_code})` : ''}</span>
-                                        <span className="text-emerald-700 font-mono">−₱{order.discount_applied.toLocaleString()}</span>
+                                        <span className="text-emerald-700 font-mono">−{formatPriceExact(order.discount_applied ?? 0)}</span>
                                     </div>
                                 )}
-                                {order.points_redeemed && order.points_redeemed > 0 && (
+                                {(order.points_redeemed ?? 0) > 0 && (
                                     <div className="flex justify-between items-center text-sm font-light">
                                         <span className="text-charcoal-500">Points redeemed</span>
-                                        <span className="text-emerald-700 font-mono">−₱{order.points_redeemed.toLocaleString()}</span>
+                                        <span className="text-emerald-700 font-mono">−{formatPriceExact(order.points_redeemed ?? 0)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center text-sm font-light">
                                     <span className="text-charcoal-500">Shipping</span>
-                                    <span className="text-navy-900 font-mono">₱{(order.shipping_fee || 0).toLocaleString()}</span>
+                                    <span className="text-navy-900 font-mono">{formatPriceExact(order.shipping_fee || 0)}</span>
                                 </div>
+                                {(order.payment_fee ?? 0) > 0 && (
+                                    <div className="flex justify-between items-center text-sm font-light">
+                                        <span className="text-charcoal-500">{getPaymentFeeLabel(order.payment_method_name, order.payment_fee_pct ?? 0)}</span>
+                                        <span className="text-navy-900 font-mono">{formatPriceExact(order.payment_fee ?? 0)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-baseline pt-4 border-t border-gold-300 mt-3">
                                     <span className="text-[11px] uppercase tracking-[0.32em] text-gold-600">Total</span>
                                     <span className="font-heading text-2xl text-navy-900">
-                                        ₱{order.total_price.toLocaleString()}
+                                        {formatPriceExact(order.total_price)}
                                     </span>
                                 </div>
                             </div>

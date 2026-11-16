@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import React from 'react';
 import Cart from '../components/Cart';
 import type { CartItem, Product, ProductVariation } from '../types';
 
@@ -31,6 +30,17 @@ const mockProduct: Product = {
   safety_sheet_url: null,
   created_at: '2024-01-01',
   updated_at: '2024-01-01',
+  cost: 0,
+  description_font_family: null,
+  description_font_size: null,
+  inclusions_font_family: null,
+  inclusions_font_size: null,
+  is_new: false,
+  highlighted: false,
+  coa_url: null,
+  coa_links: [],
+  paired_product_ids: [],
+  bundle_tiers: [],
 };
 
 const mockVariation: ProductVariation = {
@@ -45,6 +55,7 @@ const mockVariation: ProductVariation = {
   discount_active: true,
   stock_quantity: 5,
   created_at: '2024-01-01',
+  cost: null,
 };
 
 const createCartItem = (overrides: Partial<CartItem> = {}): CartItem => ({

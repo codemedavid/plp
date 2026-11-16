@@ -187,3 +187,100 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ─────────────────────────────────────────────────────
+   Ber-months / Christmas theme
+   Brand navy/gold read as a winter night; cranberry and evergreen are
+   accents only (baubles, ribbon, bulbs) — never text or large fills.
+   Motion is transform/opacity only and stops under reduced motion.
+   ───────────────────────────────────────────────────── */
+:root {
+  --holiday-gold: #C9A876;
+  --holiday-gold-deep: #8C7142;
+  --holiday-cranberry: #9E2A35;
+  --holiday-evergreen: #1F4D3A;
+  --holiday-snow: #FAF6EF;
+}
+
+/* Snowfall: each track is as tall as the surface; translating it by its own
+   height carries the flake (pinned to the track's bottom) top-to-bottom. */
+.holiday-snow__track {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  animation-name: holidaySnowFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+.holiday-snow__flake {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border-radius: 9999px;
+  background: var(--holiday-snow);
+  animation-name: holidaySnowSway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+@keyframes holidaySnowFall {
+  from { transform: translate3d(0, -100%, 0); }
+  to { transform: translate3d(0, 8%, 0); }
+}
+@keyframes holidaySnowSway {
+  from { transform: translateX(-6px); }
+  to { transform: translateX(6px); }
+}
+
+/* Baubles swing gently from their thread */
+.holiday-ornament {
+  transform-origin: 50% 0;
+  animation: holidaySwing 5s ease-in-out infinite;
+}
+@keyframes holidaySwing {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+.holiday-ornament:nth-child(2) { animation-duration: 6.5s; animation-delay: -1.2s; }
+.holiday-ornament:nth-child(3) { animation-duration: 4.2s; animation-delay: -2.4s; }
+
+/* Warm light pooling behind the sale figure */
+.holiday-hero__glow {
+  background:
+    radial-gradient(60% 80% at 30% 55%, rgba(201, 168, 118, 0.22), transparent 70%),
+    radial-gradient(50% 60% at 85% 10%, rgba(158, 42, 53, 0.18), transparent 70%);
+}
+
+/* Gift-ribbon stripe under the popup header */
+.holiday-ribbon {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--holiday-cranberry) 0 10px,
+    var(--holiday-snow) 10px 14px,
+    var(--holiday-evergreen) 14px 24px,
+    var(--holiday-snow) 24px 28px
+  );
+}
+
+/* String lights */
+.holiday-lights__bulb {
+  width: 6px;
+  height: 9px;
+  border-radius: 50% 50% 45% 45%;
+  animation: holidayTwinkle 2.4s ease-in-out infinite;
+}
+.holiday-lights__bulb--gold { background: var(--holiday-gold); box-shadow: 0 0 6px rgba(201, 168, 118, 0.8); }
+.holiday-lights__bulb--cranberry { background: var(--holiday-cranberry); box-shadow: 0 0 6px rgba(158, 42, 53, 0.6); }
+.holiday-lights__bulb--evergreen { background: var(--holiday-evergreen); box-shadow: 0 0 6px rgba(31, 77, 58, 0.6); }
+.holiday-lights__bulb--cream { background: #F5ECD9; box-shadow: 0 0 6px rgba(221, 193, 138, 0.9); }
+@keyframes holidayTwinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holiday-snow { display: none; }
+  .holiday-ornament,
+  .holiday-lights__bulb { animation: none; }
+}

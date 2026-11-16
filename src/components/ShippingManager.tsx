@@ -7,7 +7,7 @@ interface ShippingManagerProps {
 }
 
 const ShippingManager: React.FC<ShippingManagerProps> = ({ onBack }) => {
-    const { locations, loading, error, updateLocation, addLocation, deleteLocation, refetch } = useShippingLocationsAdmin();
+    const { locations, loading, error, updateLocation, addLocation, deleteLocation } = useShippingLocationsAdmin();
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editFee, setEditFee] = useState<number>(0);
     const [editName, setEditName] = useState<string>('');

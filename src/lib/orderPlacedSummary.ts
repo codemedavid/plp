@@ -20,6 +20,10 @@ export interface OrderPlacedSummary {
     shippingFee: number;
     discount: number;
     pointsRedeemed: number;
+    /** Payment-method surcharge already included in `total` (0 = none). */
+    paymentFee: number;
+    /** e.g. "QRPh fee (3%)"; empty when there is no fee. */
+    paymentFeeLabel: string;
     total: number;
 }
 
@@ -64,6 +68,8 @@ export function parseOrderPlacedSummary(state: unknown): OrderPlacedSummary | nu
         shippingFee: toAmount(state.shippingFee),
         discount: toAmount(state.discount),
         pointsRedeemed: toAmount(state.pointsRedeemed),
+        paymentFee: toAmount(state.paymentFee),
+        paymentFeeLabel: toText(state.paymentFeeLabel).trim(),
         total: toAmount(state.total),
     };
 }

@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { isHolidaySaleActive } from '../lib/holidaySeason';
+import HolidayHeroSlide from './holiday/HolidayHeroSlide';
 
 interface HeroProps {
   onShopAll: () => void;
@@ -12,7 +14,8 @@ type HeroSlide =
   | { kind: 'image'; src: string }
   | { kind: 'assessment' }
   | { kind: 'referral' }
-  | { kind: 'research' };
+  | { kind: 'research' }
+  | { kind: 'holiday' };
 
 const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -36,7 +39,10 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
     : imageSlides;
   // The referral invite always rides second-to-last; the research-library slide
   // always closes the rotation.
-  const slides: HeroSlide[] = [...baseSlides, referralSlide, researchSlide];
+  // While the ber-months sale runs, its slide opens the rotation; it drops out
+  // on its own at New Year (see lib/holidaySeason).
+  const seasonalSlides: HeroSlide[] = isHolidaySaleActive() ? [{ kind: 'holiday' }] : [];
+  const slides: HeroSlide[] = [...seasonalSlides, ...baseSlides, referralSlide, researchSlide];
   const slideCount = slides.length;
 
   const [current, setCurrent] = useState(0);
@@ -101,6 +107,15 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
               style={{ transform: `translateX(-${current * 100}%)` }}
             >
               {slides.map((slide, i) => {
+                if (slide.kind === 'holiday') {
+                  return (
+                    <HolidayHeroSlide
+                      key="holiday-slide"
+                      ref={(el) => { slideRefs.current[i] = el; }}
+                      onShopAll={onShopAll}
+                    />
+                  );
+                }
                 if (slide.kind === 'research') {
                   return (
                     <a
@@ -263,7 +278,9 @@ const Hero: React.FC<HeroProps> = ({ onShopAll }) => {
                     onClick={(e) => { e.stopPropagation(); goTo(i); }}
                     className={`h-2 rounded-full transition-all ${i === current ? 'w-6 bg-navy-900' : 'w-2 bg-white/70 hover:bg-white'}`}
                     aria-label={
-                      slide.kind === 'assessment'
+                      slide.kind === 'holiday'
+                        ? 'Go to the holiday sale slide'
+                        : slide.kind === 'assessment'
                         ? 'Go to the assessment slide'
                         : slide.kind === 'referral'
                           ? 'Go to the referral slide'

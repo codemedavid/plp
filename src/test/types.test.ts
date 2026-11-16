@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { KIT_UPGRADE_PRICE } from '../types';
-import type { KitType, CartItem, Product, ProductVariation, PromoCode } from '../types';
+import type { KitType, CartItem, Product, PromoCode } from '../types';
 
 describe('Type Constants', () => {
   it('KIT_UPGRADE_PRICE is 150', () => {
@@ -58,6 +58,17 @@ function createMockProduct(): Product {
     description: 'Test',
     category: 'peptides',
     base_price: 2500,
+    cost: 0,
+    description_font_family: null,
+    description_font_size: null,
+    inclusions_font_family: null,
+    inclusions_font_size: null,
+    is_new: false,
+    highlighted: false,
+    coa_url: null,
+    coa_links: [],
+    paired_product_ids: [],
+    bundle_tiers: [],
     discount_price: null,
     discount_start_date: null,
     discount_end_date: null,

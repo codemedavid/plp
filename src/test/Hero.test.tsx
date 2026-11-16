@@ -81,3 +81,42 @@ describe('Hero referral slide', () => {
     expect(screen.queryByText(/^peptide$/i)).not.toBeInTheDocument();
   });
 });
+
+describe('Hero ber-months slide', () => {
+  function renderAt(now: string, onShopAll = vi.fn()) {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date(now));
+    const utils = render(
+      <MemoryRouter>
+        <Hero onShopAll={onShopAll} />
+      </MemoryRouter>,
+    );
+    return { ...utils, onShopAll };
+  }
+
+  it('opens the carousel with the holiday sale during the season', () => {
+    renderAt('2026-12-10T12:00:00+08:00');
+    expect(
+      screen.getByRole('heading', { name: /ber months sale/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /go to the holiday sale slide/i }),
+    ).toHaveAttribute('aria-current', 'true');
+    vi.useRealTimers();
+  });
+
+  it('sends shoppers to the products from the holiday slide', () => {
+    const { onShopAll } = renderAt('2026-12-10T12:00:00+08:00');
+    screen.getByRole('button', { name: /shop the sale/i }).click();
+    expect(onShopAll).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('removes the holiday slide after New Year', () => {
+    renderAt('2027-01-02T12:00:00+08:00');
+    expect(
+      screen.queryByRole('heading', { name: /ber months sale/i }),
+    ).not.toBeInTheDocument();
+    vi.useRealTimers();
+  });
+});

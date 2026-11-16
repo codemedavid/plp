@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import OrderPlacedPanel from '../components/orders/OrderPlacedPanel';
 import type { OrderPlacedSummary } from '../lib/orderPlacedSummary';
@@ -17,6 +16,8 @@ const summary: OrderPlacedSummary = {
   shippingFee: 150,
   discount: 500,
   pointsRedeemed: 100,
+  paymentFee: 0,
+  paymentFeeLabel: '',
   total: 7750,
 };
 
@@ -93,5 +94,19 @@ describe('OrderPlacedPanel', () => {
     expect(screen.getByText(/confirmation email/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /track/i })).toBeInTheDocument();
     expect(screen.queryByText(/order summary/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the payment fee line and the exact total when a fee was charged', () => {
+    renderPanel({ ...summary, discount: 0, pointsRedeemed: 0, subtotal: 1000, shippingFee: 150, paymentFee: 34.5, paymentFeeLabel: 'QRPh fee (3%)', total: 1184.5 });
+
+    expect(screen.getByText('QRPh fee (3%)')).toBeInTheDocument();
+    expect(screen.getByText('₱34.50')).toBeInTheDocument();
+    expect(screen.getByText('₱1,184.50')).toBeInTheDocument();
+  });
+
+  it('hides the payment fee line when there is no fee', () => {
+    renderPanel(summary);
+
+    expect(screen.queryByText(/fee \(/i)).not.toBeInTheDocument();
   });
 });
